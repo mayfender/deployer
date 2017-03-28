@@ -10,9 +10,24 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Deployer {
+	private static String separator = File.separator;
+	private static String tomcatHome;
+	private static String warFile;
 	
 	public static void main(String[] args) {
 		try {
+			
+			log("Check args");
+			if(args != null) {
+				log("args size: " + args.length);
+				tomcatHome = args[0];
+				warFile = args[1];
+				log(tomcatHome);
+				log(warFile);
+			} else {
+				log("Not found args");
+			}
+			
 			System.out.println("=============: Start Deploy Process :==============");
 			log("=============: Start Deploy Process :==============");
 			
@@ -57,7 +72,7 @@ public class Deployer {
 			System.out.println("Remove old version");
 			log("Remove old version files");
 			StringBuilder commands = new StringBuilder();
-			commands.append("cmd /c cd D:/Server_Container/tomcat/apache-tomcat-8.5.12/webapps ");
+			commands.append("cmd /c cd " + tomcatHome + separator + "webapps ");
 			commands.append("&& del backend.war ");
 			commands.append("& rm -rf backend ");
 			commands.append("& cd ../temp ");
@@ -80,8 +95,8 @@ public class Deployer {
 		try {
 			log("Prepare new version file");
 			StringBuilder commands = new StringBuilder();
-			commands.append("cmd /c cd D:/Server_Container/tomcat/apache-tomcat-8.5.12/webapps ");
-			commands.append("&& copy /-y D:\\Repository\\git\\backend-web\\backend\\target\\backend-1.0-RC.war backend.war");
+			commands.append("cmd /c cd " + tomcatHome + separator + "webapps ");
+			commands.append("&& copy /-y " + warFile + " backend.war");
 			Process proc = Runtime.getRuntime().exec(commands.toString());
 			in = proc.getInputStream();
 			print(in);
@@ -98,17 +113,8 @@ public class Deployer {
 			log("Start tomcat");
 			String[] cmd = { "cmd", "/c", "start", "startup.bat"};
 			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
-			procBuilder.directory(new File("D:\\Server_Container\\tomcat\\apache-tomcat-8.5.12\\bin"));
+			procBuilder.directory(new File(tomcatHome + separator + "bin"));
 			procBuilder.start();
-			/*Process proc = procBuilder.start();
-			in = proc.getInputStream();
-			print(in);
-			in = proc.getErrorStream();
-			print(in);*/
-			
-			/*Process proc = Runtime.getRuntime().exec("cmd /c cd D:\\Server_Container\\tomcat\\apache-tomcat-8.5.12\\bin && startup.bat");
-			in = proc.getInputStream();
-			print(in);*/
 	    	
 			log("Start finished");			
 		} catch (Exception e) {
