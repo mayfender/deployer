@@ -96,14 +96,15 @@ public class Deployer {
 		InputStream in = null;
 		try {
 			log("Start tomcat");
-			String[] cmd = { "cmd", "/c", "startup.bat"};
+			String[] cmd = { "cmd", "/c", "start", "startup.bat"};
 			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
 			procBuilder.directory(new File("D:\\Server_Container\\tomcat\\apache-tomcat-8.5.12\\bin"));
-			Process proc = procBuilder.start();
+			procBuilder.start();
+			/*Process proc = procBuilder.start();
 			in = proc.getInputStream();
 			print(in);
 			in = proc.getErrorStream();
-			print(in);
+			print(in);*/
 			
 			/*Process proc = Runtime.getRuntime().exec("cmd /c cd D:\\Server_Container\\tomcat\\apache-tomcat-8.5.12\\bin && startup.bat");
 			in = proc.getInputStream();
