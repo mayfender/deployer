@@ -59,11 +59,11 @@ public class Deployer {
 			StringBuilder commands = new StringBuilder();
 			commands.append("cmd /c cd D:/Server_Container/tomcat/apache-tomcat-8.5.12/webapps ");
 			commands.append("&& del backend.war ");
-			commands.append("& rmdir /Q /S backend ");
+			commands.append("& rm -rf backend ");
 			commands.append("& cd ../temp ");
-			commands.append("&& rmdir /Q /S backend ");
+			commands.append("&& rm -rf backend ");
 			commands.append("& cd ../work/Catalina/localhost ");
-			commands.append("&& rmdir /Q /S backend ");
+			commands.append("&& rm -rf backend ");
 			
 			Process proc = Runtime.getRuntime().exec(commands.toString());
 			in = proc.getInputStream();
