@@ -21,7 +21,7 @@ public class Deployer {
 			if(args != null) {
 				log("args size: " + args.length);
 				tomcatHome = args[0];
-				warFile = args[1];
+				warFile = args[1].replace("/", "\\");
 				log(tomcatHome);
 				log(warFile);
 			} else {
