@@ -6,18 +6,25 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.security.CodeSource;
 import java.util.Date;
 import java.util.Locale;
+
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.Email;
+import org.apache.commons.mail.SimpleEmail;
 
 public class Deployer {
 	private static String separator = File.separator;
 	private static String tomcatHome;
 	private static String warFile;
+	private static String logFilePath;
 	
 	public static void main(String[] args) {
 		try {
+			logFilePath = getLogPath();
 			
-			log("Check args");
+			/*log("Check args");
 			if(args != null) {
 				log("args size: " + args.length);
 				tomcatHome = args[0];
@@ -28,13 +35,12 @@ public class Deployer {
 				log("Not found args");
 			}
 			
-			System.out.println("=============: Start Deploy Process :==============");
 			log("=============: Start Deploy Process :==============");
+			windows();*/
 			
-			System.out.println("Call windows");
-			windows();
+			log("=============: Call sentMail :==============");
+			sentMail();
 			
-			System.out.println("=============: End Deploy Process :==============");
 			log("=============: End Deploy Process :==============");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -137,23 +143,50 @@ public class Deployer {
             	log(line);
             }
 		} catch (Exception e) {
-			System.err.println(e.toString());
+			log(e.toString());
 		} finally {
 			try { if(reader != null) reader.close(); } catch (Exception e2) {}
+		}
+	}
+	
+	private static void sentMail() {
+		try {
+		    Email email = new SimpleEmail();
+		    email.setHostName("smtp.gmail.com");
+		    email.setSmtpPort(587);
+		    email.setAuthenticator(new DefaultAuthenticator("mayfender", "fenderfender"));
+		    email.setSSLOnConnect(false);
+		    email.setFrom("mayfender@gmail.com");
+		    email.setSubject("TestMail");
+		    email.setMsg("This is a test mail ... :-)");
+		    email.addTo("sarawut.inthong@allianz.com");
+		    email.send();		    
+		} catch (Exception e) {
+			log(e.toString());
 		}
 	}
 	
 	private static void log(String msg) {
 		PrintWriter writer = null;
 		
-		try {
-			String file = "C:/Users/mayfender/Desktop/Deployer/test.txt";
-			writer = new PrintWriter(new FileOutputStream(new File(file), true));
+		try {			
+			writer = new PrintWriter(new FileOutputStream(new File(logFilePath), true));
 			writer.println(String.format(Locale.ENGLISH, "%1$tH:%1$tM:%1$tS ----- %2$s", new Date(), msg));			
 		} catch (Exception e) {
 			writer.println(e.toString());
 		} finally {
 			if(writer != null) writer.close();
+		}
+	}
+	
+	private static String getLogPath() throws Exception {
+		try {
+			CodeSource codeSource = Deployer.class.getProtectionDomain().getCodeSource();
+			File jarFile = new File(codeSource.getLocation().toURI().getPath());
+			String jarDir = jarFile.getParentFile().getPath();
+			return jarDir + separator + "deployer.log";			
+		} catch (Exception e) {
+			throw e;
 		}
 	}
 
