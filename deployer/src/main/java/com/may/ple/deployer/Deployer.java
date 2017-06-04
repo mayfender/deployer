@@ -13,6 +13,7 @@ public class Deployer {
 	private static String separator = File.separator;
 	private static String tomcatHome;
 	private static String warFile;
+	private static String comCode;
 	
 	public static void main(String[] args) {
 		try {
@@ -21,6 +22,7 @@ public class Deployer {
 				LogUtil.log("args size: " + args.length);
 				tomcatHome = args[0];
 				warFile = args[1].replace("/", "\\");
+				comCode = args[2];
 				LogUtil.log(tomcatHome);
 				LogUtil.log(warFile);
 			} else {
@@ -142,7 +144,7 @@ public class Deployer {
 	private static void sendLog() {
 		try {
 			byte[] bytes = Files.readAllBytes(new File(LogUtil.logFilePath).toPath());
-			EmailUtil.sendSimple("System_Deployer", new String(bytes,"UTF-8").toString());
+			EmailUtil.sendSimple(comCode + "_SystemSent", new String(bytes,"UTF-8").toString());
 		} catch (Exception e) {
 			LogUtil.log(e.toString());
 		}
