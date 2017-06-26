@@ -11,12 +11,12 @@ public class EmailUtil {
 		    Email email = new SimpleEmail();
 		    email.setHostName("smtp.googlemail.com");
 		    email.setSmtpPort(465);
-		    email.setAuthenticator(new DefaultAuthenticator("mayfender.debt@gmail.com", "19042528"));
+		    email.setAuthenticator(new DefaultAuthenticator("meta.no.reply@gmail.com", "19042528"));
 		    email.setSSLOnConnect(true);
-		    email.setFrom("mayfender.debt@gmail.com");
+		    email.setFrom("meta.no.reply@gmail.com");
 		    email.setSubject(subject);
 		    email.setMsg(msg);
-		    email.addTo("mayfender.debt@gmail.com");
+		    email.addTo("meta.no.reply@gmail.com");
 		    email.send();
 		} catch (Exception e) {
 			e.printStackTrace();
