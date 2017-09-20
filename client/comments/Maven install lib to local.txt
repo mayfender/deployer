@@ -1,0 +1,2 @@
+mvn install:install-file -Dfile="D:\Repository\git\deployer\client\lib\socks.jar" -DgroupId=com.may.ple.tunnel  -DartifactId=socks -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file -Dfile="D:\Repository\git\deployer\client\lib\servlet-api-2.2.jar" -DgroupId=com.may.ple.tunnel  -DartifactId=servlet-api -Dversion=2.2 -Dpackaging=jar

@@ -15,6 +15,16 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.may.ple.tunnel</groupId>
+			<artifactId>socks</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.may.ple.tunnel</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>3.8.1</version>
