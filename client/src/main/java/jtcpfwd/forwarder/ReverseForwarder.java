@@ -1,6 +1,8 @@
 package jtcpfwd.forwarder;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -58,10 +60,28 @@ public class ReverseForwarder extends Forwarder implements Runnable {
 		ss.close();
 	}
 
+	boolean isInit = false;
+	
 	public void run() {
 		while (!disposed) {
 			try {
 				Socket s = ss.accept();
+				
+				//-------------------------------------
+				if(!isInit) {
+					BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+					String str;
+					while ((str = reader.readLine()) != null) {
+						if(str.contains("bye")) {							
+							isInit = true;						
+							break;
+						}
+						System.out.println(str);
+					}
+				}
+				//-------------------------------------
+				
+				
 				synchronized (this) {
 					while (next != null)
 						wait();
