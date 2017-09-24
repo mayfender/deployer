@@ -35,21 +35,26 @@ public class ReverseListener extends Listener {
 			final InetSocketAddress target = destination.getNextDestination();
 			if (target == null)
 				return null;
-			Socket s = new Socket(target.getAddress(), target.getPort());
-			currentSocket = s;
+			
+			Socket s = null;
 			
 			//---------------------------------------
 			if(!isInit) {
+				s = new Socket(target.getAddress(), target.getPort());
+				currentSocket = s;
 				PrintWriter writer = new PrintWriter(s.getOutputStream(), true);
 				writer.write("com_code: 188827727272 \n");
 				writer.write("com_name: The great plus \n");
 				writer.write("bye \n");
 				writer.flush();
 				isInit = true;
+			} else {
+				s = new Socket();				
+				currentSocket = s;
+				s.connect(target);
 			}
 			//---------------------------------------
 			
-//			s.connect(target);
 			boolean ok = false;
 			try {
 				
