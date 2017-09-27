@@ -1,7 +1,6 @@
 package jtcpfwd.listener;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,37 +26,17 @@ public class ReverseListener extends Listener {
 	public Module[] getUsedModules() {
 		return new Module[] { destination };
 	}
-	
-	boolean isInit = false;
-	
+
 	protected Socket tryAccept() throws IOException {
 		try {
 			final InetSocketAddress target = destination.getNextDestination();
 			if (target == null)
 				return null;
-			
-			Socket s = null;
-			
-			//---------------------------------------
-			if(!isInit) {
-				s = new Socket(target.getAddress(), target.getPort());
-				currentSocket = s;
-				PrintWriter writer = new PrintWriter(s.getOutputStream(), true);
-				writer.write("com_code: 188827727272 \n");
-				writer.write("com_name: The great plus \n");
-				writer.write("bye \n");
-				writer.flush();
-				isInit = true;
-			} else {
-				s = new Socket();				
-				currentSocket = s;
-				s.connect(target);
-			}
-			//---------------------------------------
-			
+			Socket s = new Socket();
+			currentSocket = s;
+			s.connect(target);
 			boolean ok = false;
 			try {
-				
 				int b = s.getInputStream().read();
 				if (b == -1)
 					return null;
@@ -71,7 +50,6 @@ public class ReverseListener extends Listener {
 			}
 		} catch (ConnectException ex) {
 			// ignore;
-			isInit = false;
 			return null;
 		} finally {
 			currentSocket = null;
