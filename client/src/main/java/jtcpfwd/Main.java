@@ -37,6 +37,9 @@ package jtcpfwd;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -152,6 +155,24 @@ public class Main {
 				result[i / 2].start();
 			}
 		}
+		
+		//--------------------: Open port to prepare shutdown :----------------
+		new Thread() {
+			public void run() {
+				try {
+					ServerSocket serverSock = new ServerSocket(8005);					
+					Socket socket = serverSock.accept();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					String read;
+					while((read = reader.readLine())  != null) {
+						if(read.equals("SHUTDOWN")) System.exit(0);
+					}
+					serverSock.close();
+				} catch (Exception e) {}
+			}
+		}.start();
+		//--------------------: Open port to prepare shutdown :----------------
+		
 		System.out.println("All forwarders started.");
 		return result;
 	}
