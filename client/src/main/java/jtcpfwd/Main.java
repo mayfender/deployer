@@ -160,14 +160,17 @@ public class Main {
 		new Thread() {
 			public void run() {
 				try {
-					ServerSocket serverSock = new ServerSocket(8005);					
-					Socket socket = serverSock.accept();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					String read;
-					while((read = reader.readLine())  != null) {
-						if(read.equals("SHUTDOWN")) System.exit(0);
+					ServerSocket serverSock = new ServerSocket(8005);	
+					
+					while(true) {
+						Socket socket = serverSock.accept();
+						BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+						String read;
+						while((read = reader.readLine())  != null) {
+							if(read.equals("SHUTDOWN")) System.exit(0);
+						}
+						socket.close();
 					}
-					serverSock.close();
 				} catch (Exception e) {}
 			}
 		}.start();
