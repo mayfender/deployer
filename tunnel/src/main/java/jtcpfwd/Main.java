@@ -159,8 +159,10 @@ public class Main {
 		//--------------------: Open port to prepare shutdown :----------------
 		new Thread() {
 			public void run() {
+				ServerSocket serverSock = null;
+				
 				try {
-					ServerSocket serverSock = new ServerSocket(8015);	
+					serverSock = new ServerSocket(8015);	
 					
 					while(true) {
 						Socket socket = serverSock.accept();
@@ -171,7 +173,13 @@ public class Main {
 						}
 						socket.close();
 					}
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					System.err.println(e.toString());
+				} finally {
+					try {
+						if(serverSock != null) serverSock.close();						
+					} catch (Exception e2) {}
+				}
 			}
 		}.start();
 		//--------------------: Open port to prepare shutdown :----------------

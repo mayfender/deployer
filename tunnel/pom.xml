@@ -4,7 +4,7 @@
 	<groupId>com.may.ple</groupId>
 	<artifactId>tunnel</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-RC</version>
+	<version>1.1-RC</version>
 	<name>tunnel</name>
 
 	<properties>
