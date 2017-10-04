@@ -61,4 +61,9 @@ public class ReverseListener extends Listener {
 		if (currentSocket != null)
 			currentSocket.close();
 	}
+	
+	@Override
+	public Socket getCurrentSocket() {
+		return currentSocket;
+	}
 }

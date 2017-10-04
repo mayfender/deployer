@@ -12,7 +12,7 @@ import jtcpfwd.listener.Listener;
 public class ForwarderThread extends Thread {
 
 	private final Forwarder forwarder;
-	private final Listener listener;
+	public final Listener listener;
 	private boolean disposed = false;
 
 	public ForwarderThread(String listenerRule, String forwarderRule) throws Exception {

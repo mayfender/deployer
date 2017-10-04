@@ -46,7 +46,12 @@ import java.util.List;
 import jtcpfwd.destination.Destination;
 import jtcpfwd.forwarder.Forwarder;
 import jtcpfwd.listener.Listener;
+import jtcpfwd.listener.ReverseListener;
 import jtcpfwd.util.StreamForwarder;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.may.ple.tunnel.util.NetworkInfoUtil;
 
 /**
  * Main class, parsing arguments and config files.
@@ -97,7 +102,7 @@ public class Main {
 	}
 
 	public static ForwarderThread[] start(String[] args) throws Exception {
-		ForwarderThread[] result;
+		final ForwarderThread[] result;
 		if (args.length == 1 && args[0].startsWith("@")) {
 			List/* <ForwarderThread> */threads = new ArrayList();
 			BufferedReader br = new BufferedReader(new FileReader(args[0].substring(1)));
@@ -184,6 +189,35 @@ public class Main {
 		}.start();
 		//--------------------: Open port to prepare shutdown :----------------
 		
+		//--------------------: Checking ipaddress changes :----------------
+		new Thread() {
+			public void run() {
+				String myPubIp = null;
+				String nowPubIp = null;
+				
+				while(true) {
+					try {
+						//--: Wait 5 min
+						Thread.sleep(300000);
+						
+						nowPubIp = NetworkInfoUtil.getPublicIp("http://api.ipify.org");
+						
+						if(StringUtils.isNoneBlank(nowPubIp) && !nowPubIp.equals(myPubIp)) {
+							for (ForwarderThread forwarderThread : result) {
+								if(forwarderThread.listener instanceof ReverseListener) {									
+									forwarderThread.listener.getCurrentSocket().shutdownInput();
+								}
+							}
+						}
+						myPubIp = nowPubIp;
+					} catch (Exception e) {
+						System.err.println(e.toString());
+					}
+				}
+			}
+		}.start();
+		//--------------------: Checking ipaddress changes :----------------
+				
 		System.out.println("All forwarders started.");
 		return result;
 	}
