@@ -50,6 +50,7 @@ import jtcpfwd.listener.ReverseListener;
 import jtcpfwd.util.StreamForwarder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.may.ple.tunnel.util.NetworkInfoUtil;
 
@@ -57,7 +58,8 @@ import com.may.ple.tunnel.util.NetworkInfoUtil;
  * Main class, parsing arguments and config files.
  */
 public class Main {
-
+	private static final Logger LOG = Logger.getLogger(Main.class.getName());
+	
 	public static final String[] SUPPORTED_DESTINATIONS = new String[] {
 			"Simple", "RoundRobin", "AddressStream"
 	};
@@ -96,8 +98,7 @@ public class Main {
 	 * Entry point of this application.
 	 */
 	public static void main(String[] args) throws Exception {
-		System.out.println("JTCPfwd " + VERSION);
-		System.out.println();
+		LOG.info("JTCPfwd " + VERSION);
 		start(args);
 	}
 
@@ -179,7 +180,7 @@ public class Main {
 						socket.close();
 					}
 				} catch (Exception e) {
-					System.err.println(e.toString());
+					LOG.error(e.toString());
 				} finally {
 					try {
 						if(serverSock != null) serverSock.close();						
@@ -203,22 +204,25 @@ public class Main {
 						nowPubIp = NetworkInfoUtil.getPublicIp("http://api.ipify.org");
 						
 						if(StringUtils.isNoneBlank(nowPubIp) && !nowPubIp.equals(myPubIp)) {
+							LOG.info("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
+							
 							for (ForwarderThread forwarderThread : result) {
-								if(forwarderThread.listener instanceof ReverseListener) {									
+								if(forwarderThread.listener instanceof ReverseListener) {		
+									LOG.info("Shutdown socket inputstream");
 									forwarderThread.listener.getCurrentSocket().shutdownInput();
 								}
 							}
 						}
 						myPubIp = nowPubIp;
 					} catch (Exception e) {
-						System.err.println(e.toString());
+						LOG.error(e.toString());
 					}
 				}
 			}
 		}.start();
 		//--------------------: Checking ipaddress changes :----------------
 				
-		System.out.println("All forwarders started.");
+		LOG.info("All forwarders started.");
 		return result;
 	}
 
