@@ -50,7 +50,6 @@ import jtcpfwd.listener.ReverseListener;
 import jtcpfwd.util.StreamForwarder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 import com.may.ple.tunnel.util.NetworkInfoUtil;
 
@@ -58,7 +57,6 @@ import com.may.ple.tunnel.util.NetworkInfoUtil;
  * Main class, parsing arguments and config files.
  */
 public class Main {
-	private static final Logger LOG = Logger.getLogger(Main.class.getName());
 	
 	public static final String[] SUPPORTED_DESTINATIONS = new String[] {
 			"Simple", "RoundRobin", "AddressStream"
@@ -98,7 +96,7 @@ public class Main {
 	 * Entry point of this application.
 	 */
 	public static void main(String[] args) throws Exception {
-		LOG.info("JTCPfwd " + VERSION);
+		System.out.println("JTCPfwd " + VERSION);
 		start(args);
 	}
 
@@ -180,7 +178,7 @@ public class Main {
 						socket.close();
 					}
 				} catch (Exception e) {
-					LOG.error(e.toString());
+					System.err.println(e.toString());
 				} finally {
 					try {
 						if(serverSock != null) serverSock.close();						
@@ -204,25 +202,25 @@ public class Main {
 						nowPubIp = NetworkInfoUtil.getPublicIp("http://api.ipify.org");
 						
 						if(StringUtils.isNoneBlank(nowPubIp) && !nowPubIp.equals(myPubIp)) {
-							LOG.info("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
+							System.out.println("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
 							
 							for (ForwarderThread forwarderThread : result) {
-								if(forwarderThread.listener instanceof ReverseListener) {		
-									LOG.info("Shutdown socket inputstream");
+								if(forwarderThread.listener instanceof ReverseListener) {
+									System.out.println("Shutdown socket inputstream");
 									forwarderThread.listener.getCurrentSocket().shutdownInput();
 								}
 							}
 						}
 						myPubIp = nowPubIp;
 					} catch (Exception e) {
-						LOG.error(e.toString());
+						System.err.println(e.toString());
 					}
 				}
 			}
 		}.start();
 		//--------------------: Checking ipaddress changes :----------------
 				
-		LOG.info("All forwarders started.");
+		System.out.println("All forwarders started.");
 		return result;
 	}
 
