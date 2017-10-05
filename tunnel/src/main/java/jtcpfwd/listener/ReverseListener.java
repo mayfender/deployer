@@ -47,7 +47,7 @@ public class ReverseListener extends Listener {
 					// So this while loop will be observe by [is.available()] if no will be sleep 5 sec and continue while(true) again.
 					// if still no request until round = 12 or 1 minute will return to get new socket.
 					
-					if(round == 12) {
+					if(round == 60) {
 						System.out.println("round 12");
 						return null;
 					}
