@@ -161,7 +161,7 @@ public class Main {
 				ServerSocket serverSock = null;
 				
 				try {
-					serverSock = new ServerSocket(8015);	
+					serverSock = new ServerSocket(9000);	
 					
 					while(true) {
 						Socket socket = serverSock.accept();
