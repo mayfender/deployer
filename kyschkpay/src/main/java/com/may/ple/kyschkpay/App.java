@@ -1,113 +1,62 @@
 package com.may.ple.kyschkpay;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Calendar;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class App {
-	private static String token;
+	private static final String PRODUCT_ID = "58ad698b22fdcb9665a7499b";
+	private static final String USERNAME = "system";
+	private static final String PASSWORD = "w,j[vd8iy[";
 	
 	public static void main(String[] args) {
 		try {
-			int i = 0;
-			while(true) {
-				if(i == 10) break;
+			DMSApi dmsApi = DMSApi.getInstance();
+			long timeInMillis = Calendar.getInstance().getTimeInMillis();
+			
+			System.out.println("call login " + String.format("%1$tH:%1$tm:%1$tS", Calendar.getInstance().getTime()));
+			dmsApi.login(USERNAME, PASSWORD);
+			
+			System.out.println("Get check List");
+			JsonObject chkList = dmsApi.getChkList(PRODUCT_ID, timeInMillis);
+			String idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
+			String birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
+			System.out.println("Original : " + chkList);
+			
+			JsonElement checkList = chkList.get("checkList");
+			if(checkList == null) return;
+			
+			JsonElement status1 = checkList.getAsJsonObject().get("1"); //--: Pending
+//			JsonElement status2 = checkList.getAsJsonObject().get("2"); //--: Login error
+//			JsonElement status3 = checkList.getAsJsonObject().get("3"); //--: Paid
+			
+			if(status1 != null) {
+				JsonArray status1Lst = status1.getAsJsonArray();
+				ExecutorService executor = Executors.newFixedThreadPool(1);
+				Runnable worker;
 				
-				System.out.println("call login " + String.format("%1$tH:%1$tm:%1$tS", Calendar.getInstance().getTime()));
-				login();
+				for (JsonElement element : status1Lst) {
+					worker = new WorkerThread(element, idCardNoColumnName, birthDateColumnName);
+					executor.execute(worker);
+				}
 				
-				System.out.println("call img2txt " + String.format("%1$tH:%1$tm:%1$tS", Calendar.getInstance().getTime()));
-				img2txt();
-				System.out.println("finished " + String.format("%1$tH:%1$tm:%1$tS", Calendar.getInstance().getTime()));
-				
-				Thread.sleep(1000);
-				i++;
+				executor.shutdown();
+				while (!executor.isTerminated()) {}
+				System.out.println("Finished all threads");
 			}
+			/*if(status2 != null) {
+				
+			}
+			if(status3 != null) {
+				
+			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private static void img2txt() throws Exception {
-		CloseableHttpClient httpClient = null;
-		try {
-			httpClient = HttpClientBuilder.create().build();
-			HttpPost httpPost = new HttpPost("http://localhost:8080/backend/restAct/tools/img2txt");
-			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", token);
-			
-			HttpResponse response = httpClient.execute(httpPost);
-			Map result = getResult(response);
-			
-			System.out.println(result);
-		} catch (Exception e) {
-			throw e;
-		}
-	}
-	
-	private static void login() throws Exception {
-		CloseableHttpClient httpClient = null;
-		try {
-			httpClient = HttpClientBuilder.create().build();
-			HttpPost httpPost = new HttpPost("http://localhost:8080/backend/login");
-			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			
-			String username = "system";
-			String password = Base64.encodeBase64String("w,j[vd8iy[".getBytes());
-			
-			JsonObject jsonObject = new JsonObject();
-			jsonObject.addProperty("username", username);
-			jsonObject.addProperty("password", password);
-			
-			StringEntity userEntity = new StringEntity(jsonObject.toString());
-			httpPost.setEntity(userEntity);
-			
-			HttpResponse response = httpClient.execute(httpPost);
-			
-			Map result = getResult(response);
-			token = result.get("token").toString();			
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			try {
-				if(httpClient != null) httpClient.close(); 
-			} catch (Exception e2) {}
-		}
-	}
-	
-	private static Map getResult(HttpResponse response) throws Exception {
-		try {
-			if (response.getStatusLine().getStatusCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : "
-				   + response.getStatusLine().getStatusCode());
-			}
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-			String output, result = "";
-			
-			while ((output = br.readLine()) != null) {
-				result = output;
-			}
-			br.close();
-			
-			Gson gson = new GsonBuilder().create();
-			Map map = gson.fromJson(result , Map.class);
-			return map;
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+	}	
 	
 }
