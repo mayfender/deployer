@@ -21,7 +21,7 @@ import com.google.gson.JsonParser;
 
 public class DMSApi {
 	private static final DMSApi instance = new DMSApi();
-	private final String BASE_URL = "http://localhost:8080/backend";
+	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private String token;
 	
 	private DMSApi() {}
@@ -91,6 +91,29 @@ public class DMSApi {
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("imgBase64", imgBase64);
+			
+			StringEntity userEntity = new StringEntity(jsonObject.toString());
+			httpPost.setEntity(userEntity);
+			
+			HttpResponse response = httpClient.execute(httpPost);
+			return jsonParser(response);
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public JsonObject updateChkLst(String productId, String id, int status) throws Exception {
+		CloseableHttpClient httpClient = null;
+		try {
+			httpClient = HttpClientBuilder.create().build();
+			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/updateChkLst");
+			httpPost.addHeader("content-type", "application/json; charset=utf8");
+			httpPost.addHeader("X-Auth-Token", this.token);
+			
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("productId", productId);
+			jsonObject.addProperty("id", id);
+			jsonObject.addProperty("status", status);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);

@@ -19,7 +19,6 @@ import com.fasterxml.uuid.Generators;
 import com.google.gson.JsonObject;
 
 public class KYSApi {
-	private enum LOGIN_STATUS {SERVICE_UNAVAILABLE, FAIL, SUCCESS};
 	private static String LINK = "https://www.e-studentloan.ktb.co.th";
 	private static String captchaPath = "D:/DMS_DATA/upload/temp/";
 	private static final KYSApi instance = new KYSApi();
@@ -37,7 +36,7 @@ public class KYSApi {
 			//[1]
 			Map<String, String> loginResp = getLoginPage();
 			
-			if(loginResp == null) return "-1";
+			if(loginResp == null) return StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString();
 			
 			//[2]
 			String sessionId = loginResp.get("JSESSIONID");
@@ -47,16 +46,15 @@ public class KYSApi {
 			System.out.println("captchaTxt : "+ captchaTxt);
 			
 			//[3]
-			LOGIN_STATUS status = doLogin(sessionId, captchaTxt, cid, birthdate);
-			if(status == LOGIN_STATUS.SUCCESS) {
+			StatusConstant status = doLogin(sessionId, captchaTxt, cid, birthdate);
+			if(status == StatusConstant.LOGIN_SUCCESS) {
 				return sessionId;				
-			} else if (status == LOGIN_STATUS.FAIL) {
-				return "0";
+			} else if (status == StatusConstant.LOGIN_FAIL) {
+				return StatusConstant.LOGIN_FAIL.getStatus().toString();
 			} else {
-				return "-1";
+				return StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString();
 			}
 		} catch (Exception e) {
-			FileUtils.deleteQuietly(new File(captchaFullPath));
 			throw e;
 		} finally {
 			if(StringUtils.isNotBlank(captchaFullPath)) {
@@ -74,7 +72,7 @@ public class KYSApi {
 			Document doc = res.parse();
 			Elements captchaEl = doc.select("#capId");
 			
-			if((captchaEl = doc.select("#capId")) == null) {
+			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
 				return null;
 			}
 			
@@ -109,7 +107,7 @@ public class KYSApi {
 		}
 	}
 	
-	private LOGIN_STATUS doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
+	private StatusConstant doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLogin.do")
 					.method(Method.POST)
@@ -124,14 +122,14 @@ public class KYSApi {
 			
 			Document doc = res.parse();
 			Elements cusName = doc.select("td input[name='stuFullName']");
-			LOGIN_STATUS status;
+			StatusConstant status;
 			
 			if(cusName != null && StringUtils.isNoneBlank(cusName.val())) {				
-				status = LOGIN_STATUS.SUCCESS;
+				status = StatusConstant.LOGIN_SUCCESS;
 			} else if(doc.select("#capId") != null) {
-				status = LOGIN_STATUS.FAIL;
+				status = StatusConstant.LOGIN_FAIL;
 			} else {
-				status = LOGIN_STATUS.SERVICE_UNAVAILABLE;
+				status = StatusConstant.SERVICE_UNAVAILABLE;
 			}			
 			
 			return status;

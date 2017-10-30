@@ -9,7 +9,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class App {
-	private static final String PRODUCT_ID = "58ad698b22fdcb9665a7499b";
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	
@@ -22,41 +21,55 @@ public class App {
 			dmsApi.login(USERNAME, PASSWORD);
 			
 			System.out.println("Get check List");
-			JsonObject chkList = dmsApi.getChkList(PRODUCT_ID, timeInMillis);
-			String idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
-			String birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
-			System.out.println("Original : " + chkList);
+//			String[] prodIds = "58ad698b22fdcb9665a7499b,588c27cd22fd35487370f533".split(",");
+			String[] prodIds = "58ad698b22fdcb9665a7499b".split(",");
+			ExecutorService executor;
 			
-			JsonElement checkList = chkList.get("checkList");
-			if(checkList == null) return;
-			
-			JsonElement status1 = checkList.getAsJsonObject().get("1"); //--: Pending
-//			JsonElement status2 = checkList.getAsJsonObject().get("2"); //--: Login error
-//			JsonElement status3 = checkList.getAsJsonObject().get("3"); //--: Paid
-			
-			if(status1 != null) {
-				JsonArray status1Lst = status1.getAsJsonArray();
-				ExecutorService executor = Executors.newFixedThreadPool(1);
-				Runnable worker;
+			while(true) {
+				executor = Executors.newFixedThreadPool(1);
 				
-				for (JsonElement element : status1Lst) {
-					worker = new WorkerThread(element, idCardNoColumnName, birthDateColumnName);
-					executor.execute(worker);
+				for (String prodId : prodIds) {
+					JsonObject chkList = dmsApi.getChkList(prodId, timeInMillis);
+					String idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
+					String birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
+					System.out.println("Original : " + chkList);
+					
+					JsonElement checkList = chkList.get("checkList");
+					if(checkList == null) continue;
+					
+					JsonElement status1 = checkList.getAsJsonObject().get("1"); //--: Pending
+					JsonElement status2 = checkList.getAsJsonObject().get("2"); //--: Login error
+					JsonElement status3 = checkList.getAsJsonObject().get("3"); //--: Paid
+					
+					proceed(executor, status1, idCardNoColumnName, birthDateColumnName, prodId);
+					proceed(executor, status2, idCardNoColumnName, birthDateColumnName, prodId);
+					proceed(executor, status3, idCardNoColumnName, birthDateColumnName, prodId);
+					
+					executor.shutdown();
+					while (!executor.isTerminated()) {}
+					System.out.println("Finished all threads");
 				}
-				
-				executor.shutdown();
-				while (!executor.isTerminated()) {}
-				System.out.println("Finished all threads");
+				Thread.sleep(600000);
 			}
-			/*if(status2 != null) {
-				
-			}
-			if(status3 != null) {
-				
-			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}	
+	}
+	
+	private static void proceed(ExecutorService executor, JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {		
+		try {
+			if(element == null) return;
+			
+			JsonArray status1Lst = element.getAsJsonArray();
+			Runnable worker;
+			
+			for (JsonElement el : status1Lst) {
+				worker = new WorkerThread(el, idCardNoColumnName, birthDateColumnName, productId);
+				executor.execute(worker);
+			}
+		} catch (Exception e) {
+			throw e;
+		}		
+	}
 	
 }
