@@ -13,6 +13,7 @@ import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.fasterxml.uuid.Generators;
@@ -60,6 +61,43 @@ public class KYSApi {
 			if(StringUtils.isNotBlank(captchaFullPath)) {
 				FileUtils.forceDelete(new File(captchaFullPath));
 			}
+		}
+	}
+	
+	public void getPaymentInfo(String sessionId) throws Exception {
+		try {
+			Response res = Jsoup.connect(LINK + "/STUDENT/ESLMTI001.do")
+					.method(Method.POST)
+					.data("loanType", "F101")
+					.data("accNo", "1006277854")
+					.data("cif", "")
+					.data("browser", "Fire Fox Or Other")
+					.header("Content-Type", "application/x-www-form-urlencoded")
+					.cookie("JSESSIONID", sessionId)
+					.postDataCharset("UTF-8")
+					.execute();
+			
+			Document doc = res.parse();
+			Elements table = doc.select("#tab4 table table");
+			Elements rows = table.select("tr");
+			Elements cols;
+			boolean isFirstRow = true;
+			
+			for (Element row : rows) {
+				cols = row.select("td");
+				
+				for (Element col : cols) {
+					if(isFirstRow) {
+						System.out.print(String.format("%25s", col.select("div").text() + "| "));
+						isFirstRow = false;
+					} else {
+						System.out.print(String.format("%25s", col.text() + "| "));												
+					}
+				}
+				System.out.println();
+			}
+		} catch (Exception e) {
+			throw e;
 		}
 	}
 

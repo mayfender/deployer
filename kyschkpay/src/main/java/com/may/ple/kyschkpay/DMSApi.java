@@ -3,18 +3,16 @@ package com.may.ple.kyschkpay;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -22,6 +20,7 @@ import com.google.gson.JsonParser;
 public class DMSApi {
 	private static final DMSApi instance = new DMSApi();
 	private final String BASE_URL = "http://127.0.0.1:8080/backend";
+	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	private String token;
 	
 	private DMSApi() {}
@@ -33,7 +32,10 @@ public class DMSApi {
 	public void login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
-			httpClient = HttpClientBuilder.create().build();
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/login");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			
@@ -60,7 +62,10 @@ public class DMSApi {
 	public JsonObject getChkList(String productId, long timeInMill) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
-			httpClient = HttpClientBuilder.create().build();
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/getCheckList");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", this.token);
@@ -82,7 +87,10 @@ public class DMSApi {
 	public JsonObject img2txt(String captChaPath) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
-			httpClient = HttpClientBuilder.create().build();
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/tools/img2txt");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", this.token);
@@ -102,18 +110,24 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateChkLst(String productId, String id, int status) throws Exception {
+	public JsonObject updateChkLst(UpdateChkLstModel model) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
-			httpClient = HttpClientBuilder.create().build();
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/updateChkLst");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", this.token);
 			
 			JsonObject jsonObject = new JsonObject();
-			jsonObject.addProperty("productId", productId);
-			jsonObject.addProperty("id", id);
-			jsonObject.addProperty("status", status);
+			jsonObject.addProperty("productId", model.getProductId());
+			jsonObject.addProperty("id", model.getId());
+			jsonObject.addProperty("status", model.getStatus());
+			if(model.getPaidDateTime() != null) {
+				jsonObject.addProperty("paidDateTime", model.getPaidDateTime().getTime());				
+			}
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
@@ -151,17 +165,6 @@ public class DMSApi {
 			br.close();
 			
 			return result;
-		} catch (Exception e) {
-			throw e;
-		}
-	}
-	
-	private Map gsonParser(HttpResponse response) throws Exception {
-		try {
-			String jsonStr = jsonStr(response);
-			Gson gson = new GsonBuilder().create();
-			Map map = gson.fromJson(jsonStr , Map.class);
-			return map;
 		} catch (Exception e) {
 			throw e;
 		}

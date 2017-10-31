@@ -26,7 +26,7 @@ public class App {
 			ExecutorService executor;
 			
 			while(true) {
-				executor = Executors.newFixedThreadPool(1);
+				executor = Executors.newFixedThreadPool(50);
 				
 				for (String prodId : prodIds) {
 					JsonObject chkList = dmsApi.getChkList(prodId, timeInMillis);
