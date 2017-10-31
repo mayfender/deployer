@@ -18,7 +18,7 @@ public class GenerateLicense {
         
         License license = new License.Builder().
                 withProductKey("BKK-0003-00003").
-                withHolder("พี่นิธินพ").
+                withHolder("NNYY").
                 withIssueDate(ca.getTimeInMillis()).
                 build();
         
