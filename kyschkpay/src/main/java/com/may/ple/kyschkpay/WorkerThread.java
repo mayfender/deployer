@@ -48,8 +48,9 @@ public class WorkerThread implements Runnable {
 				
 				if(errCount == 10) break;
 				
-//				sessionId = KYSApi.getInstance().login(idCard, birthDate);
-				sessionId = StatusConstant.LOGIN_FAIL.getStatus().toString();
+				sessionId = KYSApi.getInstance().login(idCard, birthDate);
+//				Mock status for testing
+//				sessionId = StatusConstant.LOGIN_SUCCESS.getStatus().toString();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) {
 					System.out.println("Service Unavailable");
