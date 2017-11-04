@@ -1,6 +1,12 @@
 package com.may.ple.kyschkpay;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -12,8 +18,14 @@ public class App {
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	
+	//--: args[0]: Product ID[proId-1,proId-2]
 	public static void main(String[] args) {
 		try {
+			if(args == null) return;
+			List<String> prodIds = Arrays.asList(args[0].split(","));
+			
+			socketApi();
+			
 			DMSApi dmsApi = DMSApi.getInstance();
 			long timeInMillis = Calendar.getInstance().getTimeInMillis();
 			
@@ -21,8 +33,6 @@ public class App {
 			dmsApi.login(USERNAME, PASSWORD);
 			
 			System.out.println("Get check List");
-//			String[] prodIds = "58ad698b22fdcb9665a7499b,588c27cd22fd35487370f533".split(",");
-			String[] prodIds = "58ad698b22fdcb9665a7499b".split(",");
 			ExecutorService executor;
 			
 			while(true) {
@@ -70,6 +80,34 @@ public class App {
 		} catch (Exception e) {
 			throw e;
 		}		
+	}
+	
+	private static void socketApi() {
+		new Thread() {
+			public void run() {
+				ServerSocket serverSock = null;
+				
+				try {
+					serverSock = new ServerSocket(9001);	
+					
+					while(true) {
+						Socket socket = serverSock.accept();
+						BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+						String read;
+						while((read = reader.readLine())  != null) {
+							if(read.equals("SHUTDOWN")) System.exit(0);
+						}
+						socket.close();
+					}
+				} catch (Exception e) {
+					System.err.println(e.toString());
+				} finally {
+					try {
+						if(serverSock != null) serverSock.close();						
+					} catch (Exception e2) {}
+				}
+			}
+		}.start();
 	}
 	
 }
