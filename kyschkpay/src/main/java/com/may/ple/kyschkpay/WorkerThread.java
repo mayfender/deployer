@@ -64,6 +64,7 @@ public class WorkerThread implements Runnable {
 					errCount++;
 					Thread.sleep(5000);
 				}
+				LOG.warn("Login Success");
 			}
 			return sessionId;
 		} catch (Exception e) {
