@@ -26,17 +26,15 @@ public class App {
 		try {
 			LOG.info("Start Module...");
 			
-			if(args == null) {
+			if(args == null || args.length == 0) {
 				LOG.error("args can't be null");
 				return;
 			}
 			
-			socketApi();
-			
+			List<String> prodIds = Arrays.asList(args[0].split(","));
 			DMSApi dmsApi = DMSApi.getInstance();			
 			dmsApi.login(USERNAME, PASSWORD);
 			
-			List<String> prodIds = Arrays.asList(args[0].split(","));
 			long timeInMillis = Calendar.getInstance().getTimeInMillis();
 			ExecutorService executor;
 			String idCardNoColumnName;
@@ -46,6 +44,8 @@ public class App {
 			JsonElement status3;
 			JsonObject chkList;
 			LOG.debug("prodIds : " + prodIds);
+			
+			socketApi();
 			
 			while(true) {
 				executor = Executors.newFixedThreadPool(50);
