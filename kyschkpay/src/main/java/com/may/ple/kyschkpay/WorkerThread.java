@@ -2,10 +2,13 @@ package com.may.ple.kyschkpay;
 
 import java.util.Calendar;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class WorkerThread implements Runnable {
+	private static final Logger LOG = Logger.getLogger(WorkerThread.class.getName());
 	private JsonElement element;
 	private String idCardNoColumnName;
 	private String birthDateColumnName;
@@ -21,7 +24,7 @@ public class WorkerThread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			System.out.println("Worker start");
+			LOG.debug("Start Worker");
 			
 			JsonObject data = element.getAsJsonObject();
 			String id = data.get("_id").getAsString();
@@ -32,14 +35,15 @@ public class WorkerThread implements Runnable {
 			String sessionId = login(idCard, birthDate);
 			proceed(sessionId, id);
 			
-			System.out.println("Worker end");
+			LOG.debug("Worker end");
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.toString());
 		}
 	}
 	
 	private String login(String idCard, String birthDate) throws Exception {
 		try {
+			LOG.debug("Start login");
 			String sessionId = StatusConstant.LOGIN_FAIL.getStatus().toString();
 			int errCount = 0;
 			
@@ -53,22 +57,25 @@ public class WorkerThread implements Runnable {
 //				sessionId = StatusConstant.LOGIN_SUCCESS.getStatus().toString();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) {
-					System.out.println("Service Unavailable");
+					LOG.warn("Service Unavailable");
 					break;
 				} else if(StatusConstant.LOGIN_FAIL.getStatus().toString().equals(sessionId)) {
-					System.out.println("Login fail");
+					LOG.warn("Login fail");
 					errCount++;
 					Thread.sleep(5000);
 				}
 			}
 			return sessionId;
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
 	private void proceed(String sessionId, String id) throws Exception {
 		try {
+			LOG.debug("Start proceed " + sessionId);
+			
 			if(StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) return;
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
@@ -87,6 +94,7 @@ public class WorkerThread implements Runnable {
 				DMSApi.getInstance().updateChkLst(model);
 			}
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}

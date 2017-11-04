@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
@@ -20,6 +21,7 @@ import com.fasterxml.uuid.Generators;
 import com.google.gson.JsonObject;
 
 public class KYSApi {
+	private static final Logger LOG = Logger.getLogger(KYSApi.class.getName());
 	private static String LINK = "https://www.e-studentloan.ktb.co.th";
 	private static String captchaPath = "D:/DMS_DATA/upload/temp/";
 	private static final KYSApi instance = new KYSApi();
@@ -34,6 +36,8 @@ public class KYSApi {
 		String captchaFullPath = null;
 		
 		try {
+			LOG.debug("Start login");
+			
 			//[1]
 			Map<String, String> loginResp = getLoginPage();
 			
@@ -44,7 +48,7 @@ public class KYSApi {
 			captchaFullPath = loginResp.get("CAPTCHA_FULL_PATH");
 			JsonObject jsonObj = DMSApi.getInstance().img2txt(captchaFullPath);
 			String captchaTxt = jsonObj.get("text").getAsString();
-			System.out.println("captchaTxt : "+ captchaTxt);
+			LOG.debug("captchaTxt : "+ captchaTxt);
 			
 			//[3]
 			StatusConstant status = doLogin(sessionId, captchaTxt, cid, birthdate);
@@ -56,6 +60,7 @@ public class KYSApi {
 				return StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString();
 			}
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		} finally {
 			if(StringUtils.isNotBlank(captchaFullPath)) {
@@ -97,12 +102,15 @@ public class KYSApi {
 				System.out.println();
 			}
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 
 	private Map<String, String> getLoginPage() throws Exception {
 		try {
+			LOG.debug("Start getLoginPage");
+			
 			Response res = Jsoup
 					.connect(LINK + "/STUDENT/ESLLogin.do")
 					.method(Method.GET).execute();
@@ -120,12 +128,15 @@ public class KYSApi {
 						
 			return cookie;
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 
 	private String getCaptchaImg(Map<String, String> cookie, String captchaImgUrl) throws Exception {
 		try {
+			LOG.debug("Start getCaptchaImg");
+			
 			// Fetch the captcha image
 			Response res = Jsoup
 					.connect(captchaImgUrl) 	// Extract image absolute URL
@@ -141,12 +152,15 @@ public class KYSApi {
 			
 			return captchaFullPath;
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
 	private StatusConstant doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
 		try {
+			LOG.debug("Start doLogin");
+			
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLogin.do")
 					.method(Method.POST)
 					.data("cid", cid)
@@ -172,6 +186,7 @@ public class KYSApi {
 			
 			return status;
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}

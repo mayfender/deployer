@@ -12,12 +12,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class DMSApi {
+	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
 	private static final DMSApi instance = new DMSApi();
 	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
@@ -32,6 +34,7 @@ public class DMSApi {
 	public void login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
+			LOG.debug("Start Login");
 			HttpClientBuilder builder = HttpClientBuilder.create();
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
 			
@@ -50,7 +53,10 @@ public class DMSApi {
 			
 			JsonObject jsonObj = jsonParser(response);
 			this.token = jsonObj.get("token").getAsString();
+			
+			LOG.debug("token : " + token);
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		} finally {
 			try {
@@ -62,6 +68,7 @@ public class DMSApi {
 	public JsonObject getChkList(String productId, long timeInMill) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
+			LOG.debug("Start getChkList");
 			HttpClientBuilder builder = HttpClientBuilder.create();
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
 			
@@ -80,6 +87,7 @@ public class DMSApi {
 			HttpResponse response = httpClient.execute(httpPost);
 			return jsonParser(response);
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
@@ -87,6 +95,7 @@ public class DMSApi {
 	public JsonObject img2txt(String captChaPath) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
+			LOG.debug("Start img2txt");
 			HttpClientBuilder builder = HttpClientBuilder.create();
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
 			
@@ -106,6 +115,7 @@ public class DMSApi {
 			HttpResponse response = httpClient.execute(httpPost);
 			return jsonParser(response);
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
@@ -113,6 +123,7 @@ public class DMSApi {
 	public JsonObject updateChkLst(UpdateChkLstModel model) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
+			LOG.debug("Start updateChkLst");
 			HttpClientBuilder builder = HttpClientBuilder.create();
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
 			
@@ -135,22 +146,26 @@ public class DMSApi {
 			HttpResponse response = httpClient.execute(httpPost);
 			return jsonParser(response);
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
 	private JsonObject jsonParser(HttpResponse response) throws Exception {
 		try {
+			LOG.debug("Start jsonParser");
 			String jsonStr = jsonStr(response);
 			JsonElement jsonElement =  new JsonParser().parse(jsonStr);
 			return jsonElement.getAsJsonObject();
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
 	private String jsonStr(HttpResponse response) throws Exception {
 		try {
+			LOG.debug("Start jsonStr");
 			if (response.getStatusLine().getStatusCode() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : "
 				   + response.getStatusLine().getStatusCode());
@@ -166,6 +181,7 @@ public class DMSApi {
 			
 			return result;
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}

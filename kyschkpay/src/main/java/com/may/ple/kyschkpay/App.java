@@ -26,35 +26,42 @@ public class App {
 		try {
 			LOG.info("Start Module...");
 			
-			if(args == null) return;
-			List<String> prodIds = Arrays.asList(args[0].split(","));
+			if(args == null) {
+				LOG.error("args can't be null");
+				return;
+			}
 			
 			socketApi();
 			
-			DMSApi dmsApi = DMSApi.getInstance();
-			long timeInMillis = Calendar.getInstance().getTimeInMillis();
-			
-			System.out.println("call login " + String.format("%1$tH:%1$tm:%1$tS", Calendar.getInstance().getTime()));
+			DMSApi dmsApi = DMSApi.getInstance();			
 			dmsApi.login(USERNAME, PASSWORD);
 			
-			System.out.println("Get check List");
+			List<String> prodIds = Arrays.asList(args[0].split(","));
+			long timeInMillis = Calendar.getInstance().getTimeInMillis();
 			ExecutorService executor;
+			String idCardNoColumnName;
+			String birthDateColumnName;
+			JsonElement status1;
+			JsonElement status2;
+			JsonElement status3;
+			JsonObject chkList;
+			LOG.debug("prodIds : " + prodIds);
 			
 			while(true) {
 				executor = Executors.newFixedThreadPool(50);
 				
 				for (String prodId : prodIds) {
-					JsonObject chkList = dmsApi.getChkList(prodId, timeInMillis);
-					String idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
-					String birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
-					System.out.println("Original : " + chkList);
+					chkList = dmsApi.getChkList(prodId, timeInMillis);
+					idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
+					birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
+					LOG.debug("Original : " + chkList);
 					
 					JsonElement checkList = chkList.get("checkList");
 					if(checkList == null) continue;
 					
-					JsonElement status1 = checkList.getAsJsonObject().get("1"); //--: Pending
-					JsonElement status2 = checkList.getAsJsonObject().get("2"); //--: Login error
-					JsonElement status3 = checkList.getAsJsonObject().get("3"); //--: Paid
+					status1 = checkList.getAsJsonObject().get("1"); //--: Pending
+					status2 = checkList.getAsJsonObject().get("2"); //--: Login error
+					status3 = checkList.getAsJsonObject().get("3"); //--: Paid
 					
 					proceed(executor, status1, idCardNoColumnName, birthDateColumnName, prodId);
 					proceed(executor, status2, idCardNoColumnName, birthDateColumnName, prodId);
@@ -62,17 +69,18 @@ public class App {
 					
 					executor.shutdown();
 					while (!executor.isTerminated()) {}
-					System.out.println("Finished all threads");
+					LOG.debug("Finished all threads");
 				}
 				Thread.sleep(600000);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.toString());
 		}
 	}
 	
 	private static void proceed(ExecutorService executor, JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {		
 		try {
+			LOG.info("Start proceed");
 			if(element == null) return;
 			
 			JsonArray status1Lst = element.getAsJsonArray();
@@ -83,11 +91,13 @@ public class App {
 				executor.execute(worker);
 			}
 		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}		
 	}
 	
 	private static void socketApi() {
+		LOG.info("Start socket api");
 		new Thread() {
 			public void run() {
 				ServerSocket serverSock = null;
@@ -105,7 +115,7 @@ public class App {
 						socket.close();
 					}
 				} catch (Exception e) {
-					System.err.println(e.toString());
+					LOG.error(e.toString());
 				} finally {
 					try {
 						if(serverSock != null) serverSock.close();						
