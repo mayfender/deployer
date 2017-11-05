@@ -71,8 +71,7 @@ public class App {
 					while (!executor.isTerminated()) {}
 					LOG.debug("Finished all threads");
 				}
-//				Thread.sleep(600000);
-				Thread.sleep(15000);
+				Thread.sleep(600000);
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString());

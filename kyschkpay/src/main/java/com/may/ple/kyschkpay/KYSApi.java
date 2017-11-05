@@ -90,6 +90,14 @@ public class KYSApi {
 					.execute();
 			
 			Document doc = res.parse();
+			Elements body = doc.select("body");
+			String onload = body.get(0).attr("onload");
+			
+			if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login")) {
+				throw new CustomException(1, "Session Timeout");
+			}
+			
+			//[]
 			Elements tr = doc.select("table #td0");
 			
 			if(tr.size() == 0) throw new Exception("Not found [table #td0]");
@@ -143,11 +151,6 @@ public class KYSApi {
 			
 			Document doc = res.parse();
 			Elements table = doc.select("#tab4 table table");
-			
-			if(table == null || table.size() == 0) {
-				throw new CustomException(1, "Session Timeout");
-			}
-			
 			Elements rows = table.select("tr");
 			Elements cols;
 			boolean isFirstRow = true;
