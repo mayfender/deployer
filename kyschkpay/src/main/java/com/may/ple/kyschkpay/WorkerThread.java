@@ -12,7 +12,13 @@ public class WorkerThread implements Runnable {
 	private JsonElement element;
 	private String idCardNoColumnName;
 	private String birthDateColumnName;
+	private String idCard;
+	private String birthDate;
 	private String productId;
+	private String sessionId;
+	private StatusConstant loginStatus;
+	private String cif;
+	private String id;
 	
 	public WorkerThread(JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {
 		this.element = element;
@@ -24,76 +30,108 @@ public class WorkerThread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			LOG.debug("Start Worker");
-			
 			JsonObject data = element.getAsJsonObject();
-			String id = data.get("_id").getAsString();
+			this.id = data.get("_id").getAsString();
 			JsonObject taskDetailFull = data.get("taskDetailFull").getAsJsonObject();
-			String idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
-			String birthDate = taskDetailFull.get(this.birthDateColumnName).getAsString();
+			this.idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
+			this.birthDate = taskDetailFull.get(this.birthDateColumnName).getAsString();
+			if(data.get("sessionId") != null) {
+				this.sessionId = data.get("sessionId").getAsString();
+				this.cif = data.get("cif").getAsString();				
+			}
 			
-			String sessionId = login(idCard, birthDate);
-			proceed(sessionId, id);
+			while(true) {
+				if(sessionId == null) {
+					LoginRespModel resp = login(idCard, birthDate);				
+					this.loginStatus = resp.getStatus();
+					this.sessionId = resp.getSessionId();	
+					this.cif = resp.getCif();
+					
+					updateLoginStatus(this.id);
+					checkPay();
+				} else {
+					try {
+						checkPay();
+					} catch (CustomException e) {
+						if(e.errCode == 1) this.sessionId = null;
+						LOG.error(e.toString());
+						continue;
+					} catch (Exception e) {
+						throw e;
+					}
+				}
+				break;
+			}
 			
-			LOG.debug("Worker end");
+			LOG.info("Worker end : " + idCard);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 		}
 	}
 	
-	private String login(String idCard, String birthDate) throws Exception {
+	private LoginRespModel login(String idCard, String birthDate) throws Exception {
 		try {
 			LOG.debug("Start login");
-			String sessionId = StatusConstant.LOGIN_FAIL.getStatus().toString();
+			StatusConstant loginStatus = StatusConstant.LOGIN_FAIL;
+			LoginRespModel resp = null;
 			int errCount = 0;
 			
-			while(StatusConstant.LOGIN_FAIL.getStatus().toString().equals(sessionId) || 
-					StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) {
+			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 				
 				if(errCount == 10) break;
 				
-				sessionId = KYSApi.getInstance().login(idCard, birthDate);
-//				Mock status for testing
-//				sessionId = StatusConstant.LOGIN_SUCCESS.getStatus().toString();
+				resp = KYSApi.getInstance().login(idCard, birthDate);
+				loginStatus = resp.getStatus();
 				
-				if(StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) {
+				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 					LOG.warn("Service Unavailable");
 					break;
-				} else if(StatusConstant.LOGIN_FAIL.getStatus().toString().equals(sessionId)) {
-					LOG.warn("Login fail");
+				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
+					LOG.warn("Login fail : " + errCount);
 					errCount++;
 					Thread.sleep(5000);
+				} else {
+					LOG.info("Login Success");					
 				}
-				LOG.warn("Login Success");
 			}
-			return sessionId;
+			
+			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
-	private void proceed(String sessionId, String id) throws Exception {
+	private void updateLoginStatus(String id) throws Exception {
 		try {
-			LOG.debug("Start proceed " + sessionId);
+			LOG.debug("Start proceed " + this.sessionId);
 			
-			if(StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString().equals(sessionId)) return;
+			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) return;
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setProductId(productId);
 			model.setId(id);
 			
-			if(StatusConstant.LOGIN_FAIL.getStatus().toString().equals(sessionId)) {
-				model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
-				
-				DMSApi.getInstance().updateChkLst(model);
+			if(StatusConstant.LOGIN_FAIL == loginStatus) {
+				model.setStatus(loginStatus.getStatus());
 			} else {
 				model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
 				model.setPaidDateTime(Calendar.getInstance().getTime());
-				
-//				KYSApi.getInstance().getPaymentInfo(sessionId);
-				DMSApi.getInstance().updateChkLst(model);
+				model.setSessionId(this.sessionId);
+				model.setCif(this.cif);
 			}
+			
+			DMSApi.getInstance().updateChkLst(model);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private void checkPay() throws Exception {
+		try {
+			LOG.debug("Start check pay");
+			KYSApi.getInstance().getPaymentInfo(sessionId, this.cif);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

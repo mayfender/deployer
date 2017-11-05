@@ -7,6 +7,8 @@ public class UpdateChkLstModel {
 	private String id;
 	private Integer status;
 	private Date paidDateTime;
+	private String sessionId;
+	private String cif;
 	
 	public String getProductId() {
 		return productId;
@@ -31,6 +33,18 @@ public class UpdateChkLstModel {
 	}
 	public void setPaidDateTime(Date paidDateTime) {
 		this.paidDateTime = paidDateTime;
+	}
+	public String getSessionId() {
+		return sessionId;
+	}
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+	public String getCif() {
+		return cif;
+	}
+	public void setCif(String cif) {
+		this.cif = cif;
 	}
 	
 }

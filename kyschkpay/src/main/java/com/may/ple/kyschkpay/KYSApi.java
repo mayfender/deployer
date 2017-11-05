@@ -2,6 +2,8 @@ package com.may.ple.kyschkpay;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,7 +34,7 @@ public class KYSApi {
         return instance;
     }
 	
-	public String login(String cid, String birthdate) throws Exception {
+	public LoginRespModel login(String cid, String birthdate) throws Exception {
 		String captchaFullPath = null;
 		
 		try {
@@ -41,7 +43,11 @@ public class KYSApi {
 			//[1]
 			Map<String, String> loginResp = getLoginPage();
 			
-			if(loginResp == null) return StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString();
+			if(loginResp == null) {
+				LoginRespModel resp = new LoginRespModel();
+				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
+				return resp;
+			}
 			
 			//[2]
 			String sessionId = loginResp.get("JSESSIONID");
@@ -51,14 +57,18 @@ public class KYSApi {
 			LOG.debug("captchaTxt : "+ captchaTxt);
 			
 			//[3]
-			StatusConstant status = doLogin(sessionId, captchaTxt, cid, birthdate);
+			LoginRespModel resp = doLogin(sessionId, captchaTxt, cid, birthdate);
+			StatusConstant status = resp.getStatus();
+			
 			if(status == StatusConstant.LOGIN_SUCCESS) {
-				return sessionId;				
+				resp.setSessionId(sessionId);
 			} else if (status == StatusConstant.LOGIN_FAIL) {
-				return StatusConstant.LOGIN_FAIL.getStatus().toString();
+				resp.setStatus(StatusConstant.LOGIN_FAIL);
 			} else {
-				return StatusConstant.SERVICE_UNAVAILABLE.getStatus().toString();
+				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
 			}
+			
+			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -69,13 +79,62 @@ public class KYSApi {
 		}
 	}
 	
-	public void getPaymentInfo(String sessionId) throws Exception {
+	private List<String> preparePaymentInfo(String sessionId, String cif) throws Exception {
 		try {
-			Response res = Jsoup.connect(LINK + "/STUDENT/ESLMTI001.do")
+			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
 					.method(Method.POST)
-					.data("loanType", "F101")
-					.data("accNo", "1006277854")
-					.data("cif", "")
+					.data("cif", cif)
+					.header("Content-Type", "application/x-www-form-urlencoded")
+					.cookie("JSESSIONID", sessionId)
+					.postDataCharset("UTF-8")
+					.execute();
+			
+			Document doc = res.parse();
+			Elements tr = doc.select("table #td0");
+			
+			if(tr.size() == 0) throw new Exception("Not found [table #td0]");
+			
+			String onclick = tr.get(0).attr("onclick");
+			LOG.debug("Get parameter from onclick : " + onclick);
+			
+			List<String> args = submitDataByGFDecode(onclick);
+			LOG.debug(args);
+			
+			/*
+			String loanType = args.get(0).trim();
+			String loanName = args.get(1).trim();
+			String accNo = args.get(2).trim();
+			String accName = args.get(3).trim();
+			String loanAccStatus = args.get(4).trim();
+			String flag = args.get(5).trim();
+			*/
+			
+			return args;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	public void getPaymentInfo(String sessionId, String cif) throws Exception {
+		try {
+			List<String> args = preparePaymentInfo(sessionId, cif);
+			String loanType = args.get(0).trim();
+			String flag = args.get(5).trim();
+			String accNo = args.get(2).trim();
+			String uri;
+			
+			if(flag.equals("1")) {
+				uri = "/STUDENT/ESLMTI001.do";
+			} else {
+				uri = "/STUDENT/ESLMTI003.do";				
+			}
+			
+			Response res = Jsoup.connect(LINK + uri)
+					.method(Method.POST)
+					.data("loanType", loanType)
+					.data("accNo", accNo)
+					.data("cif", cif)
 					.data("browser", "Fire Fox Or Other")
 					.header("Content-Type", "application/x-www-form-urlencoded")
 					.cookie("JSESSIONID", sessionId)
@@ -84,6 +143,11 @@ public class KYSApi {
 			
 			Document doc = res.parse();
 			Elements table = doc.select("#tab4 table table");
+			
+			if(table == null || table.size() == 0) {
+				throw new CustomException(1, "Session Timeout");
+			}
+			
 			Elements rows = table.select("tr");
 			Elements cols;
 			boolean isFirstRow = true;
@@ -116,7 +180,7 @@ public class KYSApi {
 					.method(Method.GET).execute();
 			Map<String, String> cookie = res.cookies();
 			Document doc = res.parse();
-			Elements captchaEl = doc.select("#capId");
+			Elements captchaEl;
 			
 			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
 				return null;
@@ -157,7 +221,7 @@ public class KYSApi {
 		}
 	}
 	
-	private StatusConstant doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
+	private LoginRespModel doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
 		try {
 			LOG.debug("Start doLogin");
 			
@@ -173,18 +237,38 @@ public class KYSApi {
 					.execute();
 			
 			Document doc = res.parse();
-			Elements cusName = doc.select("td input[name='stuFullName']");
+			Elements cifEl = doc.select("td input[name='cif']");
+//			Elements cidEl = doc.select("td input[name='cid']");
+//			Elements cusName = doc.select("td input[name='stuFullName']");
 			StatusConstant status;
+			String cif = null;
 			
-			if(cusName != null && StringUtils.isNoneBlank(cusName.val())) {				
+			if(cifEl != null && StringUtils.isNoneBlank((cif = cifEl.val()))) {				
 				status = StatusConstant.LOGIN_SUCCESS;
 			} else if(doc.select("#capId") != null) {
 				status = StatusConstant.LOGIN_FAIL;
 			} else {
 				status = StatusConstant.SERVICE_UNAVAILABLE;
-			}			
+			}
 			
-			return status;
+			LoginRespModel resp = new LoginRespModel();
+			resp.setStatus(status);
+			resp.setCif(cif);
+			
+			return resp;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private List<String> submitDataByGFDecode(String str) {
+		try {
+			int firstBracket = str.indexOf("(") + 1;
+			int lastBracket = str.lastIndexOf(")");
+			String rest = str.substring(firstBracket, lastBracket).replace("'", "");
+			
+			return Arrays.asList(rest.split(","));
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

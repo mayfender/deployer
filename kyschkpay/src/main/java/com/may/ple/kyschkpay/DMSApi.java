@@ -136,6 +136,8 @@ public class DMSApi {
 			jsonObject.addProperty("productId", model.getProductId());
 			jsonObject.addProperty("id", model.getId());
 			jsonObject.addProperty("status", model.getStatus());
+			jsonObject.addProperty("sessionId", model.getSessionId());
+			jsonObject.addProperty("cif", model.getCif());
 			if(model.getPaidDateTime() != null) {
 				jsonObject.addProperty("paidDateTime", model.getPaidDateTime().getTime());				
 			}

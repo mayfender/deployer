@@ -71,7 +71,8 @@ public class App {
 					while (!executor.isTerminated()) {}
 					LOG.debug("Finished all threads");
 				}
-				Thread.sleep(600000);
+//				Thread.sleep(600000);
+				Thread.sleep(15000);
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString());
@@ -80,7 +81,6 @@ public class App {
 	
 	private static void proceed(ExecutorService executor, JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {		
 		try {
-			LOG.info("Start proceed");
 			if(element == null) return;
 			
 			JsonArray status1Lst = element.getAsJsonArray();
