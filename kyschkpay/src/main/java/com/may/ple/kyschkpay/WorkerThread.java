@@ -40,6 +40,7 @@ public class WorkerThread implements Runnable {
 				this.cif = data.get("cif").getAsString();				
 			}
 			
+			CheckRespModel chkResp;
 			while(true) {
 				if(sessionId == null) {
 					LoginRespModel resp = login(idCard, birthDate);				
@@ -47,8 +48,12 @@ public class WorkerThread implements Runnable {
 					this.sessionId = resp.getSessionId();	
 					this.cif = resp.getCif();
 					
-					updateLoginStatus(this.id);
-					checkPay();
+					if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
+						chkResp = checkPay();
+						updateLoginStatus(this.id, chkResp);
+					} else {
+						updateLoginStatus(this.id, null);
+					}
 				} else {
 					try {
 						checkPay();
@@ -89,7 +94,7 @@ public class WorkerThread implements Runnable {
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
 					LOG.warn("Login fail : " + errCount);
 					errCount++;
-					Thread.sleep(5000);
+					Thread.sleep(3000);
 				} else {
 					LOG.info("Login Success");					
 				}
@@ -102,7 +107,7 @@ public class WorkerThread implements Runnable {
 		}
 	}
 	
-	private void updateLoginStatus(String id) throws Exception {
+	private void updateLoginStatus(String id, CheckRespModel chkResp) throws Exception {
 		try {
 			LOG.debug("Start proceed " + this.sessionId);
 			
@@ -119,6 +124,10 @@ public class WorkerThread implements Runnable {
 				model.setPaidDateTime(Calendar.getInstance().getTime());
 				model.setSessionId(this.sessionId);
 				model.setCif(this.cif);
+				model.setLoanType(chkResp.getLoanType());
+				model.setFlag(chkResp.getFlag());
+				model.setAccNo(chkResp.getAccNo());
+				model.setUri(chkResp.getUri());
 			}
 			
 			DMSApi.getInstance().updateChkLst(model);
@@ -128,10 +137,11 @@ public class WorkerThread implements Runnable {
 		}
 	}
 	
-	private void checkPay() throws Exception {
+	private CheckRespModel checkPay() throws Exception {
 		try {
 			LOG.debug("Start check pay");
-			KYSApi.getInstance().getPaymentInfo(sessionId, this.cif);
+			CheckRespModel resp = KYSApi.getInstance().getPaymentInfo(sessionId, this.cif);
+			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

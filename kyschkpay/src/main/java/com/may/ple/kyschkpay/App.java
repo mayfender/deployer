@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
@@ -31,27 +32,54 @@ public class App {
 				return;
 			}
 			
+			DMSApi dmsApi = DMSApi.getInstance();
 			List<String> prodIds = Arrays.asList(args[0].split(","));
-			DMSApi dmsApi = DMSApi.getInstance();			
-			dmsApi.login(USERNAME, PASSWORD);
+			LOG.info("prodIds : " + prodIds);
 			
-			long timeInMillis = Calendar.getInstance().getTimeInMillis();
-			ExecutorService executor;
+			socketApi();
+			
+			int poolSize = 500;
+			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
 			String idCardNoColumnName;
 			String birthDateColumnName;
 			JsonElement status1;
 			JsonElement status2;
 			JsonElement status3;
 			JsonObject chkList;
-			LOG.debug("prodIds : " + prodIds);
-			
-			socketApi();
+			int currentPage = 1;
+			int itemsPerPage = 50;
+			boolean isSuccess;
+			int hourOfDay;
 			
 			while(true) {
-				executor = Executors.newFixedThreadPool(50);
+				hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+				LOG.info("hourOfDay : " + hourOfDay);
+				if(!(hourOfDay >= 5 && hourOfDay <= 22)) {
+					LOG.info("Sleep 30 min");
+					Thread.sleep(1800000);
+					continue;
+				}
+				
+				isSuccess = dmsApi.login(USERNAME, PASSWORD);
+				if(!isSuccess) {
+					LOG.warn("May be server is down.");
+					Thread.sleep(30000);
+					continue;
+				}
 				
 				for (String prodId : prodIds) {
-					chkList = dmsApi.getChkList(prodId, timeInMillis);
+					while(executor.getQueue().size() > (poolSize/2)) {
+						LOG.info("Wait queue size to 0 now : " + executor.getQueue().size());						
+						Thread.sleep(30000);
+					}
+					
+					chkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage);
+					if(chkList == null) {
+						LOG.warn("chkList is null may be server is down.");
+						Thread.sleep(30000);
+						continue;
+					}
+					
 					idCardNoColumnName = chkList.get("idCardNoColumnName").getAsString();
 					birthDateColumnName = chkList.get("birthDateColumnName").getAsString();
 					LOG.debug("Original : " + chkList);
@@ -66,11 +94,8 @@ public class App {
 					proceed(executor, status1, idCardNoColumnName, birthDateColumnName, prodId);
 					proceed(executor, status2, idCardNoColumnName, birthDateColumnName, prodId);
 					proceed(executor, status3, idCardNoColumnName, birthDateColumnName, prodId);
-					
-					executor.shutdown();
-					while (!executor.isTerminated()) {}
-					LOG.debug("Finished all threads");
 				}
+				
 				Thread.sleep(600000);
 			}
 		} catch (Exception e) {

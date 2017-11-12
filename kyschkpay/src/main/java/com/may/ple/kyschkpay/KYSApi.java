@@ -124,8 +124,9 @@ public class KYSApi {
 		}
 	}
 	
-	public void getPaymentInfo(String sessionId, String cif) throws Exception {
+	public CheckRespModel getPaymentInfo(String sessionId, String cif) throws Exception {
 		try {
+			CheckRespModel resp = new CheckRespModel();
 			List<String> args = preparePaymentInfo(sessionId, cif);
 			String loanType = args.get(0).trim();
 			String flag = args.get(5).trim();
@@ -135,8 +136,13 @@ public class KYSApi {
 			if(flag.equals("1")) {
 				uri = "/STUDENT/ESLMTI001.do";
 			} else {
-				uri = "/STUDENT/ESLMTI003.do";				
+				uri = "/STUDENT/ESLMTI003.do";
 			}
+			
+			resp.setLoanType(loanType);
+			resp.setFlag(flag);
+			resp.setAccNo(accNo);
+			resp.setUri(uri);
 			
 			Response res = Jsoup.connect(LINK + uri)
 					.method(Method.POST)
@@ -168,6 +174,8 @@ public class KYSApi {
 				}
 				System.out.println();
 			}
+			
+			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

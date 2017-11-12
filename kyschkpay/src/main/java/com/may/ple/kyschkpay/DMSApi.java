@@ -31,7 +31,7 @@ public class DMSApi {
         return instance;
     }
 	
-	public void login(String username, String pass) throws Exception {
+	public boolean login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start Login");
@@ -55,9 +55,10 @@ public class DMSApi {
 			this.token = jsonObj.get("token").getAsString();
 			
 			LOG.debug("token : " + token);
+			return true;
 		} catch (Exception e) {
 			LOG.error(e.toString());
-			throw e;
+			return false;
 		} finally {
 			try {
 				if(httpClient != null) httpClient.close(); 
@@ -65,7 +66,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject getChkList(String productId, long timeInMill) throws Exception {
+	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start getChkList");
@@ -79,7 +80,8 @@ public class DMSApi {
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("productId", productId);
-			jsonObject.addProperty("date", timeInMill);
+			jsonObject.addProperty("currentPage", currentPage);
+			jsonObject.addProperty("itemsPerPage", itemsPerPage);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
@@ -88,7 +90,7 @@ public class DMSApi {
 			return jsonParser(response);
 		} catch (Exception e) {
 			LOG.error(e.toString());
-			throw e;
+			return null;
 		}
 	}
 	
@@ -138,6 +140,11 @@ public class DMSApi {
 			jsonObject.addProperty("status", model.getStatus());
 			jsonObject.addProperty("sessionId", model.getSessionId());
 			jsonObject.addProperty("cif", model.getCif());
+			jsonObject.addProperty("loanType", model.getLoanType());
+			jsonObject.addProperty("accNo", model.getAccNo());
+			jsonObject.addProperty("flag", model.getFlag());
+			jsonObject.addProperty("uri", model.getUri());
+			
 			if(model.getPaidDateTime() != null) {
 				jsonObject.addProperty("paidDateTime", model.getPaidDateTime().getTime());				
 			}
