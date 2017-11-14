@@ -20,16 +20,16 @@ import com.google.gson.JsonParser;
 
 public class DMSApi {
 	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
-	private static final DMSApi instance = new DMSApi();
+//	private static final DMSApi instance = new DMSApi();
 	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	private String token;
 	
-	private DMSApi() {}
+	public DMSApi() {}
 	
-	public static DMSApi getInstance(){
+	/*public static DMSApi getInstance(){
         return instance;
-    }
+    }*/
 	
 	public boolean login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;

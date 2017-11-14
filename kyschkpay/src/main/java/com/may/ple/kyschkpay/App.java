@@ -36,21 +36,39 @@ public class App {
 			List<String> prodIds = Arrays.asList(args[0].split(","));
 			LOG.info("prodIds : " + prodIds);
 			
-			socketApi();
+
 			
-			int poolSize = 500;
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
-			String idCardNoColumnName;
-			String birthDateColumnName;
-			JsonElement status1;
-			JsonElement status2;
-			JsonElement status3;
-			JsonObject chkList;
-			int currentPage = 1;
-			int itemsPerPage = 50;
-			boolean isSuccess;
-			int hourOfDay;
+//			socketApi();
+//			
+			LOG.info("Start LoginWorkerThread");
+			new LoginWorkerThread(prodIds).start();
 			
+			
+			
+			
+			
+		} catch (Exception e) {
+			LOG.error(e.toString());
+		}
+	}
+	
+	private void firstTimeLogin(JsonElement status) {
+		DMSApi dmsApi = DMSApi.getInstance();
+		int poolSize = 500;
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
+		String idCardNoColumnName;
+		String birthDateColumnName;
+		JsonElement status1;
+		JsonElement status2;
+		JsonElement status3;
+		JsonObject chkList;
+		int currentPage = 1;
+		int itemsPerPage = 50;
+		boolean isSuccess;
+		List<String> prodIds = null;
+		int hourOfDay;
+		
+		try {
 			while(true) {
 				hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 				LOG.info("hourOfDay : " + hourOfDay);
@@ -89,18 +107,26 @@ public class App {
 					
 					status1 = checkList.getAsJsonObject().get("1"); //--: Pending
 					status2 = checkList.getAsJsonObject().get("2"); //--: Login error
-					status3 = checkList.getAsJsonObject().get("3"); //--: Paid
+	//				status3 = checkList.getAsJsonObject().get("3"); //--: Paid
 					
 					proceed(executor, status1, idCardNoColumnName, birthDateColumnName, prodId);
 					proceed(executor, status2, idCardNoColumnName, birthDateColumnName, prodId);
-					proceed(executor, status3, idCardNoColumnName, birthDateColumnName, prodId);
+	//				proceed(executor, status3, idCardNoColumnName, birthDateColumnName, prodId);
 				}
 				
 				Thread.sleep(600000);
 			}
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			// TODO: handle exception
 		}
+	}
+	
+	private void failLogin(JsonElement status) {
+		
+	}
+	
+	private void chkPay(JsonElement status) {
+		
 	}
 	
 	private static void proceed(ExecutorService executor, JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {		
