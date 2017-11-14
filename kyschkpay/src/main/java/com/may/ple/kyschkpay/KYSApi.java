@@ -79,7 +79,7 @@ public class KYSApi {
 		}
 	}
 	
-	private List<String> preparePaymentInfo(String sessionId, String cif) throws Exception {
+	public List<String> getParam(String sessionId, String cif) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
 					.method(Method.POST)
@@ -124,26 +124,8 @@ public class KYSApi {
 		}
 	}
 	
-	public CheckRespModel getPaymentInfo(String sessionId, String cif) throws Exception {
+	public void getPaymentInfo(String sessionId, String cif, String uri, String loanType, String accNo) throws Exception {
 		try {
-			CheckRespModel resp = new CheckRespModel();
-			List<String> args = preparePaymentInfo(sessionId, cif);
-			String loanType = args.get(0).trim();
-			String flag = args.get(5).trim();
-			String accNo = args.get(2).trim();
-			String uri;
-			
-			if(flag.equals("1")) {
-				uri = "/STUDENT/ESLMTI001.do";
-			} else {
-				uri = "/STUDENT/ESLMTI003.do";
-			}
-			
-			resp.setLoanType(loanType);
-			resp.setFlag(flag);
-			resp.setAccNo(accNo);
-			resp.setUri(uri);
-			
 			Response res = Jsoup.connect(LINK + uri)
 					.method(Method.POST)
 					.data("loanType", loanType)
@@ -174,8 +156,6 @@ public class KYSApi {
 				}
 				System.out.println();
 			}
-			
-			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

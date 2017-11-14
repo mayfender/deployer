@@ -8,6 +8,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,16 +21,16 @@ import com.google.gson.JsonParser;
 
 public class DMSApi {
 	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
-//	private static final DMSApi instance = new DMSApi();
+	private static final DMSApi instance = new DMSApi();
 	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	private String token;
 	
-	public DMSApi() {}
+	private DMSApi() {}
 	
-	/*public static DMSApi getInstance(){
+	public static DMSApi getInstance(){
         return instance;
-    }*/
+    }
 	
 	public boolean login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
@@ -66,7 +67,28 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage) throws Exception {
+	public JsonObject initData(String productId) throws Exception {
+		CloseableHttpClient httpClient = null;
+		try {
+			LOG.debug("Start initData");
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
+			HttpGet httpPost = new HttpGet(BASE_URL + "/restAct/paymentOnlineCheck/getCheckList?productId=" + productId);
+			
+			httpPost.addHeader("content-type", "application/json; charset=utf8");
+			httpPost.addHeader("X-Auth-Token", this.token);
+			
+			HttpResponse response = httpClient.execute(httpPost);
+			return jsonParser(response);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			return null;
+		}
+	}
+	
+	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, int status) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start getChkList");
@@ -82,6 +104,7 @@ public class DMSApi {
 			jsonObject.addProperty("productId", productId);
 			jsonObject.addProperty("currentPage", currentPage);
 			jsonObject.addProperty("itemsPerPage", itemsPerPage);
+			jsonObject.addProperty("status", status);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);

@@ -1,49 +1,136 @@
 package com.may.ple.kyschkpay;
 
+import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
-public class LoginWorkerThread extends Thread {
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+public class LoginWorkerThread implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginWorkerThread.class.getName());
-	private List<String> prodIds;
+	private JsonElement element;
+	private String idCardNoColumnName;
+	private String birthDateColumnName;
+	private String idCard;
+	private String birthDate;
+	private String productId;
+	private String sessionId;
+	private StatusConstant loginStatus;
+	private String cif;
+	private String id;
 	
-	public LoginWorkerThread(List<String> prodIds) {
-		this.prodIds = prodIds;
+	public LoginWorkerThread(JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {
+		this.element = element;
+		this.idCardNoColumnName = idCardNoColumnName;
+		this.birthDateColumnName = birthDateColumnName;
+		this.productId = productId;
 	}
 
 	@Override
 	public void run() {
 		try {
-			int poolSize = 500;
-			DMSApi dmsApi = new DMSApi();
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
+			JsonObject data = element.getAsJsonObject();
+			this.id = data.get("_id").getAsString();
+			JsonObject taskDetailFull = data.get("taskDetailFull").getAsJsonObject();
+			this.idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
+			this.birthDate = taskDetailFull.get(this.birthDateColumnName).getAsString();
+			CheckRespModel chkResp;
 			
 			while(true) {
-				for (String prodId : prodIds) {
-					while(executor.getQueue().size() == poolSize) {
-						LOG.info("Pool size full : " + executor.getQueue().size());						
-						Thread.sleep(30000);
+				LoginRespModel resp = login(idCard, birthDate);				
+				this.loginStatus = resp.getStatus();
+				this.sessionId = resp.getSessionId();	
+				this.cif = resp.getCif();
+				
+				if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
+					List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
+					chkResp = new CheckRespModel();
+					chkResp.setLoanType(params.get(0).trim());
+					chkResp.setFlag(params.get(5).trim());
+					chkResp.setAccNo(params.get(2).trim());
+					
+					if(chkResp.getFlag().equals("1")) {
+						chkResp.setUri("/STUDENT/ESLMTI001.do");
+					} else {
+						chkResp.setUri("/STUDENT/ESLMTI003.do");
 					}
 					
-					isSuccess = dmsApi.login(USERNAME, PASSWORD);
-					if(!isSuccess) {
-						LOG.warn("May be server is down.");
-						Thread.sleep(30000);
-						continue;
-					}
-					
-					
-					
-					
-					
-					
+					updateLoginStatus(this.id, chkResp);
+				} else {
+					updateLoginStatus(this.id, null);
 				}
+				
+				break;
 			}
+			
+			LOG.info("Worker end : " + idCard);
 		} catch (Exception e) {
 			LOG.error(e.toString());
+		}
+	}
+	
+	private LoginRespModel login(String idCard, String birthDate) throws Exception {
+		try {
+			LOG.debug("Start login");
+			StatusConstant loginStatus = StatusConstant.LOGIN_FAIL;
+			LoginRespModel resp = null;
+			int errCount = 0;
+			
+			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
+				
+				if(errCount == 10) break;
+				
+				resp = KYSApi.getInstance().login(idCard, birthDate);
+				loginStatus = resp.getStatus();
+				
+				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
+					LOG.warn("Service Unavailable");
+					break;
+				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
+					LOG.warn("Login fail : " + errCount);
+					errCount++;
+					Thread.sleep(3000);
+				} else {
+					LOG.info("Login Success");					
+				}
+			}
+			
+			return resp;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private void updateLoginStatus(String id, CheckRespModel chkResp) throws Exception {
+		try {
+			LOG.debug("Start proceed " + this.sessionId);
+			
+			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) return;
+			
+			UpdateChkLstModel model = new UpdateChkLstModel();
+			model.setProductId(productId);
+			model.setId(id);
+			
+			if(StatusConstant.LOGIN_FAIL == loginStatus) {
+				model.setStatus(loginStatus.getStatus());
+			} else {
+				model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
+				model.setPaidDateTime(Calendar.getInstance().getTime());
+				model.setSessionId(this.sessionId);
+				model.setCif(this.cif);
+				model.setLoanType(chkResp.getLoanType());
+				model.setFlag(chkResp.getFlag());
+				model.setAccNo(chkResp.getAccNo());
+				model.setUri(chkResp.getUri());
+			}
+			
+			DMSApi.getInstance().updateChkLst(model);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
 		}
 	}
 	
