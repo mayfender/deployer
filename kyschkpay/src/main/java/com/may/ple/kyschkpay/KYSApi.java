@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -41,21 +42,23 @@ public class KYSApi {
 			System.out.println("##### Start " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
 			
 			int x = 0;
-			int poolSize = 25;
+			int poolSize = 1000;
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
 			
 			while(true) {
-				System.out.println("########## " + executor.getQueue().size());
+				System.out.println("============== " + executor.getQueue().size());
 				while(executor.getQueue().size() == poolSize) {
 					LOG.info("Pool size full : " + executor.getQueue().size());						
-					Thread.sleep(30000);
+					Thread.sleep(1000);
 				}
 				
 				executor.execute(new Test(x));
 				x++;
 				
-				if(x == 2) break;
+				if(x == 1000) break;
 			}
+			
+			System.out.println("#########");
 			
 			executor.shutdown();
 			
@@ -334,7 +337,11 @@ class Test implements Runnable {
 		try {
 			System.out.println("Start " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
 			
-			String text = CaptchaResolve.tesseract("D:\\python_captcha\\Captcha.jpg");
+			byte[] bytes = FileUtils.readFileToByteArray(new File("D:\\python_captcha\\Captcha.jpg"));
+			String imgBase64 = Base64.encodeBase64String(bytes);
+			
+			
+			String text = CaptchaResolve.tesseract(imgBase64);
 			System.out.println("captchaTxt : "+ text);
 			
 			System.out.println("End " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));

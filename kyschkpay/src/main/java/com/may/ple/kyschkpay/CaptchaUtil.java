@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 public class CaptchaUtil {
 	private static final Logger LOG = Logger.getLogger(CaptchaUtil.class.getName());
 	
-	public static String tesseract(String captchaImg, String baseDir, String tesseractPath, String pythonPath) throws Exception {
+	public static String tesseract(String imgBase64, String baseDir, String tesseractPath, String pythonPath) throws Exception {
 		Process process = null;
 		BufferedReader reader = null;
 		
@@ -20,7 +20,7 @@ public class CaptchaUtil {
 			String[] cmd = { 
 							pythonPath + slash + "python", 
 					        "parse_captcha.py", 
-					        captchaImg,
+					        imgBase64,
 					        tesseractPathEndSlash 
 					        };
 	    	ProcessBuilder pb = new ProcessBuilder(cmd);
