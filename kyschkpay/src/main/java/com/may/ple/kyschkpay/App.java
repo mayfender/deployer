@@ -33,8 +33,8 @@ public class App {
 			LOG.info("Start LoginWorkerThread");
 			new ManageLoginWorkerThread(prodIds).start();
 			
-			LOG.info("Start LoginWorkerThread");
-			new ManageCheckPayWorkerThread(prodIds).start();
+//			LOG.info("Start LoginWorkerThread");
+//			new ManageCheckPayWorkerThread(prodIds).start();
 		} catch (Exception e) {
 			LOG.error(e.toString());
 		}

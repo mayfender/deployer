@@ -140,7 +140,8 @@ public class WorkerThread implements Runnable {
 	private CheckRespModel checkPay() throws Exception {
 		try {
 			LOG.debug("Start check pay");
-			CheckRespModel resp = KYSApi.getInstance().getPaymentInfo(sessionId, this.cif);
+//			CheckRespModel resp = KYSApi.getInstance().getPaymentInfo(sessionId, this.cif);
+			CheckRespModel resp = null;
 			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());

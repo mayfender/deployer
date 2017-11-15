@@ -36,33 +36,30 @@ public class LoginWorkerThread implements Runnable {
 			JsonObject taskDetailFull = data.get("taskDetailFull").getAsJsonObject();
 			this.idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
 			this.birthDate = taskDetailFull.get(this.birthDateColumnName).getAsString();
+			
+			LoginRespModel resp = login(idCard, birthDate);				
 			CheckRespModel chkResp;
 			
-			while(true) {
-				LoginRespModel resp = login(idCard, birthDate);				
-				this.loginStatus = resp.getStatus();
-				this.sessionId = resp.getSessionId();	
-				this.cif = resp.getCif();
+			this.loginStatus = resp.getStatus();
+			this.sessionId = resp.getSessionId();	
+			this.cif = resp.getCif();
+			
+			if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
+				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
+				chkResp = new CheckRespModel();
+				chkResp.setLoanType(params.get(0).trim());
+				chkResp.setFlag(params.get(5).trim());
+				chkResp.setAccNo(params.get(2).trim());
 				
-				if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
-					List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
-					chkResp = new CheckRespModel();
-					chkResp.setLoanType(params.get(0).trim());
-					chkResp.setFlag(params.get(5).trim());
-					chkResp.setAccNo(params.get(2).trim());
-					
-					if(chkResp.getFlag().equals("1")) {
-						chkResp.setUri("/STUDENT/ESLMTI001.do");
-					} else {
-						chkResp.setUri("/STUDENT/ESLMTI003.do");
-					}
-					
-					updateLoginStatus(this.id, chkResp);
+				if(chkResp.getFlag().equals("1")) {
+					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
 				} else {
-					updateLoginStatus(this.id, null);
+					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI003.do");
 				}
 				
-				break;
+				updateLoginStatus(this.id, chkResp);
+			} else {
+				updateLoginStatus(this.id, null);
 			}
 			
 			LOG.info("Worker end : " + idCard);
@@ -80,7 +77,7 @@ public class LoginWorkerThread implements Runnable {
 			
 			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 				
-				if(errCount == 10) break;
+				if(errCount == 5) break;
 				
 				resp = KYSApi.getInstance().login(idCard, birthDate);
 				loginStatus = resp.getStatus();
@@ -91,7 +88,7 @@ public class LoginWorkerThread implements Runnable {
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
 					LOG.warn("Login fail : " + errCount);
 					errCount++;
-					Thread.sleep(3000);
+					Thread.sleep(1000);
 				} else {
 					LOG.info("Login Success");					
 				}

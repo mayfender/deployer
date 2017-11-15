@@ -3,9 +3,12 @@ package com.may.ple.kyschkpay;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.imageio.ImageIO;
 
@@ -20,11 +23,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.fasterxml.uuid.Generators;
-import com.google.gson.JsonObject;
 
 public class KYSApi {
 	private static final Logger LOG = Logger.getLogger(KYSApi.class.getName());
-	private static String LINK = "https://www.e-studentloan.ktb.co.th";
+	public static final String LINK = "https://www.e-studentloan.ktb.co.th";
 	private static String captchaPath = "D:/DMS_DATA/upload/temp/";
 	private static final KYSApi instance = new KYSApi();
 	
@@ -33,6 +35,47 @@ public class KYSApi {
 	public static KYSApi getInstance(){
         return instance;
     }
+	
+	public static void main(String[] args) {
+		try {
+			System.out.println("##### Start " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
+			
+			int x = 0;
+			int poolSize = 25;
+			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
+			
+			while(true) {
+				System.out.println("########## " + executor.getQueue().size());
+				while(executor.getQueue().size() == poolSize) {
+					LOG.info("Pool size full : " + executor.getQueue().size());						
+					Thread.sleep(30000);
+				}
+				
+				executor.execute(new Test(x));
+				x++;
+				
+				if(x == 2) break;
+			}
+			
+			executor.shutdown();
+			
+			while(!executor.isTerminated()){}
+			
+			System.out.println("##### End " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public LoginRespModel login(String cid, String birthdate) throws Exception {
 		String captchaFullPath = null;
@@ -50,14 +93,19 @@ public class KYSApi {
 			}
 			
 			//[2]
-			String sessionId = loginResp.get("JSESSIONID");
 			captchaFullPath = loginResp.get("CAPTCHA_FULL_PATH");
-			JsonObject jsonObj = DMSApi.getInstance().img2txt(captchaFullPath);
-			String captchaTxt = jsonObj.get("text").getAsString();
-			LOG.debug("captchaTxt : "+ captchaTxt);
+			
+//			JsonObject jsonObj = DMSApi.getInstance().img2txt(captchaFullPath);
+//			String captchaTxt = jsonObj.get("text").getAsString();
+//			LOG.debug("captchaTxt : "+ captchaTxt);
+			
+			String text = CaptchaResolve.tesseract(captchaFullPath);
+			LOG.debug("captchaTxt : "+ text);
+			
 			
 			//[3]
-			LoginRespModel resp = doLogin(sessionId, captchaTxt, cid, birthdate);
+			String sessionId = loginResp.get("JSESSIONID");
+			LoginRespModel resp = doLogin(sessionId, text, cid, birthdate);
 			StatusConstant status = resp.getStatus();
 			
 			if(status == StatusConstant.LOGIN_SUCCESS) {
@@ -263,6 +311,35 @@ public class KYSApi {
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
+		}
+	}
+	
+}
+
+
+
+
+
+
+
+class Test implements Runnable {
+	private int x;
+	
+	public Test(int x) {
+		this.x = x;
+	}
+
+	@Override
+	public void run() {
+		try {
+			System.out.println("Start " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
+			
+			String text = CaptchaResolve.tesseract("D:\\python_captcha\\Captcha.jpg");
+			System.out.println("captchaTxt : "+ text);
+			
+			System.out.println("End " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

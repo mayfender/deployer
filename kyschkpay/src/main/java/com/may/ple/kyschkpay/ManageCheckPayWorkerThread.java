@@ -24,7 +24,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	public void run() {
 		try {
 			int poolSize = 20;
-			DMSApi dmsApi = new DMSApi();
+			DMSApi dmsApi = DMSApi.getInstance();
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
 			String birthDateColumnName;
 			String idCardNoColumnName;
