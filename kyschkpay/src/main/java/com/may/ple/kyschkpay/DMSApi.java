@@ -22,7 +22,7 @@ import com.google.gson.JsonParser;
 public class DMSApi {
 	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
 	private static final DMSApi instance = new DMSApi();
-	private final String BASE_URL = "http://127.0.0.1:8080/backend";
+	private final String BASE_URL = "http://127.0.0.1:8081/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	private String token;
 	
@@ -75,7 +75,7 @@ public class DMSApi {
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
 			
 			httpClient = builder.build();
-			HttpGet httpPost = new HttpGet(BASE_URL + "/restAct/paymentOnlineCheck/getCheckList?productId=" + productId);
+			HttpGet httpPost = new HttpGet(BASE_URL + "/restAct/paymentOnlineCheck/initData?productId=" + productId);
 			
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", this.token);
