@@ -1,19 +1,10 @@
 package com.may.ple.kyschkpay;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
@@ -23,12 +14,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.fasterxml.uuid.Generators;
-
 public class KYSApi {
 	private static final Logger LOG = Logger.getLogger(KYSApi.class.getName());
 	public static final String LINK = "https://www.e-studentloan.ktb.co.th";
-	private static String captchaPath = "D:/DMS_DATA/upload/temp/";
 	private static final KYSApi instance = new KYSApi();
 	
 	private KYSApi(){}
@@ -37,52 +25,7 @@ public class KYSApi {
         return instance;
     }
 	
-	public static void main(String[] args) {
-		try {
-			System.out.println("##### Start " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
-			
-			int x = 0;
-			int poolSize = 1000;
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
-			
-			while(true) {
-				System.out.println("============== " + executor.getQueue().size());
-				while(executor.getQueue().size() == poolSize) {
-					LOG.info("Pool size full : " + executor.getQueue().size());						
-					Thread.sleep(1000);
-				}
-				
-				executor.execute(new Test(x));
-				x++;
-				
-				if(x == 1000) break;
-			}
-			
-			System.out.println("#########");
-			
-			executor.shutdown();
-			
-			while(!executor.isTerminated()){}
-			
-			System.out.println("##### End " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public LoginRespModel login(String cid, String birthdate) throws Exception {
-		String captchaFullPath = null;
-		
+	public LoginRespModel login(String cid, String birthdate) throws Exception {		
 		try {
 			LOG.debug("Start login");
 			
@@ -96,15 +39,9 @@ public class KYSApi {
 			}
 			
 			//[2]
-			captchaFullPath = loginResp.get("CAPTCHA_FULL_PATH");
-			
-//			JsonObject jsonObj = DMSApi.getInstance().img2txt(captchaFullPath);
-//			String captchaTxt = jsonObj.get("text").getAsString();
-//			LOG.debug("captchaTxt : "+ captchaTxt);
-			
-			String text = CaptchaResolve.tesseract(captchaFullPath);
+			String imgBase64 = loginResp.get("IMG_BASE64");
+			String text = CaptchaResolve.tesseract(imgBase64);
 			LOG.debug("captchaTxt : "+ text);
-			
 			
 			//[3]
 			String sessionId = loginResp.get("JSESSIONID");
@@ -123,10 +60,6 @@ public class KYSApi {
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
-		} finally {
-			if(StringUtils.isNotBlank(captchaFullPath)) {
-				FileUtils.forceDelete(new File(captchaFullPath));
-			}
 		}
 	}
 	
@@ -230,7 +163,7 @@ public class KYSApi {
 			
 			String captchaImgUrl = LINK + captchaEl.get(0).attr("src");
 			
-			cookie.put("CAPTCHA_FULL_PATH", getCaptchaImg(cookie, captchaImgUrl));
+			cookie.put("IMG_BASE64", getCaptchaImg(cookie, captchaImgUrl));
 						
 			return cookie;
 		} catch (Exception e) {
@@ -250,13 +183,13 @@ public class KYSApi {
 					.ignoreContentType(true) 	// Needed for fetching image
 					.execute();
 	
-			UUID uuid = Generators.timeBasedGenerator().generate();
-			String captchaFullPath = captchaPath + uuid + ".jpg";
+//			UUID uuid = Generators.timeBasedGenerator().generate();
+//			String captchaFullPath = captchaPath + uuid + ".jpg";
 			
 			// Load image from Jsoup response
-			ImageIO.write(ImageIO.read(new ByteArrayInputStream(res.bodyAsBytes())), "jpg", new File(captchaFullPath));
+//			ImageIO.write(ImageIO.read(new ByteArrayInputStream(res.bodyAsBytes())), "jpg", new File(captchaFullPath));
 			
-			return captchaFullPath;
+			return Base64.encodeBase64String(res.bodyAsBytes());
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -314,39 +247,6 @@ public class KYSApi {
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
-		}
-	}
-	
-}
-
-
-
-
-
-
-
-class Test implements Runnable {
-	private int x;
-	
-	public Test(int x) {
-		this.x = x;
-	}
-
-	@Override
-	public void run() {
-		try {
-			System.out.println("Start " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
-			
-			byte[] bytes = FileUtils.readFileToByteArray(new File("D:\\python_captcha\\Captcha.jpg"));
-			String imgBase64 = Base64.encodeBase64String(bytes);
-			
-			
-			String text = CaptchaResolve.tesseract(imgBase64);
-			System.out.println("captchaTxt : "+ text);
-			
-			System.out.println("End " + x + " " + String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance()));
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	

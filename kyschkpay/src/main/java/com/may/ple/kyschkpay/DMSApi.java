@@ -145,7 +145,30 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateChkLst(UpdateChkLstModel model) throws Exception {
+	public JsonObject updateLoginSuccess(String json) throws Exception {
+		CloseableHttpClient httpClient = null;
+		try {
+			LOG.debug("Start updateChkLst");
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
+			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/updateChkLst");
+			httpPost.addHeader("content-type", "application/json; charset=utf8");
+			httpPost.addHeader("X-Auth-Token", this.token);
+			
+			StringEntity userEntity = new StringEntity(json);
+			httpPost.setEntity(userEntity);
+			
+			HttpResponse response = httpClient.execute(httpPost);
+			return jsonParser(response);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	/*public JsonObject updateChkLst(UpdateChkLstModel model) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
@@ -181,7 +204,7 @@ public class DMSApi {
 			LOG.error(e.toString());
 			throw e;
 		}
-	}
+	}*/
 	
 	private JsonObject jsonParser(HttpResponse response) throws Exception {
 		try {

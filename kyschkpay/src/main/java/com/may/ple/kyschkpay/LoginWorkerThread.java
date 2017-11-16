@@ -15,17 +15,15 @@ public class LoginWorkerThread implements Runnable {
 	private String birthDateColumnName;
 	private String idCard;
 	private String birthDate;
-	private String productId;
 	private String sessionId;
 	private StatusConstant loginStatus;
 	private String cif;
 	private String id;
 	
-	public LoginWorkerThread(JsonElement element, String idCardNoColumnName, String birthDateColumnName, String productId) {
+	public LoginWorkerThread(JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
 		this.element = element;
 		this.idCardNoColumnName = idCardNoColumnName;
 		this.birthDateColumnName = birthDateColumnName;
-		this.productId = productId;
 	}
 
 	@Override
@@ -57,9 +55,9 @@ public class LoginWorkerThread implements Runnable {
 					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI003.do");
 				}
 				
-				updateLoginStatus(this.id, chkResp);
+				addToUpdateList(this.id, chkResp);
 			} else {
-				updateLoginStatus(this.id, null);
+				addToUpdateList(this.id, null);
 			}
 			
 			LOG.info("Worker end : " + idCard);
@@ -101,18 +99,19 @@ public class LoginWorkerThread implements Runnable {
 		}
 	}
 	
-	private void updateLoginStatus(String id, CheckRespModel chkResp) throws Exception {
+	private void addToUpdateList(String id, CheckRespModel chkResp) throws Exception {
 		try {
 			LOG.debug("Start proceed " + this.sessionId);
 			
 			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) return;
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
-			model.setProductId(productId);
 			model.setId(id);
 			
 			if(StatusConstant.LOGIN_FAIL == loginStatus) {
 				model.setStatus(loginStatus.getStatus());
+				
+				ManageLoginWorkerThread.addToLoginFailList(model);
 			} else {
 				model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
 				model.setPaidDateTime(Calendar.getInstance().getTime());
@@ -122,9 +121,9 @@ public class LoginWorkerThread implements Runnable {
 				model.setFlag(chkResp.getFlag());
 				model.setAccNo(chkResp.getAccNo());
 				model.setUri(chkResp.getUri());
+				
+				ManageLoginWorkerThread.addToLoginSuccessList(model);
 			}
-			
-			DMSApi.getInstance().updateChkLst(model);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

@@ -130,7 +130,7 @@ public class WorkerThread implements Runnable {
 				model.setUri(chkResp.getUri());
 			}
 			
-			DMSApi.getInstance().updateChkLst(model);
+//			DMSApi.getInstance().updateChkLst(model);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
