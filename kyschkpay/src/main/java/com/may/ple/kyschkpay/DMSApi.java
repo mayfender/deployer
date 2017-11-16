@@ -145,7 +145,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateLoginSuccess(String json) throws Exception {
+	public JsonObject updateLoginSuccess(String json, int status) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
@@ -157,7 +157,11 @@ public class DMSApi {
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", this.token);
 			
-			StringEntity userEntity = new StringEntity(json);
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("updateList", json);
+			jsonObject.addProperty("status", status);
+			
+			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
 			
 			HttpResponse response = httpClient.execute(httpPost);

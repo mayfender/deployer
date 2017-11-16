@@ -37,7 +37,7 @@ public class ManageLoginWorkerThread extends Thread {
 			JsonArray jsonArray;
 			Runnable worker;
 			int currentPage = 1;
-			int itemsPerPage = 50;
+			int itemsPerPage = 100;
 			
 			while(true) {
 				if(!App.checkWorkingHour()) {
@@ -59,23 +59,33 @@ public class ManageLoginWorkerThread extends Thread {
 					loginFailList.clear();
 					
 					dmsApi.initData(prodId);
-					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, 1);
-					idCardNoColumnName = loginChkList.get("idCardNoColumnName").getAsString();
-					birthDateColumnName = loginChkList.get("birthDateColumnName").getAsString();
-					checkList = loginChkList.get("checkList");
 					
-					if(checkList == null) continue;
+					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, StatusConstant.PENDING.getStatus());
+					int totalItems = loginChkList.get("totalItems").getAsInt();
+					int totalPages = (int)Math.ceil((double)totalItems / (double)itemsPerPage);
 					
-					jsonArray = checkList.getAsJsonArray();
-					
-					for (JsonElement el : jsonArray) {
-						while(executor.getQueue().size() == poolSize) {
-							LOG.info("Pool size full : " + executor.getQueue().size());						
-							Thread.sleep(5000);
+					for (; currentPage < totalPages; currentPage++) {
+						if(currentPage > 1) {							
+							loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, StatusConstant.PENDING.getStatus());
 						}
 						
-						worker = new LoginWorkerThread(el, idCardNoColumnName, birthDateColumnName);
-						executor.execute(worker);
+						idCardNoColumnName = loginChkList.get("idCardNoColumnName").getAsString();
+						birthDateColumnName = loginChkList.get("birthDateColumnName").getAsString();
+						checkList = loginChkList.get("checkList");
+						
+						if(checkList == null) continue;
+						
+						jsonArray = checkList.getAsJsonArray();
+						
+						for (JsonElement el : jsonArray) {
+							while(executor.getQueue().size() == poolSize) {
+								LOG.info("Pool size full : " + executor.getQueue().size());						
+								Thread.sleep(5000);
+							}
+							
+							worker = new LoginWorkerThread(el, idCardNoColumnName, birthDateColumnName);
+							executor.execute(worker);
+						}
 					}
 					
 					while(executor.getQueue().size() != 0){
@@ -93,20 +103,26 @@ public class ManageLoginWorkerThread extends Thread {
 		}
 	}
 	
+	public static void main(String[] args) {
+		int pages = (int)Math.ceil(Double.valueOf((123f / 10f)));
+		System.out.println(pages);
+	}
+	
 	private void updateLoginStatus() throws Exception {
 		try {
 			LOG.info("Update login success");
 			String jsonSuccess = new Gson().toJson(loginSuccessList);
-			DMSApi.getInstance().updateLoginSuccess(jsonSuccess);
+			DMSApi.getInstance().updateLoginSuccess(jsonSuccess, StatusConstant.LOGIN_SUCCESS.getStatus());
 			
 			LOG.info("Update login fail");
 			String jsonFail = new Gson().toJson(loginFailList);
-			DMSApi.getInstance().updateLoginSuccess(jsonFail);
+			DMSApi.getInstance().updateLoginSuccess(jsonFail, StatusConstant.LOGIN_FAIL.getStatus());
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
 	}
+
 	
 	/*private void updateLoginStatus(String id, CheckRespModel chkResp) throws Exception {
 	try {
