@@ -18,6 +18,7 @@ public class ManageLoginWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> loginFailList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
+	private static final int POOL_SIZE = 20;
 	private List<String> prodIds;
 	
 	public ManageLoginWorkerThread(List<String> prodIds) {
@@ -27,9 +28,8 @@ public class ManageLoginWorkerThread extends Thread {
 	@Override
 	public void run() {
 		try {
-			int poolSize = 20;
 			DMSApi dmsApi = DMSApi.getInstance();
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
+			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 			String birthDateColumnName;
 			String idCardNoColumnName;
 			JsonObject loginChkList;
@@ -64,7 +64,7 @@ public class ManageLoginWorkerThread extends Thread {
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)itemsPerPage);
 					
-					for (; currentPage < totalPages; currentPage++) {
+					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
 							loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, StatusConstant.PENDING.getStatus());
 						}
@@ -78,7 +78,7 @@ public class ManageLoginWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							while(executor.getQueue().size() == poolSize) {
+							while(executor.getQueue().size() == POOL_SIZE) {
 								LOG.info("Pool size full : " + executor.getQueue().size());						
 								Thread.sleep(5000);
 							}
@@ -103,11 +103,6 @@ public class ManageLoginWorkerThread extends Thread {
 		}
 	}
 	
-	public static void main(String[] args) {
-		int pages = (int)Math.ceil(Double.valueOf((123f / 10f)));
-		System.out.println(pages);
-	}
-	
 	private void updateLoginStatus() throws Exception {
 		try {
 			LOG.info("Update login success");
@@ -122,37 +117,6 @@ public class ManageLoginWorkerThread extends Thread {
 			throw e;
 		}
 	}
-
-	
-	/*private void updateLoginStatus(String id, CheckRespModel chkResp) throws Exception {
-	try {
-		LOG.debug("Start proceed " + this.sessionId);
-		
-		if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) return;
-		
-		UpdateChkLstModel model = new UpdateChkLstModel();
-		model.setProductId(productId);
-		model.setId(id);
-		
-		if(StatusConstant.LOGIN_FAIL == loginStatus) {
-			model.setStatus(loginStatus.getStatus());
-		} else {
-			model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
-			model.setPaidDateTime(Calendar.getInstance().getTime());
-			model.setSessionId(this.sessionId);
-			model.setCif(this.cif);
-			model.setLoanType(chkResp.getLoanType());
-			model.setFlag(chkResp.getFlag());
-			model.setAccNo(chkResp.getAccNo());
-			model.setUri(chkResp.getUri());
-		}
-		
-		DMSApi.getInstance().updateChkLst(model);
-	} catch (Exception e) {
-		LOG.error(e.toString());
-		throw e;
-	}
-}*/
 	
 	public synchronized static void addToLoginSuccessList(UpdateChkLstModel model) {
 		loginSuccessList.add(model);
