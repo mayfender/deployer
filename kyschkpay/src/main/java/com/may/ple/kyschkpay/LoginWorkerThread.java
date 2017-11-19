@@ -1,8 +1,5 @@
 package com.may.ple.kyschkpay;
 
-import java.util.Calendar;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
@@ -39,15 +36,20 @@ public class LoginWorkerThread implements Runnable {
 			CheckRespModel chkResp;
 			
 			this.loginStatus = resp.getStatus();
-			this.sessionId = resp.getSessionId();	
+			this.sessionId = resp.getSessionId();
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
-				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
+//				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
+//				chkResp = new CheckRespModel();
+//				chkResp.setLoanType(params.get(0).trim());
+//				chkResp.setFlag(params.get(5).trim());
+//				chkResp.setAccNo(params.get(2).trim());
+				
 				chkResp = new CheckRespModel();
-				chkResp.setLoanType(params.get(0).trim());
-				chkResp.setFlag(params.get(5).trim());
-				chkResp.setAccNo(params.get(2).trim());
+				chkResp.setLoanType("test LoanType");
+				chkResp.setFlag("1");
+				chkResp.setAccNo("test AccNo");
 				
 				if(chkResp.getFlag().equals("1")) {
 					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
@@ -55,13 +57,19 @@ public class LoginWorkerThread implements Runnable {
 					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI003.do");
 				}
 				
-				addToUpdateList(this.id, chkResp);
+				addToUpdateList(chkResp);
 			} else {
-				addToUpdateList(this.id, null);
+				addToUpdateList(null);
 			}
 			
 			LOG.info("Worker end : " + idCard);
 		} catch (Exception e) {
+			UpdateChkLstModel model = new UpdateChkLstModel();
+			model.setId(this.id);
+			model.setErrMsg(e.toString());
+			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
+			
+			ManageLoginWorkerThread.addToLoginList(model);
 			LOG.error(e.toString());
 		}
 	}
@@ -77,7 +85,17 @@ public class LoginWorkerThread implements Runnable {
 				
 				if(errCount == 5) break;
 				
-				resp = KYSApi.getInstance().login(idCard, birthDate);
+//				resp = KYSApi.getInstance().login(idCard, birthDate);
+				
+				//--------------------------------------------------------
+				resp = new LoginRespModel();
+				resp.setStatus(StatusConstant.LOGIN_SUCCESS);
+				resp.setSessionId("test session id");
+				resp.setCif("test cif");
+				//--------------------------------------------------------
+				
+				
+				
 				loginStatus = resp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
@@ -99,31 +117,31 @@ public class LoginWorkerThread implements Runnable {
 		}
 	}
 	
-	private void addToUpdateList(String id, CheckRespModel chkResp) throws Exception {
+	private void addToUpdateList(CheckRespModel chkResp) throws Exception {
 		try {
 			LOG.debug("Start proceed " + this.sessionId);
 			
-			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) return;
+			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
+				LOG.debug("==============: SERVICE_UNAVAILABLE :==================");
+				return;
+			}
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
-			model.setId(id);
+			model.setId(this.id);
 			
 			if(StatusConstant.LOGIN_FAIL == loginStatus) {
 				model.setStatus(loginStatus.getStatus());
-				
-				ManageLoginWorkerThread.addToLoginFailList(model);
 			} else {
 				model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
-				model.setPaidDateTime(Calendar.getInstance().getTime());
 				model.setSessionId(this.sessionId);
 				model.setCif(this.cif);
 				model.setLoanType(chkResp.getLoanType());
 				model.setFlag(chkResp.getFlag());
 				model.setAccNo(chkResp.getAccNo());
 				model.setUri(chkResp.getUri());
-				
-				ManageLoginWorkerThread.addToLoginSuccessList(model);
 			}
+			
+			ManageLoginWorkerThread.addToLoginList(model);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

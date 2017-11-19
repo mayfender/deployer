@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -26,6 +27,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 			int poolSize = 20;
 			DMSApi dmsApi = DMSApi.getInstance();
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(poolSize);
+			List<Integer> statuses = new ArrayList<>();
+			statuses.add(StatusConstant.LOGIN_SUCCESS.getStatus());
 			String birthDateColumnName;
 			String idCardNoColumnName;
 			JsonObject loginChkList;
@@ -55,7 +58,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					}
 					
 					dmsApi.initData(prodId);
-					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, 1);
+					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, statuses);
 					idCardNoColumnName = loginChkList.get("idCardNoColumnName").getAsString();
 					birthDateColumnName = loginChkList.get("birthDateColumnName").getAsString();
 					checkList = loginChkList.get("checkList");

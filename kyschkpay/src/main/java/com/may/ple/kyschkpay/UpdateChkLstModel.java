@@ -13,6 +13,7 @@ public class UpdateChkLstModel {
 	private String flag;
 	private String accNo;
 	private String uri;
+	private String errMsg;
 	
 	public String getProductId() {
 		return productId;
@@ -73,6 +74,12 @@ public class UpdateChkLstModel {
 	}
 	public void setUri(String uri) {
 		this.uri = uri;
+	}
+	public String getErrMsg() {
+		return errMsg;
+	}
+	public void setErrMsg(String errMsg) {
+		this.errMsg = errMsg;
 	}
 	
 }

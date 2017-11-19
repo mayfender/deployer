@@ -3,6 +3,7 @@ package com.may.ple.kyschkpay;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -15,6 +16,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -22,7 +24,7 @@ import com.google.gson.JsonParser;
 public class DMSApi {
 	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
 	private static final DMSApi instance = new DMSApi();
-	private final String BASE_URL = "http://127.0.0.1:8081/backend";
+	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	private String token;
 	
@@ -88,7 +90,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, int status) throws Exception {
+	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, List<Integer> statuses) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start getChkList");
@@ -104,7 +106,12 @@ public class DMSApi {
 			jsonObject.addProperty("productId", productId);
 			jsonObject.addProperty("currentPage", currentPage);
 			jsonObject.addProperty("itemsPerPage", itemsPerPage);
-			jsonObject.addProperty("status", status);
+			
+			JsonArray jsonStatus = new JsonArray();
+			for (Integer status : statuses) {				
+				jsonStatus.add(status);
+			}
+			jsonObject.add("statuses", jsonStatus);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
@@ -145,7 +152,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateLoginSuccess(String json, int status) throws Exception {
+	public JsonObject updateLoginStatus(JsonArray updateLst, String productId) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
@@ -158,8 +165,8 @@ public class DMSApi {
 			httpPost.addHeader("X-Auth-Token", this.token);
 			
 			JsonObject jsonObject = new JsonObject();
-			jsonObject.addProperty("updateList", json);
-			jsonObject.addProperty("status", status);
+			jsonObject.add("updateList", updateLst);
+			jsonObject.addProperty("productId", productId);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
