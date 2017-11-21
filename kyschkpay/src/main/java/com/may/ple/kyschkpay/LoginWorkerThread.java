@@ -1,5 +1,7 @@
 package com.may.ple.kyschkpay;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
@@ -30,7 +32,7 @@ public class LoginWorkerThread implements Runnable {
 			this.id = data.get("_id").getAsString();
 			JsonObject taskDetailFull = data.get("taskDetailFull").getAsJsonObject();
 			this.idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
-			this.birthDate = taskDetailFull.get(this.birthDateColumnName).getAsString();
+			this.birthDate = birthDateFormat(taskDetailFull.get(this.birthDateColumnName).getAsString());
 			
 			LoginRespModel resp = login(idCard, birthDate);				
 			CheckRespModel chkResp;
@@ -40,17 +42,12 @@ public class LoginWorkerThread implements Runnable {
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
-//				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
-//				chkResp = new CheckRespModel();
-//				chkResp.setLoanType(params.get(0).trim());
-//				chkResp.setFlag(params.get(5).trim());
-//				chkResp.setAccNo(params.get(2).trim());
-				
+				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
 				chkResp = new CheckRespModel();
-				chkResp.setLoanType("test LoanType");
-				chkResp.setFlag("1");
-				chkResp.setAccNo("test AccNo");
-				
+				chkResp.setLoanType(params.get(0).trim());
+				chkResp.setFlag(params.get(5).trim());
+				chkResp.setAccNo(params.get(2).trim());
+			
 				if(chkResp.getFlag().equals("1")) {
 					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
 				} else {
@@ -85,17 +82,7 @@ public class LoginWorkerThread implements Runnable {
 				
 				if(errCount == 5) break;
 				
-//				resp = KYSApi.getInstance().login(idCard, birthDate);
-				
-				//--------------------------------------------------------
-				resp = new LoginRespModel();
-				resp.setStatus(StatusConstant.LOGIN_SUCCESS);
-				resp.setSessionId("test session id");
-				resp.setCif("test cif");
-				//--------------------------------------------------------
-				
-				
-				
+				resp = KYSApi.getInstance().login(idCard, birthDate);
 				loginStatus = resp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
@@ -146,6 +133,17 @@ public class LoginWorkerThread implements Runnable {
 			LOG.error(e.toString());
 			throw e;
 		}
+	}
+	
+	private static String birthDateFormat(String str) {
+		if(str.contains("/")) {
+			return str;
+		}
+		
+		String day = str.substring(0, 2);
+		String month = str.substring(2, 4);
+		String year = str.substring(4);
+		return day + "/" + month + "/" + year;
 	}
 	
 }
