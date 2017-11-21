@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
@@ -30,33 +29,22 @@ public class KYSApi {
 			LOG.debug("Start login");
 			
 			//[1]
-			Map<String, String> loginResp = getLoginPage();
+			LoginRespModel loginResp = getLoginPage();
 			
 			if(loginResp == null) {
-				LoginRespModel resp = new LoginRespModel();
-				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
-				return resp;
+				loginResp = new LoginRespModel();
+				loginResp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
+				return loginResp;
 			}
 			
 			//[2]
-			String imgBase64 = loginResp.get("IMG_BASE64");
-			String text = CaptchaResolve.tesseract(imgBase64);
+			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());
 			LOG.debug("captchaTxt : "+ text);
 			
 			//[3]
-			String sessionId = loginResp.get("JSESSIONID");
-			LoginRespModel resp = doLogin(sessionId, text, cid, birthdate);
-			StatusConstant status = resp.getStatus();
+			doLogin(loginResp, text, cid, birthdate);
 			
-			if(status == StatusConstant.LOGIN_SUCCESS) {
-				resp.setSessionId(sessionId);
-			} else if (status == StatusConstant.LOGIN_FAIL) {
-				resp.setStatus(StatusConstant.LOGIN_FAIL);
-			} else {
-				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
-			}
-			
-			return resp;
+			return loginResp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -146,7 +134,7 @@ public class KYSApi {
 		}
 	}
 
-	private Map<String, String> getLoginPage() throws Exception {
+	private LoginRespModel getLoginPage() throws Exception {
 		try {
 			LOG.debug("Start getLoginPage");
 			
@@ -162,17 +150,19 @@ public class KYSApi {
 			}
 			
 			String captchaImgUrl = LINK + captchaEl.get(0).attr("src");
-			
-			cookie.put("IMG_BASE64", getCaptchaImg(cookie, captchaImgUrl));
 						
-			return cookie;
+			LoginRespModel resp = new LoginRespModel();
+			resp.setSessionId(cookie.get("JSESSIONID"));
+			resp.setImageContent(getCaptchaImg(cookie, captchaImgUrl));
+						
+			return resp;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
 	}
 
-	private String getCaptchaImg(Map<String, String> cookie, String captchaImgUrl) throws Exception {
+	private byte[] getCaptchaImg(Map<String, String> cookie, String captchaImgUrl) throws Exception {
 		try {
 			LOG.debug("Start getCaptchaImg");
 			
@@ -189,14 +179,14 @@ public class KYSApi {
 			// Load image from Jsoup response
 //			ImageIO.write(ImageIO.read(new ByteArrayInputStream(res.bodyAsBytes())), "jpg", new File(captchaFullPath));
 			
-			return Base64.encodeBase64String(res.bodyAsBytes());
+			return res.bodyAsBytes();
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
-	private LoginRespModel doLogin(String sessionId, String captcha, String cid, String birthdate) throws Exception {
+	private void doLogin(LoginRespModel loginResp, String captcha, String cid, String birthdate) throws Exception {
 		try {
 			LOG.debug("Start doLogin");
 			
@@ -207,7 +197,7 @@ public class KYSApi {
 					.data("captchar", captcha)
 					.data("flag", "S")
 					.header("Content-Type", "application/x-www-form-urlencoded")
-					.cookie("JSESSIONID", sessionId)
+					.cookie("JSESSIONID", loginResp.getSessionId())
 					.postDataCharset("UTF-8")
 					.execute();
 			
@@ -226,11 +216,8 @@ public class KYSApi {
 				status = StatusConstant.SERVICE_UNAVAILABLE;
 			}
 			
-			LoginRespModel resp = new LoginRespModel();
-			resp.setStatus(status);
-			resp.setCif(cif);
-			
-			return resp;
+			loginResp.setStatus(status);
+			loginResp.setCif(cif);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

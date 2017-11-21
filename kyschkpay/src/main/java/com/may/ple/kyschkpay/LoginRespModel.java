@@ -4,6 +4,7 @@ public class LoginRespModel {
 	private StatusConstant status;
 	private String cif;
 	private String sessionId;
+	private byte[] imageContent;
 	
 	public StatusConstant getStatus() {
 		return status;
@@ -27,6 +28,14 @@ public class LoginRespModel {
 
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
+	}
+
+	public byte[] getImageContent() {
+		return imageContent;
+	}
+
+	public void setImageContent(byte[] imageContent) {
+		this.imageContent = imageContent;
 	}
 	
 }

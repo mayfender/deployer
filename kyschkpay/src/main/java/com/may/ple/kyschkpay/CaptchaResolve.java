@@ -3,7 +3,6 @@ package com.may.ple.kyschkpay;
 import java.io.File;
 import java.util.Calendar;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -20,10 +19,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class CaptchaResolve {
 	private static final Logger LOG = Logger.getLogger(CaptchaResolve.class.getName());
@@ -70,7 +65,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	public static String captchatronix(String imgBase64) throws Exception {
+	public static String captchatronix(byte[] captcha) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start initData");
@@ -80,31 +75,22 @@ public class CaptchaResolve {
 			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost("http://api.captchatronix.com/");
 			
-			/*List<NameValuePair> postParameters = new ArrayList<>();
-		    postParameters.add(new BasicNameValuePair("username", "mayfender"));
-		    postParameters.add(new BasicNameValuePair("password", "O4TIorHKqB"));
-		    postParameters.add(new BasicNameValuePair("function", "picture2"));
-		    postParameters.add(new BasicNameValuePair("pic", "https://www.e-studentloan.ktb.co.th/STUDENT/Captcha.jpg"));*/
-			
-			
-			MultipartEntityBuilder multipart = MultipartEntityBuilder.create();
-			multipart.addTextBody("username", "mayfender", ContentType.TEXT_PLAIN);
-			multipart.addTextBody("password", "O4TIorHKqB", ContentType.TEXT_PLAIN);
-			multipart.addTextBody("function", "picture2", ContentType.TEXT_PLAIN);
-			File file = new File("D:\\python_captcha\\Captcha.jpg");
-			
-			/*HttpEntity data = MultipartEntityBuilder.create()
-                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                    .addTextBody("username", "mayfender", ContentType.DEFAULT_BINARY)
-                    .addTextBody("password", "O4TIorHKqB", ContentType.DEFAULT_BINARY)
-                    .addTextBody("function", "picture2", ContentType.DEFAULT_BINARY)
-                    .addTextBody("pic", "data:image/jpg;base64," + imgBase64, ContentType.DEFAULT_BINARY)
-                    .build();*/
+			HttpEntity multipart = MultipartEntityBuilder.create()
+			.addTextBody("username", "mayfender", ContentType.TEXT_PLAIN)
+			.addTextBody("password", "O4TIorHKqB", ContentType.TEXT_PLAIN)
+			.addTextBody("function", "picture2", ContentType.TEXT_PLAIN)
+			.addBinaryBody("pict", captcha, ContentType.MULTIPART_FORM_DATA, "dummy.jpg").build();
 		    
-			httpPost.setEntity(data);			
+			httpPost.setEntity(multipart);			
 			HttpResponse response = httpClient.execute(httpPost);
 	        
-			return entityStr(response);
+			String result = entityStr(response);
+			LOG.debug("captchaTxt : "+ result);
+			String[] split = result.split("|");
+			result = split[split.length - 1];
+			LOG.debug("captchaTxt final : "+ result);
+			
+			return result;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -115,36 +101,13 @@ public class CaptchaResolve {
 		try {
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 			
-			/*File file = new File("D:\\python_captcha\\Captcha.jpg");
-			String base64String = Base64.encodeBase64String(FileUtils.readFileToByteArray(file));
-			String string = tesseract(base64String);
-			System.out.println(string);*/
-			
-			/*File file = new File("D:\\python_captcha\\download.jpg");
-			String base64String = Base64.encodeBase64String(FileUtils.readFileToByteArray(file));
-			String result = CaptchaResolve.captchasolutions(base64String);
-			System.out.println(result);*/
-			
 			File file = new File("D:\\python_captcha\\Captcha.jpg");
-			String base64String = Base64.encodeBase64String(FileUtils.readFileToByteArray(file));
-			String txt = captchatronix(base64String);
+			String txt = captchatronix(FileUtils.readFileToByteArray(file));
 			System.out.println(txt);
 			
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-	
-	private static JsonObject jsonParser(HttpResponse response) throws Exception {
-		try {
-			LOG.debug("Start jsonParser");
-			String jsonStr = entityStr(response);
-			JsonElement jsonElement =  new JsonParser().parse(jsonStr);
-			return jsonElement.getAsJsonObject();
-		} catch (Exception e) {
-			LOG.error(e.toString());
-			throw e;
 		}
 	}
 	
