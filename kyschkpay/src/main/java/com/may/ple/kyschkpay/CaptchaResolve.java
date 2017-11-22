@@ -28,7 +28,7 @@ public class CaptchaResolve {
 		try {			
 			String baseDir = "D:/python_captcha";
 			String tesseractPath = "C:/Program Files (x86)/Tesseract-OCR";
-			String pythonPath = "C:\\Users\\sarawuti\\AppData\\Local\\Programs\\Python\\Python36-32";
+			String pythonPath = "C:\\Users\\mayfender\\AppData\\Local\\Programs\\Python\\Python36-32";
 			
 			return CaptchaUtil.tesseract(imgBase64, baseDir, tesseractPath, pythonPath);
 		} catch (Exception e) {

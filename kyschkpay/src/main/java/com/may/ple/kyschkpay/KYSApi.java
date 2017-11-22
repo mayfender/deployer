@@ -38,6 +38,7 @@ public class KYSApi {
 			}
 			
 			//[2]
+//			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));
 			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());
 			LOG.debug("captchaTxt : "+ text);
 			
