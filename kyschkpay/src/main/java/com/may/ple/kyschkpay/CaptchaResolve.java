@@ -86,8 +86,8 @@ public class CaptchaResolve {
 	        
 			String result = entityStr(response);
 			LOG.debug("captchaTxt : "+ result);
-			String[] split = result.split("|");
-			result = split[split.length - 1];
+			String[] split = result.split("\\|");
+			result = split[split.length - 1].trim();
 			LOG.debug("captchaTxt final : "+ result);
 			
 			return result;

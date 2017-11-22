@@ -16,7 +16,7 @@ public class ManageLoginWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> loginList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 100;
+	private static final int POOL_SIZE = 5;
 	private List<String> prodIds;
 	
 	public ManageLoginWorkerThread(List<String> prodIds) {
@@ -84,8 +84,8 @@ public class ManageLoginWorkerThread extends Thread {
 						}
 					}
 					
-					while(executor.getQueue().size() != 0){
-						LOG.debug("=============: Wait pool size : " + executor.getQueue().size());
+					while(executor.getActiveCount() != 0){
+						LOG.debug("=============: Worker active count : " + executor.getActiveCount());
 						Thread.sleep(1000);
 					}
 					
@@ -125,6 +125,7 @@ public class ManageLoginWorkerThread extends Thread {
 				array.add(obj);
 			}
 			
+			LOG.info("Call updateLoginStatus");
 			DMSApi.getInstance().updateLoginStatus(array, productId);
 		} catch (Exception e) {
 			LOG.error(e.toString());
@@ -134,6 +135,7 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	public synchronized static void addToLoginList(UpdateChkLstModel model) {
 		loginList.add(model);
+		LOG.debug("loginList size: " + loginList.size());
 	}
 	
 }
