@@ -58,7 +58,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					}
 					
 					dmsApi.initData(prodId);
-					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, statuses);
+					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, "CHKPAY");
 					idCardNoColumnName = loginChkList.get("idCardNoColumnName").getAsString();
 					birthDateColumnName = loginChkList.get("birthDateColumnName").getAsString();
 					checkList = loginChkList.get("checkList");

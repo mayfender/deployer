@@ -28,9 +28,6 @@ public class ManageLoginWorkerThread extends Thread {
 		try {
 			DMSApi dmsApi = DMSApi.getInstance();
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-			List<Integer> statuses = new ArrayList<>();
-			statuses.add(StatusConstant.PENDING.getStatus());
-			statuses.add(StatusConstant.LOGIN_FAIL.getStatus());
 			String birthDateColumnName;
 			String idCardNoColumnName;
 			JsonObject loginChkList;
@@ -57,16 +54,16 @@ public class ManageLoginWorkerThread extends Thread {
 					LOG.info("Start for product id: " + prodId);
 					
 					loginList.clear();					
-					dmsApi.initData(prodId);
+//					dmsApi.initData(prodId);
 					currentPage = 1;
 					
-					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, statuses);
+					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, "LOGIN");
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)itemsPerPage);
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
-							loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, statuses);
+							loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, "LOGIN");
 						}
 						
 						LOG.debug("loginSuccessList size: " + loginList.size());						

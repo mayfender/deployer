@@ -3,7 +3,6 @@ package com.may.ple.kyschkpay;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -90,7 +89,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, List<Integer> statuses) throws Exception {
+	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, String workType) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start getChkList");
@@ -106,12 +105,7 @@ public class DMSApi {
 			jsonObject.addProperty("productId", productId);
 			jsonObject.addProperty("currentPage", currentPage);
 			jsonObject.addProperty("itemsPerPage", itemsPerPage);
-			
-			JsonArray jsonStatus = new JsonArray();
-			for (Integer status : statuses) {				
-				jsonStatus.add(status);
-			}
-			jsonObject.add("statuses", jsonStatus);
+			jsonObject.addProperty("workType", workType);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString());
 			httpPost.setEntity(userEntity);
