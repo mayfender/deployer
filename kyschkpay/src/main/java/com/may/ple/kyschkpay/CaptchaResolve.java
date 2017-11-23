@@ -3,6 +3,7 @@ package com.may.ple.kyschkpay;
 import java.io.File;
 import java.util.Calendar;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -102,7 +103,12 @@ public class CaptchaResolve {
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 			
 			File file = new File("D:\\python_captcha\\Captcha.jpg");
-			String txt = captchatronix(FileUtils.readFileToByteArray(file));
+//			String txt = captchatronix(FileUtils.readFileToByteArray(file));
+			
+			byte[] data = FileUtils.readFileToByteArray(file);
+			String base64String = Base64.encodeBase64String(data);
+			
+			String txt = tesseract(base64String);
 			System.out.println(txt);
 			
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));

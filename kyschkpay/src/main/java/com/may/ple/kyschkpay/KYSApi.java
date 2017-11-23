@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
@@ -38,8 +39,8 @@ public class KYSApi {
 			}
 			
 			//[2]
-//			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));
-			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());
+			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));
+//			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());
 			LOG.debug("captchaTxt : "+ text);
 			
 			//[3]

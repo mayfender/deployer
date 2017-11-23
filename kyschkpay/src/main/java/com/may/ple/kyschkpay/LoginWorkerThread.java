@@ -30,9 +30,8 @@ public class LoginWorkerThread implements Runnable {
 		try {
 			JsonObject data = element.getAsJsonObject();
 			this.id = data.get("_id").getAsString();
-			JsonObject taskDetailFull = data.get("taskDetailFull").getAsJsonObject();
-			this.idCard = taskDetailFull.get(this.idCardNoColumnName).getAsString();
-			this.birthDate = birthDateFormat(taskDetailFull.get(this.birthDateColumnName).getAsString());
+			this.idCard = data.get(this.idCardNoColumnName).getAsString();
+			this.birthDate = birthDateFormat(data.get(this.birthDateColumnName).getAsString());
 			
 			LoginRespModel resp = login(idCard, birthDate);				
 			CheckRespModel chkResp;
