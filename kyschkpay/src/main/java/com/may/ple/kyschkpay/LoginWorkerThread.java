@@ -79,7 +79,7 @@ public class LoginWorkerThread implements Runnable {
 			
 			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 				
-				if(errCount == 5) break;
+				if(errCount == 3) break;
 				
 				resp = KYSApi.getInstance().login(idCard, birthDate);
 				loginStatus = resp.getStatus();
@@ -90,7 +90,6 @@ public class LoginWorkerThread implements Runnable {
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
 					LOG.warn("Login fail : " + errCount);
 					errCount++;
-					Thread.sleep(1000);
 				} else {
 					LOG.info("Login Success");					
 				}
