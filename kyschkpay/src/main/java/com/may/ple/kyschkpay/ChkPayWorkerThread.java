@@ -68,6 +68,8 @@ public class ChkPayWorkerThread implements Runnable {
 		
 		try {
 			PaymentModel paymentInfo = KYSApi.getInstance().getPaymentInfo(this.sessionId, this.cif, this.url, this.loanType, this.accNo);
+			if(paymentInfo.isRefresh()) return;
+			
 			Date lastPayDate = paymentInfo.getLastPayDate();
 			double totalPayInstallment = paymentInfo.getTotalPayInstallment().doubleValue();
 			double preBalance = paymentInfo.getPreBalance().doubleValue();

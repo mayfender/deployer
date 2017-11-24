@@ -7,6 +7,7 @@ public class PaymentModel {
 	private Double lastPayAmount;
 	private Double totalPayInstallment;
 	private Double preBalance;
+	private boolean isRefresh;
 	
 	public Date getLastPayDate() {
 		return lastPayDate;
@@ -31,6 +32,12 @@ public class PaymentModel {
 	}
 	public void setPreBalance(Double preBalance) {
 		this.preBalance = preBalance;
+	}
+	public boolean isRefresh() {
+		return isRefresh;
+	}
+	public void setRefresh(boolean isRefresh) {
+		this.isRefresh = isRefresh;
 	}
 	
 }

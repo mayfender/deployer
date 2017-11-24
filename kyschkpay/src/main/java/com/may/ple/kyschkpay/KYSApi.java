@@ -112,6 +112,12 @@ public class KYSApi {
 					.postDataCharset("UTF-8")
 					.execute();
 			
+			PaymentModel paymentModel = new PaymentModel();
+			if(!App.checkWorkingHour()) {
+				paymentModel.setRefresh(true);
+				return paymentModel;
+			}
+			
 			Document doc = res.parse();
 			Elements lastPaymentDateEl = doc.select("input[name='lastPaymentDate']");
 			
@@ -123,8 +129,7 @@ public class KYSApi {
 			Elements totalPaymentInstallmentStrEl = doc.select("input[name='totalPaymentInstallmentStr']");
 			Elements preBalanceEl = doc.select("input[name='preBalance']");
 			
-			PaymentModel paymentModel = new PaymentModel();
-			paymentModel.setLastPayDate(strToDate(lastPaymentDateEl.get(0).val()));
+			paymentModel.setLastPayDate(strToDate(lastPaymentDateEl.get(0).val().trim()));
 			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val().replace(",", "").trim()));
