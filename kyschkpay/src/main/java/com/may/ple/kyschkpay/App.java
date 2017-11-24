@@ -32,9 +32,9 @@ public class App {
 
 			socketApi();
 			
-			/*LOG.info("Start ManageLoginWorkerThread");
+			LOG.info("Start ManageLoginWorkerThread");
 			loginWorker = new ManageLoginWorkerThread(prodIds);
-			loginWorker.start();*/
+			loginWorker.start();
 			
 			LOG.info("Start ManageCheckPayWorkerThread");
 			chkPayWorker = new ManageCheckPayWorkerThread(prodIds);

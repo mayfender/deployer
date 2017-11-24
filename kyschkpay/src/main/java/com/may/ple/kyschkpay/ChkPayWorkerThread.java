@@ -79,6 +79,7 @@ public class ChkPayWorkerThread implements Runnable {
 						totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
 						preBalanceOld.doubleValue() != preBalance) {
 					
+					LOG.info("##### Have Paid");
 					model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
 					model.setLastPayDate(lastPayDate);
 					model.setLastPayAmount(paymentInfo.getLastPayAmount());
