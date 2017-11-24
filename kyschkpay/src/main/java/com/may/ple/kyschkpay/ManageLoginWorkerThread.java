@@ -37,7 +37,7 @@ public class ManageLoginWorkerThread extends Thread {
 			int itemsPerPage = 100;
 			int currentPage;
 			
-			while(true) {				
+			while(true) {
 				if(!App.checkWorkingHour()) {
 					LOG.info("Sleep 30 min");
 					Thread.sleep(1800000);
@@ -91,8 +91,8 @@ public class ManageLoginWorkerThread extends Thread {
 					LOG.info("Finished for product id: " + prodId);
 				}
 				
-				//--: Sleep 5 minutes
-				Thread.sleep(300000);
+				//--: Sleep 1 minutes
+				Thread.sleep(60000);
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
