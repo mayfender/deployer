@@ -75,7 +75,7 @@ public class ManageLoginWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							worker = new LoginWorkerThread(el, idCardNoColumnName, birthDateColumnName);
+							worker = new LoginWorkerThread(prodId, el, idCardNoColumnName, birthDateColumnName);
 							executor.execute(worker);
 						}
 					}
@@ -129,9 +129,19 @@ public class ManageLoginWorkerThread extends Thread {
 		}
 	}
 	
-	public synchronized static void addToLoginList(UpdateChkLstModel model) {
-		loginList.add(model);
-		LOG.debug("loginList size: " + loginList.size());
+	public synchronized void addToLoginList(UpdateChkLstModel model, String productId) {
+		try {
+			loginList.add(model);
+			LOG.debug("loginList size: " + loginList.size());
+			
+			if(loginList.size() == 500) {
+				LOG.info("Call updateLoginStatus");
+				updateLoginStatus(productId);
+				loginList.clear();
+			}
+		} catch (Exception e) {
+			LOG.error(e.toString(), e);
+		}
 	}
 	
 }

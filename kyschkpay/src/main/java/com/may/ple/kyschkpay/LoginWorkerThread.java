@@ -18,11 +18,13 @@ public class LoginWorkerThread implements Runnable {
 	private StatusConstant loginStatus;
 	private String cif;
 	private String id;
+	private String productId;
 	
-	public LoginWorkerThread(JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
+	public LoginWorkerThread(String productId, JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
 		this.element = element;
 		this.idCardNoColumnName = idCardNoColumnName;
 		this.birthDateColumnName = birthDateColumnName;
+		this.productId = productId;
 	}
 
 	@Override
@@ -65,7 +67,7 @@ public class LoginWorkerThread implements Runnable {
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			
-			ManageLoginWorkerThread.addToLoginList(model);
+			App.loginWorker.addToLoginList(model, productId);
 			LOG.error(e.toString());
 		}
 	}
@@ -126,7 +128,7 @@ public class LoginWorkerThread implements Runnable {
 				model.setUri(chkResp.getUri());
 			}
 			
-			ManageLoginWorkerThread.addToLoginList(model);
+			App.loginWorker.addToLoginList(model, this.productId);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

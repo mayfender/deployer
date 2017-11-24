@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 public class App {
 	private static final Logger LOG = Logger.getLogger(App.class.getName());
+	public static ManageLoginWorkerThread loginWorker;
 	private static final int START_WORKING_HOUR = 5;
 	private static final int END_WORKING_HOUR = 22;
 	
@@ -31,7 +32,8 @@ public class App {
 			socketApi();
 			
 			LOG.info("Start LoginWorkerThread");
-			new ManageLoginWorkerThread(prodIds).start();
+			loginWorker = new ManageLoginWorkerThread(prodIds);
+			loginWorker.start();
 			
 //			LOG.info("Start LoginWorkerThread");
 //			new ManageCheckPayWorkerThread(prodIds).start();
