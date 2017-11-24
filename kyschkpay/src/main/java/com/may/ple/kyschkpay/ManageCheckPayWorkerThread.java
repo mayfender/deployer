@@ -16,7 +16,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 1000;
+	private static final int POOL_SIZE = 5000;
 	private static final int LIMITED_UPDATE_SIZE = 1000;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
