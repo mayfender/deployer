@@ -125,9 +125,9 @@ public class KYSApi {
 			
 			PaymentModel paymentModel = new PaymentModel();
 			paymentModel.setLastPayDate(strToDate(lastPaymentDateEl.get(0).val()));
-			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val()));
-			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val()));
-			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val()));
+			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val().replace(",", "").trim()));
+			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val().replace(",", "").trim()));
+			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val().replace(",", "").trim()));
 			
 			return paymentModel;
 		} catch (Exception e) {
