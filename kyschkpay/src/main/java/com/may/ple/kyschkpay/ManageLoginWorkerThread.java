@@ -17,7 +17,8 @@ public class ManageLoginWorkerThread extends Thread {
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	private static final int POOL_SIZE = 20;
-	private static final int LIMITED_UPDATE_SIZE = 200;
+	private static final int LIMITED_UPDATE_SIZE = 1000;
+	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
 	
 	public ManageLoginWorkerThread(List<String> prodIds) {
@@ -35,7 +36,6 @@ public class ManageLoginWorkerThread extends Thread {
 			JsonElement checkList;
 			JsonArray jsonArray;
 			Runnable worker;
-			int itemsPerPage = 100;
 			int currentPage;
 			
 			while(true) {
@@ -57,13 +57,14 @@ public class ManageLoginWorkerThread extends Thread {
 					loginList.clear();
 					currentPage = 1;
 					
-					loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, "LOGIN");
+					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 					int totalItems = loginChkList.get("totalItems").getAsInt();
-					int totalPages = (int)Math.ceil((double)totalItems / (double)itemsPerPage);
+					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+					if(totalItems == 0) continue;
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
-							loginChkList = dmsApi.getChkList(prodId, currentPage, itemsPerPage, "LOGIN");
+							loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 						}
 						
 						LOG.debug("loginSuccessList size: " + loginList.size());						
@@ -123,7 +124,7 @@ public class ManageLoginWorkerThread extends Thread {
 			}
 			
 			LOG.info("Call updateLoginStatus");
-			DMSApi.getInstance().updateLoginStatus(array, productId);
+			DMSApi.getInstance().updateStatus(array, productId);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

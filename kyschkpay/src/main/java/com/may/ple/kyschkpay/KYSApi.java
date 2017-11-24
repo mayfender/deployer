@@ -1,6 +1,8 @@
 package com.may.ple.kyschkpay;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +13,6 @@ import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class KYSApi {
@@ -98,9 +99,9 @@ public class KYSApi {
 		}
 	}
 	
-	public void getPaymentInfo(String sessionId, String cif, String uri, String loanType, String accNo) throws Exception {
+	public PaymentModel getPaymentInfo(String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
 		try {
-			Response res = Jsoup.connect(LINK + uri)
+			Response res = Jsoup.connect(url)
 					.method(Method.POST)
 					.data("loanType", loanType)
 					.data("accNo", accNo)
@@ -112,24 +113,23 @@ public class KYSApi {
 					.execute();
 			
 			Document doc = res.parse();
-			Elements table = doc.select("#tab4 table table");
-			Elements rows = table.select("tr");
-			Elements cols;
-			boolean isFirstRow = true;
+			Elements lastPaymentDateEl = doc.select("input[name='lastPaymentDate']");
 			
-			for (Element row : rows) {
-				cols = row.select("td");
-				
-				for (Element col : cols) {
-					if(isFirstRow) {
-						System.out.print(String.format("%25s", col.select("div").text() + "| "));
-						isFirstRow = false;
-					} else {
-						System.out.print(String.format("%25s", col.text() + "| "));												
-					}
-				}
-				System.out.println();
+			if(lastPaymentDateEl.size() == 0) {
+				throw new CustomException(1, "Session Timeout");
 			}
+			
+			Elements lastPaymentAmountEl = doc.select("input[name='lastPaymentAmount']");
+			Elements totalPaymentInstallmentStrEl = doc.select("input[name='totalPaymentInstallmentStr']");
+			Elements preBalanceEl = doc.select("input[name='preBalance']");
+			
+			PaymentModel paymentModel = new PaymentModel();
+			paymentModel.setLastPayDate(strToDate(lastPaymentDateEl.get(0).val()));
+			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val()));
+			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val()));
+			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val()));
+			
+			return paymentModel;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -233,6 +233,18 @@ public class KYSApi {
 			String rest = str.substring(firstBracket, lastBracket).replace("'", "");
 			
 			return Arrays.asList(rest.split(","));
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private Date strToDate(String dateStr) throws Exception {
+		try {
+			String[] split = dateStr.split("/");
+			int yyyy = Integer.parseInt(split[2]) - 543;
+			
+			return new SimpleDateFormat("ddMMyyyy").parse(new String(split[0] + split[1] + yyyy));
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
