@@ -17,6 +17,7 @@ public class ManageLoginWorkerThread extends Thread {
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	private static final int POOL_SIZE = 20;
+	private static final int LIMITED_UPDATE_SIZE = 200;
 	private List<String> prodIds;
 	
 	public ManageLoginWorkerThread(List<String> prodIds) {
@@ -134,7 +135,7 @@ public class ManageLoginWorkerThread extends Thread {
 			loginList.add(model);
 			LOG.debug("loginList size: " + loginList.size());
 			
-			if(loginList.size() == 500) {
+			if(loginList.size() == LIMITED_UPDATE_SIZE) {
 				LOG.info("Call updateLoginStatus");
 				updateLoginStatus(productId);
 				loginList.clear();
