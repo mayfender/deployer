@@ -112,22 +112,38 @@ public class KYSApi {
 					.postDataCharset("UTF-8")
 					.execute();
 			
+			Document doc = res.parse();
+			
 			PaymentModel paymentModel = new PaymentModel();
 			if(!App.checkWorkingHour()) {
-				paymentModel.setRefresh(true);
+				Elements title = doc.select("title");
+				if(title.get(0).html().toUpperCase().equals("ERROR")) {
+					paymentModel.setError(true);
+				} else {
+					paymentModel.setRefresh(true);					
+				}
 				return paymentModel;
 			}
 			
-			Document doc = res.parse();
-			Elements lastPaymentDateEl = doc.select("input[name='lastPaymentDate']");
-			
-			if(lastPaymentDateEl.size() == 0) {
+			Elements tab1El = doc.select("#tab1");
+			if(tab1El.size() == 0) {
+				Elements title = doc.select("title");
+				if(title.get(0).html().toUpperCase().equals("ERROR")) {
+					paymentModel.setError(true);
+					return paymentModel;
+				}
+				
 				throw new CustomException(1, "Session Timeout");
 			}
+
+			Elements preBalanceEl = tab1El.select("input[name='preBalance']");			
+			Elements lastPaymentDateEl = tab1El.select("input[name='lastPaymentDate']");
+			Elements lastPaymentAmountEl = tab1El.select("input[name='lastPaymentAmount']");
 			
-			Elements lastPaymentAmountEl = doc.select("input[name='lastPaymentAmount']");
-			Elements totalPaymentInstallmentStrEl = doc.select("input[name='totalPaymentInstallmentStr']");
-			Elements preBalanceEl = doc.select("input[name='preBalance']");
+			Elements totalPaymentInstallmentStrEl = tab1El.select("input[name='totalPaymentInstallmentStr']");
+			if(totalPaymentInstallmentStrEl.size() == 0) {
+				totalPaymentInstallmentStrEl = tab1El.select("input[name='totalAdvancePay']");
+			}
 			
 			paymentModel.setLastPayDate(strToDate(lastPaymentDateEl.get(0).val().trim()));
 			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val().replace(",", "").trim()));
@@ -136,7 +152,7 @@ public class KYSApi {
 			
 			return paymentModel;
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error("[sessionId " +sessionId + "] ############## " + e.toString());
 			throw e;
 		}
 	}
@@ -246,6 +262,8 @@ public class KYSApi {
 	
 	private Date strToDate(String dateStr) throws Exception {
 		try {
+			if(StringUtils.isBlank(dateStr)) return null;
+			
 			String[] split = dateStr.split("/");
 			int yyyy = Integer.parseInt(split[2]) - 543;
 			

@@ -60,6 +60,8 @@ public class ManageLoginWorkerThread extends Thread {
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+					
+					LOG.debug("totalItems: " + totalItems);
 					if(totalItems == 0) continue;
 					
 					for (; currentPage <= totalPages; currentPage++) {
@@ -82,12 +84,13 @@ public class ManageLoginWorkerThread extends Thread {
 						}
 					}
 					
+					Thread.sleep(10000);
 					while(executor.getActiveCount() != 0){
 						LOG.debug("=============: Worker active count : " + executor.getActiveCount());
 						Thread.sleep(1000);
 					}
 					
-					LOG.debug("loginSuccessList size: " + loginList.size());
+					LOG.debug("loginList size: " + loginList.size());
 					updateLoginStatus(prodId);
 					
 					LOG.info("Finished for product id: " + prodId);

@@ -1,4 +1,4 @@
-package com.may.ple.kyschkpay;
+/*package com.may.ple.kyschkpay;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,3 +79,4 @@ public class ManageCheckPayWorkerThreadBak extends Thread {
 	}
 	
 }
+*/

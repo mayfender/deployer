@@ -8,6 +8,7 @@ public class PaymentModel {
 	private Double totalPayInstallment;
 	private Double preBalance;
 	private boolean isRefresh;
+	private boolean isError;
 	
 	public Date getLastPayDate() {
 		return lastPayDate;
@@ -38,6 +39,12 @@ public class PaymentModel {
 	}
 	public void setRefresh(boolean isRefresh) {
 		this.isRefresh = isRefresh;
+	}
+	public boolean isError() {
+		return isError;
+	}
+	public void setError(boolean isError) {
+		this.isError = isError;
 	}
 	
 }

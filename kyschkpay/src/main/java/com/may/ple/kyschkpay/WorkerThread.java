@@ -1,4 +1,4 @@
-package com.may.ple.kyschkpay;
+/*package com.may.ple.kyschkpay;
 
 import java.util.Calendar;
 
@@ -150,3 +150,4 @@ public class WorkerThread implements Runnable {
 	}
 	
 }
+*/

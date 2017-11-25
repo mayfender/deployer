@@ -21,6 +21,7 @@ public class ChkPayWorkerThread implements Runnable {
 	private String accNo;
 	private Double totalPayInstallmentOld;
 	private Double preBalanceOld;
+	private Double lastPayAmountOld;
 	
 	public ChkPayWorkerThread(String productId, JsonElement element) {
 		this.element = element;
@@ -38,13 +39,21 @@ public class ChkPayWorkerThread implements Runnable {
 			this.loanType = data.get("sys_loanType").getAsString();
 			this.accNo = data.get("sys_accNo").getAsString();
 			
-			JsonElement totalPayInstallment;
-			JsonElement preBalance;
+			JsonElement totalPayInstallment, preBalance, lastPayAmount;
 			if((totalPayInstallment = data.get("sys_totalPayInstallment")) != null) {
 				this.totalPayInstallmentOld = totalPayInstallment.getAsDouble();				
+			} else {
+				this.totalPayInstallmentOld = -1d;
 			}
 			if((preBalance = data.get("sys_preBalance")) != null) {
 				this.preBalanceOld = preBalance.getAsDouble();				
+			} else {
+				this.preBalanceOld = -1d;				
+			}
+			if((lastPayAmount = data.get("sys_lastPayAmount")) != null) {
+				this.lastPayAmountOld = lastPayAmount.getAsDouble();				
+			} else {
+				this.lastPayAmountOld = -1d;				
 			}
 			
 			chkPay();
@@ -55,8 +64,9 @@ public class ChkPayWorkerThread implements Runnable {
 			model.setId(this.id);
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
+			model.setCreatedDateTime(new Date());
 			
-			App.chkPayWorker.addToLoginList(model, productId);
+			App.chkPayWorker.addToChkPayList(model, productId);
 			LOG.error(e.toString());
 		}
 	}
@@ -67,28 +77,49 @@ public class ChkPayWorkerThread implements Runnable {
 		model.setId(this.id);
 		
 		try {
-			PaymentModel paymentInfo = KYSApi.getInstance().getPaymentInfo(this.sessionId, this.cif, this.url, this.loanType, this.accNo);
-			if(paymentInfo.isRefresh()) return;
+			PaymentModel paymentInfo;
+			int count = 0;
+			
+			while(true) {
+				if(count == 10) {
+					LOG.warn("Cann't get paymentInfo");
+					return;
+				}
+				
+				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.sessionId, this.cif, this.url, this.loanType, this.accNo);
+				if(!paymentInfo.isError()) break;
+				
+				LOG.warn("Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
+				count++;
+				Thread.sleep(5000);
+			}
+			
+			if(paymentInfo.isRefresh()) {
+				LOG.debug("Refresh Mode");
+				return;
+			}
 			
 			Date lastPayDate = paymentInfo.getLastPayDate();
-			double totalPayInstallment = paymentInfo.getTotalPayInstallment().doubleValue();
-			double preBalance = paymentInfo.getPreBalance().doubleValue();
-			Date today = Calendar.getInstance().getTime();
-			
-			if(DateUtils.isSameDay(lastPayDate, today)) {
-				if(totalPayInstallmentOld == null || 
-						preBalanceOld == null || 
+			if(lastPayDate != null) {
+				double totalPayInstallment = paymentInfo.getTotalPayInstallment().doubleValue();
+				double preBalance = paymentInfo.getPreBalance().doubleValue();
+				double lastPayAmount = paymentInfo.getLastPayAmount().doubleValue();
+				Date today = Calendar.getInstance().getTime();
+				
+				if(DateUtils.isSameDay(lastPayDate, today)) {
+					if(lastPayAmountOld != lastPayAmount ||
 						totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
 						preBalanceOld.doubleValue() != preBalance) {
-					
-					LOG.info("##### Have Paid");
-					model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
-					model.setLastPayDate(lastPayDate);
-					model.setLastPayAmount(paymentInfo.getLastPayAmount());
-					model.setTotalPayInstallment(totalPayInstallment);
-					model.setPreBalance(preBalance);
-				}
-			}		
+						
+						LOG.info("==================: Have Paid :===================");
+						model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
+						model.setLastPayDate(lastPayDate);
+						model.setLastPayAmount(lastPayAmount);
+						model.setTotalPayInstallment(totalPayInstallment);
+						model.setPreBalance(preBalance);
+					}
+				}		
+			}
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setErrMsg("Check Pay Session Timeout");
@@ -97,7 +128,8 @@ public class ChkPayWorkerThread implements Runnable {
 			throw e;
 		}
 		
-		App.chkPayWorker.addToLoginList(model, this.productId);
+		model.setCreatedDateTime(new Date());
+		App.chkPayWorker.addToChkPayList(model, this.productId);
 	}
 	
 }

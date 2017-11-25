@@ -213,7 +213,6 @@ public class DMSApi {
 	
 	private JsonObject jsonParser(HttpResponse response) throws Exception {
 		try {
-			LOG.debug("Start jsonParser");
 			String jsonStr = jsonStr(response);
 			JsonElement jsonElement =  new JsonParser().parse(jsonStr);
 			return jsonElement.getAsJsonObject();
@@ -225,7 +224,6 @@ public class DMSApi {
 	
 	private String jsonStr(HttpResponse response) throws Exception {
 		try {
-			LOG.debug("Start jsonStr");
 			if (response.getStatusLine().getStatusCode() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : "
 				   + response.getStatusLine().getStatusCode());

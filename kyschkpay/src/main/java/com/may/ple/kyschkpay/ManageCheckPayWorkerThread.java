@@ -16,7 +16,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 1000;
+//	private static final int POOL_SIZE = 1000;
+	private static final int POOL_SIZE = 1;
 	private static final int LIMITED_UPDATE_SIZE = 1000;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
@@ -37,12 +38,6 @@ public class ManageCheckPayWorkerThread extends Thread {
 			int currentPage;
 			
 			while(true) {
-				if(!App.checkWorkingHour()) {
-					LOG.info("Sleep 30 min");
-					Thread.sleep(1800000);
-					continue;
-				}
-				
 				if(!dmsApi.login(USERNAME, PASSWORD)) {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
@@ -58,6 +53,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+					
+					LOG.debug("totalItems: " + totalItems);
 					if(totalItems == 0) continue;
 					
 					for (; currentPage <= totalPages; currentPage++) {
@@ -78,13 +75,14 @@ public class ManageCheckPayWorkerThread extends Thread {
 						}
 					}
 					
+					Thread.sleep(10000);
 					while(executor.getActiveCount() != 0){
 						LOG.debug("=============: Worker active count : " + executor.getActiveCount());
 						Thread.sleep(1000);
 					}
 					
-					LOG.debug("loginSuccessList size: " + chkPayList.size());
-					updateChakPayStatus(prodId);
+					LOG.debug("chkPayList size: " + chkPayList.size());
+					updateChkPayStatus(prodId);
 					
 					LOG.info("Finished for product id: " + prodId);
 				}
@@ -97,7 +95,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 		}
 	}
 	
-	private void updateChakPayStatus(String productId) throws Exception {
+	private void updateChkPayStatus(String productId) throws Exception {
 		try {
 			if(chkPayList.size() == 0) return;
 			
@@ -117,6 +115,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				obj.addProperty("lastPayAmount", modelLst.getLastPayAmount());
 				obj.addProperty("totalPayInstallment", modelLst.getTotalPayInstallment());
 				obj.addProperty("preBalance", modelLst.getPreBalance());
+				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
 				
 				array.add(obj);
 			}
@@ -129,14 +128,14 @@ public class ManageCheckPayWorkerThread extends Thread {
 		}
 	}
 	
-	public synchronized void addToLoginList(UpdateChkLstModel model, String productId) {
+	public synchronized void addToChkPayList(UpdateChkLstModel model, String productId) {
 		try {
 			chkPayList.add(model);
-			LOG.debug("loginList size: " + chkPayList.size());
+			LOG.debug("chkPayList size: " + chkPayList.size());
 			
 			if(chkPayList.size() == LIMITED_UPDATE_SIZE) {
-				LOG.info("Call updateLoginStatus");
-				updateChakPayStatus(productId);
+				LOG.info("Call updateChkPayStatus");
+				updateChkPayStatus(productId);
 				chkPayList.clear();
 			}
 		} catch (Exception e) {

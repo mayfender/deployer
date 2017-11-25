@@ -6,7 +6,6 @@ public class UpdateChkLstModel {
 	private String productId;
 	private String id;
 	private Integer status;
-	private Date paidDateTime;
 	private String sessionId;
 	private String cif;
 	private String loanType;
@@ -18,6 +17,7 @@ public class UpdateChkLstModel {
 	private Double lastPayAmount;
 	private Double totalPayInstallment;
 	private Double preBalance;
+	private Date createdDateTime;
 	
 	public String getProductId() {
 		return productId;
@@ -36,12 +36,6 @@ public class UpdateChkLstModel {
 	}
 	public void setStatus(Integer status) {
 		this.status = status;
-	}
-	public Date getPaidDateTime() {
-		return paidDateTime;
-	}
-	public void setPaidDateTime(Date paidDateTime) {
-		this.paidDateTime = paidDateTime;
 	}
 	public String getSessionId() {
 		return sessionId;
@@ -108,6 +102,12 @@ public class UpdateChkLstModel {
 	}
 	public void setPreBalance(Double preBalance) {
 		this.preBalance = preBalance;
+	}
+	public Date getCreatedDateTime() {
+		return createdDateTime;
+	}
+	public void setCreatedDateTime(Date createdDateTime) {
+		this.createdDateTime = createdDateTime;
 	}
 	
 }

@@ -15,12 +15,13 @@ public class App {
 	public static ManageCheckPayWorkerThread chkPayWorker;
 	public static ManageLoginWorkerThread loginWorker;
 	private static final int START_WORKING_HOUR = 5;
-	private static final int END_WORKING_HOUR = 22;
+	private static final int END_WORKING_HOUR = 20;
 	
 	//--: args[0]: Product ID[proId-1,proId-2]
 	public static void main(String[] args) {
 		try {
 			LOG.info("Start Module...");
+			System.setProperty("java.net.preferIPv4Stack", "true");
 			
 			if(args == null || args.length == 0) {
 				LOG.error("args can't be null");

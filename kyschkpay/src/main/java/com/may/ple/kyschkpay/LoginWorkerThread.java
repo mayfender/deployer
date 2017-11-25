@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -66,6 +67,7 @@ public class LoginWorkerThread implements Runnable {
 			model.setId(this.id);
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
+			model.setCreatedDateTime(new Date());
 			
 			App.loginWorker.addToLoginList(model, productId);
 			LOG.error(e.toString());
@@ -128,6 +130,7 @@ public class LoginWorkerThread implements Runnable {
 				model.setUri(chkResp.getUri());
 			}
 			
+			model.setCreatedDateTime(new Date());
 			App.loginWorker.addToLoginList(model, this.productId);
 		} catch (Exception e) {
 			LOG.error(e.toString());
