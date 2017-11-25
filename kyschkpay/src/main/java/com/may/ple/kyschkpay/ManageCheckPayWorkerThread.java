@@ -28,16 +28,16 @@ public class ManageCheckPayWorkerThread extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			DMSApi dmsApi = DMSApi.getInstance();
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-			JsonObject loginChkList;
-			JsonElement checkList;
-			JsonArray jsonArray;
-			Runnable worker;
-			int currentPage;
-			
-			while(true) {
+		DMSApi dmsApi = DMSApi.getInstance();
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		JsonObject loginChkList;
+		JsonElement checkList;
+		JsonArray jsonArray;
+		Runnable worker;
+		int currentPage;
+		
+		while(true) {
+			try {
 				if(!dmsApi.login(USERNAME, PASSWORD)) {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
@@ -51,6 +51,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 					currentPage = 1;
 					
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
+					if(loginChkList == null) break;
+					
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					
@@ -60,6 +62,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
 							loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
+							if(loginChkList == null) break;
 						}
 						
 						LOG.debug("chkPayList size: " + chkPayList.size());
@@ -86,12 +89,14 @@ public class ManageCheckPayWorkerThread extends Thread {
 					
 					LOG.info("Finished for product id: " + prodId);
 				}
-				
-				//--: Sleep 10 minutes
-				Thread.sleep(600000);
+			} catch (Exception e) {
+				LOG.error(e.toString(), e);
+			} finally {
+				try {
+					//--: Sleep 10 minutes
+					Thread.sleep(600000);											
+				} catch (Exception e2) {}
 			}
-		} catch (Exception e) {
-			LOG.error(e.toString(), e);
 		}
 	}
 	

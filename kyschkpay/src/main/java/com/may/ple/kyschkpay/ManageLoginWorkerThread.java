@@ -27,18 +27,18 @@ public class ManageLoginWorkerThread extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			DMSApi dmsApi = DMSApi.getInstance();
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-			String birthDateColumnName;
-			String idCardNoColumnName;
-			JsonObject loginChkList;
-			JsonElement checkList;
-			JsonArray jsonArray;
-			Runnable worker;
-			int currentPage;
-			
-			while(true) {
+		DMSApi dmsApi = DMSApi.getInstance();
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		String birthDateColumnName;
+		String idCardNoColumnName;
+		JsonObject loginChkList;
+		JsonElement checkList;
+		JsonArray jsonArray;
+		Runnable worker;
+		int currentPage;
+		
+		while(true) {
+			try {
 				if(!App.checkWorkingHour()) {
 					LOG.info("Sleep 30 min");
 					Thread.sleep(1800000);
@@ -58,6 +58,8 @@ public class ManageLoginWorkerThread extends Thread {
 					currentPage = 1;
 					
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
+					if(loginChkList == null) break;
+					
 					int totalItems = loginChkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					
@@ -67,6 +69,7 @@ public class ManageLoginWorkerThread extends Thread {
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
 							loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
+							if(loginChkList == null) break;
 						}
 						
 						LOG.debug("loginSuccessList size: " + loginList.size());						
@@ -95,12 +98,14 @@ public class ManageLoginWorkerThread extends Thread {
 					
 					LOG.info("Finished for product id: " + prodId);
 				}
-				
-				//--: Sleep 1 minutes
-				Thread.sleep(60000);
+			} catch (Exception e) {
+				LOG.error(e.toString(), e);
+			} finally {
+				try {
+					//--: Sleep 1 minutes
+					Thread.sleep(60000);											
+				} catch (Exception e2) {}
 			}
-		} catch (Exception e) {
-			LOG.error(e.toString(), e);
 		}
 	}
 	
