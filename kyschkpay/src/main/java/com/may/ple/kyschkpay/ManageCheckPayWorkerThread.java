@@ -16,8 +16,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-//	private static final int POOL_SIZE = 1000;
-	private static final int POOL_SIZE = 1;
+	private static final int POOL_SIZE = 10;
 	private static final int LIMITED_UPDATE_SIZE = 1000;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
@@ -30,7 +29,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-		JsonObject loginChkList;
+		String contractNoColumnName;
+		JsonObject chkList;
 		JsonElement checkList;
 		JsonArray jsonArray;
 		Runnable worker;
@@ -50,10 +50,10 @@ public class ManageCheckPayWorkerThread extends Thread {
 					chkPayList.clear();
 					currentPage = 1;
 					
-					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
-					if(loginChkList == null) break;
+					chkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
+					if(chkList == null) break;
 					
-					int totalItems = loginChkList.get("totalItems").getAsInt();
+					int totalItems = chkList.get("totalItems").getAsInt();
 					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					
 					LOG.debug("totalItems: " + totalItems);
@@ -61,19 +61,20 @@ public class ManageCheckPayWorkerThread extends Thread {
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
-							loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
-							if(loginChkList == null) break;
+							chkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
+							if(chkList == null) break;
 						}
 						
 						LOG.debug("chkPayList size: " + chkPayList.size());
-						checkList = loginChkList.get("checkList");
+						checkList = chkList.get("checkList");
+						contractNoColumnName = chkList.get("contractNoColumnName").getAsString();
 						
 						if(checkList == null) continue;
 						
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							worker = new ChkPayWorkerThread(prodId, el);
+							worker = new ChkPayWorkerThread(prodId, el, contractNoColumnName);
 							executor.execute(worker);
 						}
 					}
@@ -121,6 +122,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				obj.addProperty("totalPayInstallment", modelLst.getTotalPayInstallment());
 				obj.addProperty("preBalance", modelLst.getPreBalance());
 				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
+				obj.addProperty("contractNo", modelLst.getContractNo());
 				
 				array.add(obj);
 			}

@@ -22,10 +22,13 @@ public class ChkPayWorkerThread implements Runnable {
 	private Double totalPayInstallmentOld;
 	private Double preBalanceOld;
 	private Double lastPayAmountOld;
+	private String contractNoColumnName;
+	private String contractNo;
 	
-	public ChkPayWorkerThread(String productId, JsonElement element) {
+	public ChkPayWorkerThread(String productId, JsonElement element, String contractNoColumnName) {
 		this.element = element;
 		this.productId = productId;
+		this.contractNoColumnName = contractNoColumnName;
 	}
 
 	@Override
@@ -38,6 +41,7 @@ public class ChkPayWorkerThread implements Runnable {
 			this.url = data.get("sys_uri").getAsString();
 			this.loanType = data.get("sys_loanType").getAsString();
 			this.accNo = data.get("sys_accNo").getAsString();
+			this.contractNo = data.get(contractNoColumnName).getAsString();
 			
 			JsonElement totalPayInstallment, preBalance, lastPayAmount;
 			if((totalPayInstallment = data.get("sys_totalPayInstallment")) != null) {
@@ -117,6 +121,7 @@ public class ChkPayWorkerThread implements Runnable {
 						model.setLastPayAmount(lastPayAmount);
 						model.setTotalPayInstallment(totalPayInstallment);
 						model.setPreBalance(preBalance);
+						model.setContractNo(this.contractNo);
 					}
 				}		
 			}

@@ -18,6 +18,7 @@ public class UpdateChkLstModel {
 	private Double totalPayInstallment;
 	private Double preBalance;
 	private Date createdDateTime;
+	private String contractNo;
 	
 	public String getProductId() {
 		return productId;
@@ -108,6 +109,12 @@ public class UpdateChkLstModel {
 	}
 	public void setCreatedDateTime(Date createdDateTime) {
 		this.createdDateTime = createdDateTime;
+	}
+	public String getContractNo() {
+		return contractNo;
+	}
+	public void setContractNo(String contractNo) {
+		this.contractNo = contractNo;
 	}
 	
 }
