@@ -122,6 +122,7 @@ public class ChkPayWorkerThread implements Runnable {
 						model.setTotalPayInstallment(totalPayInstallment);
 						model.setPreBalance(preBalance);
 						model.setContractNo(this.contractNo);
+						model.setHtml(paymentInfo.getHtml());
 					}
 				}		
 			}

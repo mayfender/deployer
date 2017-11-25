@@ -9,6 +9,7 @@ public class PaymentModel {
 	private Double preBalance;
 	private boolean isRefresh;
 	private boolean isError;
+	private String html;
 	
 	public Date getLastPayDate() {
 		return lastPayDate;
@@ -45,6 +46,12 @@ public class PaymentModel {
 	}
 	public void setError(boolean isError) {
 		this.isError = isError;
+	}
+	public String getHtml() {
+		return html;
+	}
+	public void setHtml(String html) {
+		this.html = html;
 	}
 	
 }

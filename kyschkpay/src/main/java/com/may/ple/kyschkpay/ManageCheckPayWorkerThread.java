@@ -122,6 +122,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				obj.addProperty("totalPayInstallment", modelLst.getTotalPayInstallment());
 				obj.addProperty("preBalance", modelLst.getPreBalance());
 				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
+				obj.addProperty("html", modelLst.getHtml());
 				obj.addProperty("contractNo", modelLst.getContractNo());
 				
 				array.add(obj);

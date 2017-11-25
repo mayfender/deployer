@@ -19,6 +19,7 @@ public class UpdateChkLstModel {
 	private Double preBalance;
 	private Date createdDateTime;
 	private String contractNo;
+	private String html;
 	
 	public String getProductId() {
 		return productId;
@@ -115,6 +116,12 @@ public class UpdateChkLstModel {
 	}
 	public void setContractNo(String contractNo) {
 		this.contractNo = contractNo;
+	}
+	public String getHtml() {
+		return html;
+	}
+	public void setHtml(String html) {
+		this.html = html;
 	}
 	
 }
