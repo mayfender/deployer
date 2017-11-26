@@ -56,6 +56,36 @@ public class KYSApi {
 		}
 	}
 	
+	public PaymentModel refresh(String sessionId, String cif) throws Exception {
+		try {
+			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
+					.method(Method.POST)
+					.data("cif", cif)
+					.header("Content-Type", "application/x-www-form-urlencoded")
+					.cookie("JSESSIONID", sessionId)
+					.postDataCharset("UTF-8")
+					.execute();
+			
+			Document doc = res.parse();
+			Elements body = doc.select("body");
+			String onload = body.get(0).attr("onload");
+			
+			if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login")) {
+				throw new CustomException(1, "Session Timeout");
+			}
+			
+			PaymentModel paymentModel = new PaymentModel();
+			Elements title = doc.select("title");
+			if(title.get(0).html().toUpperCase().equals("ERROR")) {
+				paymentModel.setError(true);
+			}
+			return paymentModel;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
 	public List<String> getParam(String sessionId, String cif) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
@@ -103,6 +133,13 @@ public class KYSApi {
 	
 	public PaymentModel getPaymentInfo(String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
 		try {
+			if(!App.checkWorkingHour()) {
+				PaymentModel paymentModel = refresh(sessionId, cif);
+				paymentModel.setRefresh(true);
+				return paymentModel;
+			}
+			
+			LOG.debug("Start get paymentInfo");
 			Response res = Jsoup.connect(url)
 					.method(Method.POST)
 					.data("loanType", loanType)
@@ -115,18 +152,7 @@ public class KYSApi {
 					.execute();
 			
 			Document doc = res.parse();
-			
 			PaymentModel paymentModel = new PaymentModel();
-			if(!App.checkWorkingHour()) {
-				Elements title = doc.select("title");
-				if(title.get(0).html().toUpperCase().equals("ERROR")) {
-					paymentModel.setError(true);
-				} else {
-					paymentModel.setRefresh(true);					
-				}
-				return paymentModel;
-			}
-			
 			Elements tab1El = doc.select("#tab1");
 			if(tab1El.size() == 0) {
 				Elements title = doc.select("title");

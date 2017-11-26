@@ -64,14 +64,7 @@ public class ChkPayWorkerThread implements Runnable {
 			
 			LOG.info("Worker end : ");
 		} catch (Exception e) {
-			UpdateChkLstModel model = new UpdateChkLstModel();
-			model.setId(this.id);
-			model.setErrMsg(e.toString());
-			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
-			model.setCreatedDateTime(new Date());
-			
-			App.chkPayWorker.addToChkPayList(model, productId);
-			LOG.error(e.toString());
+			LOG.error(e.toString(), e);
 		}
 	}
 	
@@ -109,6 +102,10 @@ public class ChkPayWorkerThread implements Runnable {
 				double preBalance = paymentInfo.getPreBalance().doubleValue();
 				double lastPayAmount = paymentInfo.getLastPayAmount().doubleValue();
 				Date today = Calendar.getInstance().getTime();
+				
+				/*Calendar calendar = Calendar.getInstance();
+				calendar.set(2017, 6, 14);
+				Date today = calendar.getTime();*/
 				
 				if(DateUtils.isSameDay(lastPayDate, today)) {
 					if(lastPayAmountOld != lastPayAmount ||
