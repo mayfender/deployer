@@ -128,6 +128,7 @@ public class ManageLoginWorkerThread extends Thread {
 				obj.addProperty("sessionId", modelLst.getSessionId());
 				obj.addProperty("status", modelLst.getStatus());
 				obj.addProperty("uri", modelLst.getUri());
+				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
 				array.add(obj);
 			}
 			
