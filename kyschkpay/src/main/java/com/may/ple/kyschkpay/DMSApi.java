@@ -48,7 +48,7 @@ public class DMSApi {
 			jsonObject.addProperty("username", username);
 			jsonObject.addProperty("password", Base64.encodeBase64String(pass.getBytes()));
 			
-			StringEntity userEntity = new StringEntity(jsonObject.toString());
+			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);
 			
 			HttpResponse response = httpClient.execute(httpPost);
@@ -107,7 +107,7 @@ public class DMSApi {
 			jsonObject.addProperty("itemsPerPage", itemsPerPage);
 			jsonObject.addProperty("workType", workType);
 			
-			StringEntity userEntity = new StringEntity(jsonObject.toString());
+			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);
 			
 			HttpResponse response = httpClient.execute(httpPost);
@@ -135,7 +135,7 @@ public class DMSApi {
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("imgBase64", imgBase64);
 			
-			StringEntity userEntity = new StringEntity(jsonObject.toString());
+			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);
 			
 			HttpResponse response = httpClient.execute(httpPost);
@@ -162,7 +162,7 @@ public class DMSApi {
 			jsonObject.add("updateList", updateLst);
 			jsonObject.addProperty("productId", productId);
 			
-			StringEntity userEntity = new StringEntity(jsonObject.toString());
+			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);
 			
 			HttpResponse response = httpClient.execute(httpPost);
