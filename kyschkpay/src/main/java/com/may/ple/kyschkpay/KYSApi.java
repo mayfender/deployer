@@ -154,7 +154,7 @@ public class KYSApi {
 			
 			Date today = Calendar.getInstance().getTime();
 			if(paymentModel.getLastPayDate() != null && DateUtils.isSameDay(paymentModel.getLastPayDate(), today)) {
-				paymentModel.setHtml(doc.toString());
+				paymentModel.setHtml(doc.html());
 			}
 			
 			return paymentModel;
