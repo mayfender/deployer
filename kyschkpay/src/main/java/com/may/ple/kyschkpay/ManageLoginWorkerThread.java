@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -36,6 +37,12 @@ public class ManageLoginWorkerThread extends Thread {
 		JsonArray jsonArray;
 		Runnable worker;
 		int currentPage;
+		
+		/*Proxy proxy = new Proxy(
+			Proxy.Type.HTTP,                                      
+			InetSocketAddress.createUnresolved("61.7.186.236", 80)
+		);	*/	
+		Proxy proxy = null;
 		
 		while(true) {
 			try {
@@ -82,7 +89,7 @@ public class ManageLoginWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							worker = new LoginWorkerThread(prodId, el, idCardNoColumnName, birthDateColumnName);
+							worker = new LoginWorkerThread(proxy, prodId, el, idCardNoColumnName, birthDateColumnName);
 							executor.execute(worker);
 						}
 					}

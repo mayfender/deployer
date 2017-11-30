@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.net.Proxy;
 import java.util.Date;
 import java.util.List;
 
@@ -20,12 +21,14 @@ public class LoginWorkerThread implements Runnable {
 	private String cif;
 	private String id;
 	private String productId;
+	private Proxy proxy;
 	
-	public LoginWorkerThread(String productId, JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
+	public LoginWorkerThread(Proxy proxy, String productId, JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
 		this.element = element;
 		this.idCardNoColumnName = idCardNoColumnName;
 		this.birthDateColumnName = birthDateColumnName;
 		this.productId = productId;
+		this.proxy = proxy;
 	}
 
 	@Override
@@ -44,7 +47,7 @@ public class LoginWorkerThread implements Runnable {
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
-				List<String> params = KYSApi.getInstance().getParam(this.sessionId, this.cif);
+				List<String> params = KYSApi.getInstance().getParam(proxy, this.sessionId, this.cif);
 				chkResp = new CheckRespModel();
 				chkResp.setLoanType(params.get(0).trim());
 				chkResp.setFlag(params.get(5).trim());
@@ -85,7 +88,7 @@ public class LoginWorkerThread implements Runnable {
 				
 				if(errCount == 3) break;
 				
-				resp = KYSApi.getInstance().login(idCard, birthDate);
+				resp = KYSApi.getInstance().login(proxy, idCard, birthDate);
 				loginStatus = resp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {

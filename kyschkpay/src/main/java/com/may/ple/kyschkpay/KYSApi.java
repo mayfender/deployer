@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.net.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -21,6 +22,7 @@ public class KYSApi {
 	private static final Logger LOG = Logger.getLogger(KYSApi.class.getName());
 	public static final String LINK = "https://www.e-studentloan.ktb.co.th";
 	private static final KYSApi instance = new KYSApi();
+	private static final int CONN_TIMEOUT = 5000;
 	
 	private KYSApi(){}
 	
@@ -28,12 +30,12 @@ public class KYSApi {
         return instance;
     }
 	
-	public LoginRespModel login(String cid, String birthdate) throws Exception {		
+	public LoginRespModel login(Proxy proxy, String cid, String birthdate) throws Exception {		
 		try {
 			LOG.debug("Start login");
 			
 			//[1]
-			LoginRespModel loginResp = getLoginPage();
+			LoginRespModel loginResp = getLoginPage(proxy);
 			
 			if(loginResp == null) {
 				loginResp = new LoginRespModel();
@@ -56,9 +58,11 @@ public class KYSApi {
 		}
 	}
 	
-	public PaymentModel refresh(String sessionId, String cif) throws Exception {
+	public PaymentModel refresh(Proxy proxy, String sessionId, String cif) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
 					.method(Method.POST)
 					.data("cif", cif)
 					.header("Content-Type", "application/x-www-form-urlencoded")
@@ -86,9 +90,11 @@ public class KYSApi {
 		}
 	}
 	
-	public List<String> getParam(String sessionId, String cif) throws Exception {
+	public List<String> getParam(Proxy proxy, String sessionId, String cif) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
 					.method(Method.POST)
 					.data("cif", cif)
 					.header("Content-Type", "application/x-www-form-urlencoded")
@@ -131,16 +137,18 @@ public class KYSApi {
 		}
 	}
 	
-	public PaymentModel getPaymentInfo(String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
+	public PaymentModel getPaymentInfo(Proxy proxy, String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
 		try {
 			if(!App.checkWorkingHour()) {
-				PaymentModel paymentModel = refresh(sessionId, cif);
+				PaymentModel paymentModel = refresh(proxy, sessionId, cif);
 				paymentModel.setRefresh(true);
 				return paymentModel;
 			}
 			
 			LOG.debug("Start get paymentInfo");
 			Response res = Jsoup.connect(url)
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
 					.method(Method.POST)
 					.data("loanType", loanType)
 					.data("accNo", accNo)
@@ -161,7 +169,13 @@ public class KYSApi {
 					return paymentModel;
 				}
 				
-				throw new CustomException(1, "Session Timeout");
+				Elements body = doc.select("body");
+				String onload = body.get(0).attr("onload");
+				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login")) {
+					throw new CustomException(1, "Session Timeout");
+				}
+				
+				throw new Exception("Unknown Error");
 			}
 
 			Elements preBalanceEl = tab1El.select("input[name='preBalance']");			
@@ -190,12 +204,14 @@ public class KYSApi {
 		}
 	}
 
-	private LoginRespModel getLoginPage() throws Exception {
+	private LoginRespModel getLoginPage(Proxy proxy) throws Exception {
 		try {
 			LOG.debug("Start getLoginPage");
 			
 			Response res = Jsoup
 					.connect(LINK + "/STUDENT/ESLLogin.do")
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
 					.method(Method.GET).execute();
 			Map<String, String> cookie = res.cookies();
 			Document doc = res.parse();
@@ -225,6 +241,7 @@ public class KYSApi {
 			// Fetch the captcha image
 			Response res = Jsoup
 					.connect(captchaImgUrl) 	// Extract image absolute URL
+					.timeout(CONN_TIMEOUT)
 					.cookies(cookie) 			// Grab cookies
 					.ignoreContentType(true) 	// Needed for fetching image
 					.execute();
@@ -247,6 +264,7 @@ public class KYSApi {
 			LOG.debug("Start doLogin");
 			
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLogin.do")
+					.timeout(CONN_TIMEOUT)
 					.method(Method.POST)
 					.data("cid", cid)
 					.data("stuBirthdate", birthdate)

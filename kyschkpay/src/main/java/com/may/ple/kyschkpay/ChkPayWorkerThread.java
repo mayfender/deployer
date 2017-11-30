@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.net.Proxy;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -24,13 +25,15 @@ public class ChkPayWorkerThread implements Runnable {
 	private Double lastPayAmountOld;
 	private String contractNoColumnName;
 	private String contractNo;
+	private Proxy proxy;
 	
-	public ChkPayWorkerThread(String productId, JsonElement element, String contractNoColumnName) {
+	public ChkPayWorkerThread(Proxy proxy, String productId, JsonElement element, String contractNoColumnName) {
 		this.element = element;
 		this.productId = productId;
 		this.contractNoColumnName = contractNoColumnName;
+		this.proxy = proxy;
 	}
-
+	
 	@Override
 	public void run() {
 		try {
@@ -83,7 +86,7 @@ public class ChkPayWorkerThread implements Runnable {
 					return;
 				}
 				
-				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.sessionId, this.cif, this.url, this.loanType, this.accNo);
+				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);
 				if(!paymentInfo.isError()) break;
 				
 				LOG.warn("Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);

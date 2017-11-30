@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -16,7 +17,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 10;
+	private static final int POOL_SIZE = 1;
 	private static final int LIMITED_UPDATE_SIZE = 1000;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
@@ -35,6 +36,12 @@ public class ManageCheckPayWorkerThread extends Thread {
 		JsonArray jsonArray;
 		Runnable worker;
 		int currentPage;
+		
+		/*Proxy proxy = new Proxy(
+				Proxy.Type.HTTP,                                      
+				InetSocketAddress.createUnresolved("180.183.112.220", 8080)
+		);		*/
+		Proxy proxy = null;
 		
 		while(true) {
 			try {
@@ -74,7 +81,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							worker = new ChkPayWorkerThread(prodId, el, contractNoColumnName);
+							worker = new ChkPayWorkerThread(proxy, prodId, el, contractNoColumnName);
 							executor.execute(worker);
 						}
 					}
