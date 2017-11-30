@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.io.IOException;
 import java.net.Proxy;
 import java.util.Calendar;
 import java.util.Date;
@@ -129,6 +130,9 @@ public class ChkPayWorkerThread implements Runnable {
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setErrMsg("Check Pay Session Timeout");
+		} catch (IOException e) {
+			LOG.error(e.toString());
+			Thread.sleep(60000);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

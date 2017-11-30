@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
 public class DMSApi {
 	private static final Logger LOG = Logger.getLogger(DMSApi.class.getName());
 	private static final DMSApi instance = new DMSApi();
-	private final String BASE_URL = "http://127.0.0.1:8081/backend";
+	private final String BASE_URL = "http://127.0.0.1:8080/backend";
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
 	private String token;
 	
