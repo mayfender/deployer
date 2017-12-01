@@ -101,7 +101,7 @@ public class ManageLoginWorkerThread extends Thread {
 					}
 					
 					LOG.debug("loginList size: " + loginList.size());
-					updateLoginStatus(prodId);
+					updateLoginStatus();
 					
 					LOG.info("Finished for product id: " + prodId);
 				}
@@ -116,7 +116,7 @@ public class ManageLoginWorkerThread extends Thread {
 		}
 	}
 	
-	private void updateLoginStatus(String productId) throws Exception {
+	private void updateLoginStatus() throws Exception {
 		try {
 			if(loginList.size() == 0) return;
 			
@@ -127,6 +127,7 @@ public class ManageLoginWorkerThread extends Thread {
 			for (UpdateChkLstModel modelLst : loginList) {
 				obj = new JsonObject();
 				obj.addProperty("id", modelLst.getId());
+				obj.addProperty("productId", modelLst.getProductId());
 				obj.addProperty("accNo", modelLst.getAccNo());
 				obj.addProperty("cif", modelLst.getCif());
 				obj.addProperty("errMsg", modelLst.getErrMsg());
@@ -140,21 +141,21 @@ public class ManageLoginWorkerThread extends Thread {
 			}
 			
 			LOG.info("Call updateLoginStatus");
-			DMSApi.getInstance().updateStatus(array, productId);
+			DMSApi.getInstance().updateStatus(array);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
 	}
 	
-	public synchronized void addToLoginList(UpdateChkLstModel model, String productId) {
+	public synchronized void addToLoginList(UpdateChkLstModel model) {
 		try {
 			loginList.add(model);
 			LOG.debug("loginList size: " + loginList.size());
 			
 			if(loginList.size() == LIMITED_UPDATE_SIZE) {
 				LOG.info("Call updateLoginStatus");
-				updateLoginStatus(productId);
+				updateLoginStatus();
 				loginList.clear();
 			}
 		} catch (Exception e) {

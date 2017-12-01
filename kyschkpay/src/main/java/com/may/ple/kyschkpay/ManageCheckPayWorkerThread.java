@@ -52,6 +52,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				
 				//--: Initial worker
 				manageProxyModel = new ManageProxyModel();
+				manageProxyModel.proxyIndex = 1;
 				
 				proxiesIndex.add("NOPROXY");
 				/*proxiesIndex.add("180.183.112.220:8080");
@@ -92,29 +93,38 @@ public class ManageCheckPayWorkerThread extends Thread {
 						
 						jsonArray = checkList.getAsJsonArray();
 						
-						for (JsonElement el : jsonArray) {							
+						for (JsonElement el : jsonArray) {
 							proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
 							manageProxyModel.proxySize++;
 							
-							if((proxiesIndex.size() != manageProxyModel.proxyIndex) && (numOfEachProxy == manageProxyModel.proxySize)) {
-								LOG.debug("proxyIndex: " + manageProxyModel.proxyIndex);
-								LOG.debug("proxySize: " + manageProxyModel.proxySize);
-								
-								executor.execute(new ChkPayWorkerThreadTest(
-										proxiesIndex.get(manageProxyModel.proxyIndex), 
-										proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
-								));
-								
-								manageProxyModel.proxyIndex++;
-								manageProxyModel.proxySize = 0;
+							if(manageProxyModel.proxyIndex < proxiesIndex.size()) {
+								if(manageProxyModel.proxySize == numOfEachProxy) {
+									LOG.debug("proxyIndex: " + manageProxyModel.proxyIndex);
+									LOG.debug("proxySize: " + manageProxyModel.proxySize);
+									
+									executor.execute(new ChkPayWorkerThreadTest(
+											proxiesIndex.get(manageProxyModel.proxyIndex), 
+											proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
+											));
+									
+									manageProxyModel.proxyIndex++;
+									manageProxyModel.proxySize = 0;
+								}
 							}
 						}
+						
+						LOG.debug("Execute Last Worker Group");
+						executor.execute(new ChkPayWorkerThreadTest(
+								proxiesIndex.get(manageProxyModel.proxyIndex), 
+								proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
+								));
+						
 					}
 					
 					LOG.info("Finished for product id: " + prodId);
 				}
 				
-				Thread.sleep(10000);
+				Thread.sleep(5000);
 				while(executor.getActiveCount() != 0){
 					LOG.debug("=============: Worker active count : " + executor.getActiveCount());
 					Thread.sleep(1000);

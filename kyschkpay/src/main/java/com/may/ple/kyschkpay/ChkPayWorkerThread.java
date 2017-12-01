@@ -139,7 +139,7 @@ public class ChkPayWorkerThread implements Runnable {
 		}
 		
 		model.setCreatedDateTime(new Date());
-		App.chkPayWorker.addToChkPayList(model, this.productId);
+//		App.chkPayWorker.addToChkPayList(model, this.productId);
 	}
 	
 }

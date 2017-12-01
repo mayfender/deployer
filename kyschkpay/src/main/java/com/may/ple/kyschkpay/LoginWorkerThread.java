@@ -68,11 +68,12 @@ public class LoginWorkerThread implements Runnable {
 		} catch (Exception e) {
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
+			model.setProductId(this.productId);
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setCreatedDateTime(new Date());
 			
-			App.loginWorker.addToLoginList(model, productId);
+			App.loginWorker.addToLoginList(model);
 			LOG.error(e.toString());
 		}
 	}
@@ -120,6 +121,7 @@ public class LoginWorkerThread implements Runnable {
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
+			model.setProductId(this.productId);
 			
 			if(StatusConstant.LOGIN_FAIL == loginStatus) {
 				model.setStatus(loginStatus.getStatus());
@@ -134,7 +136,7 @@ public class LoginWorkerThread implements Runnable {
 			}
 			
 			model.setCreatedDateTime(new Date());
-			App.loginWorker.addToLoginList(model, this.productId);
+			App.loginWorker.addToLoginList(model);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
