@@ -146,7 +146,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateStatus(JsonArray updateLst, String productId) throws Exception {
+	public JsonObject updateStatus(JsonArray updateLst) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
@@ -160,7 +160,6 @@ public class DMSApi {
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.add("updateList", updateLst);
-			jsonObject.addProperty("productId", productId);
 			
 			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);

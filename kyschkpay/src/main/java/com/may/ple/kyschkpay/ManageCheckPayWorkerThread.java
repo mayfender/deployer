@@ -1,8 +1,9 @@
 package com.may.ple.kyschkpay;
 
-import java.net.Proxy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -17,8 +18,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 1;
-	private static final int LIMITED_UPDATE_SIZE = 1000;
+	private static final int POOL_SIZE = 100;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
 	
@@ -30,18 +30,17 @@ public class ManageCheckPayWorkerThread extends Thread {
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
+		List<String> proxiesIndex = new ArrayList<>();
+		ManageProxyModel manageProxyModel;
 		String contractNoColumnName;
-		JsonObject chkList;
 		JsonElement checkList;
 		JsonArray jsonArray;
-		Runnable worker;
+		JsonObject chkList;
+		int numOfEachProxy;
 		int currentPage;
-		
-		/*Proxy proxy = new Proxy(
-				Proxy.Type.HTTP,                                      
-				InetSocketAddress.createUnresolved("180.183.112.220", 8080)
-		);		*/
-		Proxy proxy = null;
+		int totalItems;
+		int totalPages;
 		
 		while(true) {
 			try {
@@ -49,6 +48,18 @@ public class ManageCheckPayWorkerThread extends Thread {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
 					continue;
+				}
+				
+				//--: Initial worker
+				manageProxyModel = new ManageProxyModel();
+				
+				proxiesIndex.add("NOPROXY");
+				/*proxiesIndex.add("180.183.112.220:8080");
+				proxiesIndex.add("180.183.112.221:8080");
+				proxiesIndex.add("180.183.112.222:8080");*/
+				
+				for (String prxIndex : proxiesIndex) {
+					proxies.put(prxIndex, new ArrayList<ChkPayWorkerModel>());
 				}
 				
 				for (String prodId : prodIds) {
@@ -60,8 +71,9 @@ public class ManageCheckPayWorkerThread extends Thread {
 					chkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					if(chkList == null) break;
 					
-					int totalItems = chkList.get("totalItems").getAsInt();
-					int totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+					totalItems = chkList.get("totalItems").getAsInt();
+					totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+					numOfEachProxy = totalItems / proxiesIndex.size();
 					
 					LOG.debug("totalItems: " + totalItems);
 					if(totalItems == 0) continue;
@@ -80,81 +92,43 @@ public class ManageCheckPayWorkerThread extends Thread {
 						
 						jsonArray = checkList.getAsJsonArray();
 						
-						for (JsonElement el : jsonArray) {
-							worker = new ChkPayWorkerThread(proxy, prodId, el, contractNoColumnName);
-							executor.execute(worker);
+						for (JsonElement el : jsonArray) {							
+							proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
+							manageProxyModel.proxySize++;
+							
+							if((proxiesIndex.size() != manageProxyModel.proxyIndex) && (numOfEachProxy == manageProxyModel.proxySize)) {
+								LOG.debug("proxyIndex: " + manageProxyModel.proxyIndex);
+								LOG.debug("proxySize: " + manageProxyModel.proxySize);
+								
+								executor.execute(new ChkPayWorkerThreadTest(
+										proxiesIndex.get(manageProxyModel.proxyIndex), 
+										proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
+								));
+								
+								manageProxyModel.proxyIndex++;
+								manageProxyModel.proxySize = 0;
+							}
 						}
 					}
 					
-					Thread.sleep(10000);
-					while(executor.getActiveCount() != 0){
-						LOG.debug("=============: Worker active count : " + executor.getActiveCount());
-						Thread.sleep(1000);
-					}
-					
-					LOG.debug("chkPayList size: " + chkPayList.size());
-					updateChkPayStatus(prodId);
-					
 					LOG.info("Finished for product id: " + prodId);
 				}
+				
+				Thread.sleep(10000);
+				while(executor.getActiveCount() != 0){
+					LOG.debug("=============: Worker active count : " + executor.getActiveCount());
+					Thread.sleep(1000);
+				}
+				
+				LOG.info("Finished round");
 			} catch (Exception e) {
 				LOG.error(e.toString(), e);
 			} finally {
 				try {
 					//--: Sleep 10 minutes
-					Thread.sleep(600000);											
+					Thread.sleep(600000);
 				} catch (Exception e2) {}
 			}
-		}
-	}
-	
-	private void updateChkPayStatus(String productId) throws Exception {
-		try {
-			if(chkPayList.size() == 0) return;
-			
-			LOG.info("Update check payment");
-			JsonArray array = new JsonArray();
-			JsonObject obj;
-			
-			for (UpdateChkLstModel modelLst : chkPayList) {
-				obj = new JsonObject();
-				obj.addProperty("id", modelLst.getId());
-				obj.addProperty("status", modelLst.getStatus());
-				obj.addProperty("errMsg", modelLst.getErrMsg());
-				
-				if(modelLst.getLastPayDate() != null) {
-					obj.addProperty("lastPayDate", modelLst.getLastPayDate().getTime());					
-				}
-				obj.addProperty("lastPayAmount", modelLst.getLastPayAmount());
-				obj.addProperty("totalPayInstallment", modelLst.getTotalPayInstallment());
-				obj.addProperty("preBalance", modelLst.getPreBalance());
-				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
-				obj.addProperty("html", modelLst.getHtml());
-				obj.addProperty("contractNo", modelLst.getContractNo());
-				
-				array.add(obj);
-			}
-			
-			LOG.info("Call updateLoginStatus");
-			DMSApi.getInstance().updateStatus(array, productId);
-		} catch (Exception e) {
-			LOG.error(e.toString());
-			throw e;
-		}
-	}
-	
-	public synchronized void addToChkPayList(UpdateChkLstModel model, String productId) {
-		try {
-			chkPayList.add(model);
-			LOG.debug("chkPayList size: " + chkPayList.size());
-			
-			if(chkPayList.size() == LIMITED_UPDATE_SIZE) {
-				LOG.info("Call updateChkPayStatus");
-				updateChkPayStatus(productId);
-				chkPayList.clear();
-			}
-		} catch (Exception e) {
-			LOG.error(e.toString(), e);
 		}
 	}
 	
