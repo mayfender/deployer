@@ -32,13 +32,14 @@ public class ManageCheckPayWorkerThread extends Thread {
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
 		List<String> proxiesIndex = new ArrayList<>();
-		ManageProxyModel manageProxyModel;
 		String contractNoColumnName;
 		JsonElement checkList;
 		JsonArray jsonArray;
 		JsonObject chkList;
 		int numOfEachProxy;
 		int currentPage;
+		int proxySize = 0;
+		int proxyIndex;
 		int totalItems;
 		int totalPages;
 		
@@ -51,8 +52,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				}
 				
 				//--: Initial worker
-				manageProxyModel = new ManageProxyModel();
-				manageProxyModel.proxyIndex = 1;
+				proxyIndex = 1;
 				
 				proxiesIndex.add("NOPROXY");
 				/*proxiesIndex.add("180.183.112.220:8080");
@@ -94,29 +94,29 @@ public class ManageCheckPayWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
-							manageProxyModel.proxySize++;
+							proxies.get(proxiesIndex.get(proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
+							proxySize++;
 							
-							if(manageProxyModel.proxyIndex < proxiesIndex.size()) {
-								if(manageProxyModel.proxySize == numOfEachProxy) {
-									LOG.debug("proxyIndex: " + manageProxyModel.proxyIndex);
-									LOG.debug("proxySize: " + manageProxyModel.proxySize);
+							if(proxyIndex < proxiesIndex.size()) {
+								if(proxySize == numOfEachProxy) {
+									LOG.debug("proxyIndex: " + proxyIndex);
+									LOG.debug("proxySize: " + proxySize);
 									
-									executor.execute(new ChkPayWorkerThreadTest(
-											proxiesIndex.get(manageProxyModel.proxyIndex), 
-											proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
+									executor.execute(new ChkPayProxyWorker(
+											proxiesIndex.get(proxyIndex), 
+											proxies.get(proxiesIndex.get(proxyIndex))
 											));
 									
-									manageProxyModel.proxyIndex++;
-									manageProxyModel.proxySize = 0;
+									proxyIndex++;
+									proxySize = 0;
 								}
 							}
 						}
 						
 						LOG.debug("Execute Last Worker Group");
-						executor.execute(new ChkPayWorkerThreadTest(
-								proxiesIndex.get(manageProxyModel.proxyIndex), 
-								proxies.get(proxiesIndex.get(manageProxyModel.proxyIndex))
+						executor.execute(new ChkPayProxyWorker(
+								proxiesIndex.get(proxyIndex), 
+								proxies.get(proxiesIndex.get(proxyIndex))
 								));
 						
 					}
@@ -130,7 +130,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					Thread.sleep(1000);
 				}
 				
-				LOG.info("Finished round");
+				LOG.info("Finished all product");
 			} catch (Exception e) {
 				LOG.error(e.toString(), e);
 			} finally {
