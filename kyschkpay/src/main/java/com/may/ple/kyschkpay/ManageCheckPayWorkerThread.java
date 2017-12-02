@@ -15,7 +15,6 @@ import com.google.gson.JsonObject;
 
 public class ManageCheckPayWorkerThread extends Thread {
 	private static final Logger LOG = Logger.getLogger(ManageCheckPayWorkerThread.class.getName());
-	private static List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	private static final int POOL_SIZE = 100;
@@ -52,12 +51,11 @@ public class ManageCheckPayWorkerThread extends Thread {
 				}
 				
 				//--: Initial worker
-				proxyIndex = 1;
+				proxyIndex = 0;
 				
-				proxiesIndex.add("NOPROXY");
-				/*proxiesIndex.add("180.183.112.220:8080");
-				proxiesIndex.add("180.183.112.221:8080");
-				proxiesIndex.add("180.183.112.222:8080");*/
+//				proxiesIndex.add("NOPROXY");
+				proxiesIndex.add("13.114.101.65:8080");
+//				proxiesIndex.add("us-wa.proxymesh.com:31280");
 				
 				for (String prxIndex : proxiesIndex) {
 					proxies.put(prxIndex, new ArrayList<ChkPayWorkerModel>());
@@ -66,9 +64,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
 					
-					chkPayList.clear();
 					currentPage = 1;
-					
 					chkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					if(chkList == null) break;
 					
@@ -76,6 +72,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					numOfEachProxy = totalItems / proxiesIndex.size();
 					
+					LOG.debug("numOfEachProxy: " + numOfEachProxy);
 					LOG.debug("totalItems: " + totalItems);
 					if(totalItems == 0) continue;
 					
@@ -85,7 +82,6 @@ public class ManageCheckPayWorkerThread extends Thread {
 							if(chkList == null) break;
 						}
 						
-						LOG.debug("chkPayList size: " + chkPayList.size());
 						checkList = chkList.get("checkList");
 						contractNoColumnName = chkList.get("contractNoColumnName").getAsString();
 						
@@ -97,7 +93,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 							proxies.get(proxiesIndex.get(proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
 							proxySize++;
 							
-							if(proxyIndex < proxiesIndex.size()) {
+							if((proxyIndex + 1) < proxiesIndex.size()) {
 								if(proxySize == numOfEachProxy) {
 									LOG.debug("proxyIndex: " + proxyIndex);
 									LOG.debug("proxySize: " + proxySize);
@@ -126,7 +122,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				
 				Thread.sleep(5000);
 				while(executor.getActiveCount() != 0){
-					LOG.debug("=============: Worker active count : " + executor.getActiveCount());
+					LOG.debug("=============: Manager Worker active count : " + executor.getActiveCount());
 					Thread.sleep(1000);
 				}
 				

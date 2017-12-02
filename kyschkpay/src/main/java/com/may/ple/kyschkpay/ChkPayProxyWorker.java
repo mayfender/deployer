@@ -16,9 +16,10 @@ public class ChkPayProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(ChkPayProxyWorker.class.getName());
 	private List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private final int LIMITED_UPDATE_SIZE = 1000;
-	private static final int POOL_SIZE = 10;
+	private static final int POOL_SIZE = 1;
 	private List<ChkPayWorkerModel> worker;
 	private Proxy proxy;
+	private String msgIndex;
 	
 	public ChkPayProxyWorker(String proxy, List<ChkPayWorkerModel> worker) {
 		this.worker = worker;
@@ -26,10 +27,11 @@ public class ChkPayProxyWorker implements Runnable {
 		if(!proxy.equals("NOPROXY")) {			
 			String[] proxyStr = proxy.split(":");
 			this.proxy = new Proxy(
-					Proxy.Type.HTTP,                                      
+					Proxy.Type.HTTP,
 					InetSocketAddress.createUnresolved(proxyStr[0], Integer.parseInt(proxyStr[1]))
 					);
 		}
+		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
 	
 	@Override
@@ -44,11 +46,11 @@ public class ChkPayProxyWorker implements Runnable {
 			
 			Thread.sleep(5000);
 			while(executor.getActiveCount() != 0){
-				LOG.debug("=============: Worker active count : " + executor.getActiveCount());
+				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
 				Thread.sleep(1000);
 			}
 			
-			LOG.debug((proxy != null ? proxy.toString() : "No Proxy") + "chkPayList size: " + chkPayList.size());
+			LOG.debug(msgIndex + " chkPayList size: " + chkPayList.size());
 			updateChkPayStatus();
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
@@ -58,7 +60,7 @@ public class ChkPayProxyWorker implements Runnable {
 	public void addToChkPayList(UpdateChkLstModel model) {
 		try {
 			chkPayList.add(model);
-			LOG.debug("chkPayList size: " + chkPayList.size());
+			LOG.debug(msgIndex + " chkPayList size: " + chkPayList.size());
 			
 			if(chkPayList.size() == LIMITED_UPDATE_SIZE) {
 				LOG.info("Call updateChkPayStatus");
@@ -74,7 +76,7 @@ public class ChkPayProxyWorker implements Runnable {
 		try {
 			if(chkPayList.size() == 0) return;
 			
-			LOG.info("Update check payment");
+			LOG.info(msgIndex + " Update check payment");
 			JsonArray array = new JsonArray();
 			JsonObject obj;
 			
@@ -98,7 +100,7 @@ public class ChkPayProxyWorker implements Runnable {
 				array.add(obj);
 			}
 			
-			LOG.info("Call updateLoginStatus");
+			LOG.info(msgIndex + " Call updateLoginStatus");
 			DMSApi.getInstance().updateStatus(array);
 		} catch (Exception e) {
 			LOG.error(e.toString());

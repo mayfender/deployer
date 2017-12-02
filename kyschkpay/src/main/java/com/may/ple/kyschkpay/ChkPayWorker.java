@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 public class ChkPayWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(ChkPayWorker.class.getName());
 	private ChkPayProxyWorker proxyWorker;
-	private ChkPayWorkerModel model;
+	private ChkPayWorkerModel chkPayModel;
 	private Proxy proxy;
 	private String id;
 	private String sessionId;
@@ -30,20 +30,20 @@ public class ChkPayWorker implements Runnable {
 	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
-		this.model = chkPayWorkerModel;
+		this.chkPayModel = chkPayWorkerModel;
 	}
 	
 	@Override
 	public void run() {
 		try {
-			JsonObject data = model.getJsonElement().getAsJsonObject();
+			JsonObject data = this.chkPayModel.getJsonElement().getAsJsonObject();
 			this.id = data.get("_id").getAsString();
 			this.sessionId = data.get("sys_sessionId").getAsString();
 			this.cif = data.get("sys_cif").getAsString();
 			this.url = data.get("sys_uri").getAsString();
 			this.loanType = data.get("sys_loanType").getAsString();
 			this.accNo = data.get("sys_accNo").getAsString();
-			this.contractNo = data.get(model.getContractNoColumnName()).getAsString();
+			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			
 			JsonElement totalPayInstallment, preBalance, lastPayAmount;
 			if((totalPayInstallment = data.get("sys_totalPayInstallment")) != null) {
@@ -74,7 +74,7 @@ public class ChkPayWorker implements Runnable {
 		UpdateChkLstModel model = new UpdateChkLstModel();
 		model.setStatus(StatusConstant.UPDATE_CHKPAY.getStatus());
 		model.setId(this.id);
-		model.setProductId(model.getProductId());
+		model.setProductId(this.chkPayModel.getProductId());
 		
 		try {
 			PaymentModel paymentInfo;
