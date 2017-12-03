@@ -45,6 +45,12 @@ public class ManageCheckPayWorkerThread extends Thread {
 		
 		while(true) {
 			try {
+				if(!App.checkWorkingHour()) {
+					LOG.info("Sleep 30 min");
+					Thread.sleep(1800000);
+					continue;
+				}
+				
 				if(!dmsApi.login(USERNAME, PASSWORD)) {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
