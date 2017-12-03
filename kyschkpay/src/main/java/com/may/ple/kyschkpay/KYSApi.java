@@ -63,7 +63,7 @@ public class KYSApi {
 			
 			return loginResp;
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
@@ -95,7 +95,7 @@ public class KYSApi {
 			}
 			return paymentModel;
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
@@ -142,7 +142,7 @@ public class KYSApi {
 			
 			return args;
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
@@ -209,7 +209,7 @@ public class KYSApi {
 			
 			return paymentModel;
 		} catch (IOException e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			PaymentModel paymentModel = new PaymentModel();
 			paymentModel.setError(true);
 			return paymentModel;
@@ -243,7 +243,7 @@ public class KYSApi {
 						
 			return resp;
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
@@ -269,7 +269,7 @@ public class KYSApi {
 			
 			return res.bodyAsBytes();
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
@@ -309,7 +309,7 @@ public class KYSApi {
 			loginResp.setStatus(status);
 			loginResp.setCif(cif);
 		} catch (Exception e) {
-			LOG.error(e.toString());
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}

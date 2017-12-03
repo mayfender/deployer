@@ -84,18 +84,16 @@ public class ManageLoginWorkerThread extends Thread {
 					continue;
 				}
 				
-				//--: Initial worker
-				proxyIndex = 0;
-				proxies = new HashMap<>();
-				
-				for (String prxIndex : proxiesIndex) {
-					proxies.put(prxIndex, new ArrayList<LoginWorkerModel>());
-				}
-				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
 					
 					currentPage = 1;
+					proxyIndex = 0;
+					proxies = new HashMap<>();
+					for (String prxIndex : proxiesIndex) {
+						proxies.put(prxIndex, new ArrayList<LoginWorkerModel>());
+					}
+					
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 					if(loginChkList == null) break;
 					
