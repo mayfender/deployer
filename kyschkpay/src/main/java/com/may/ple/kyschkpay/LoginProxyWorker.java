@@ -12,16 +12,16 @@ import org.apache.log4j.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-public class ChkPayProxyWorker implements Runnable {
-	private static final Logger LOG = Logger.getLogger(ChkPayProxyWorker.class.getName());
-	private List<UpdateChkLstModel> chkPayList = new ArrayList<>();
+public class LoginProxyWorker implements Runnable {
+	private static final Logger LOG = Logger.getLogger(LoginProxyWorker.class.getName());
+	private List<UpdateChkLstModel> loginList = new ArrayList<>();
 	private final int LIMITED_UPDATE_SIZE = 1000;
-	private static final int POOL_SIZE = 10;
-	private List<ChkPayWorkerModel> worker;
+	private static final int POOL_SIZE = 1;
+	private List<LoginWorkerModel> worker;
 	private Proxy proxy;
 	private String msgIndex;
 	
-	public ChkPayProxyWorker(String proxy, List<ChkPayWorkerModel> worker) {
+	public LoginProxyWorker(String proxy, List<LoginWorkerModel> worker) {
 		this.worker = worker;
 		
 		if(!proxy.equals("NOPROXY")) {			
@@ -39,8 +39,8 @@ public class ChkPayProxyWorker implements Runnable {
 		try {
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 			
-			for (ChkPayWorkerModel chkPayWorkerModel : worker) {
-				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel));
+			for (LoginWorkerModel loginWorkerModel : worker) {
+				executor.execute(new LoginWorker(this, proxy, loginWorkerModel));
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
@@ -51,57 +51,54 @@ public class ChkPayProxyWorker implements Runnable {
 				Thread.sleep(1000);
 			}
 			
-			LOG.debug(msgIndex + " all size: " + chkPayList.size());
-			updateChkPayStatus();
+			LOG.debug(msgIndex + " chkPayList size: " + loginList.size());
+			updateLoginStatus();
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
 		}
 	}
 	
-	public void addToChkPayList(UpdateChkLstModel model) {
+	public void addToLoginList(UpdateChkLstModel model) {
 		try {
-			chkPayList.add(model);
-			LOG.debug(msgIndex + " chkPayList size: " + chkPayList.size());
+			loginList.add(model);
+			LOG.debug(msgIndex + " chkPayList size: " + loginList.size());
 			
-			if(chkPayList.size() == LIMITED_UPDATE_SIZE) {
+			if(loginList.size() == LIMITED_UPDATE_SIZE) {
 				LOG.info("Call updateChkPayStatus");
-				updateChkPayStatus();
-				chkPayList.clear();
+				updateLoginStatus();
+				loginList.clear();
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
 		}
 	}
 	
-	private void updateChkPayStatus() throws Exception {
+	private void updateLoginStatus() throws Exception {
 		try {
-			if(chkPayList.size() == 0) return;
+			if(loginList.size() == 0) return;
 			
-			LOG.info(msgIndex + " Update check payment");
+			LOG.info("Update login success");
 			JsonArray array = new JsonArray();
 			JsonObject obj;
 			
-			for (UpdateChkLstModel modelLst : chkPayList) {
+			for (UpdateChkLstModel modelLst : loginList) {
 				obj = new JsonObject();
 				obj.addProperty("id", modelLst.getId());
 				obj.addProperty("productId", modelLst.getProductId());
-				obj.addProperty("status", modelLst.getStatus());
+				obj.addProperty("accNo", modelLst.getAccNo());
+				obj.addProperty("cif", modelLst.getCif());
 				obj.addProperty("errMsg", modelLst.getErrMsg());
-				
-				if(modelLst.getLastPayDate() != null) {
-					obj.addProperty("lastPayDate", modelLst.getLastPayDate().getTime());					
-				}
-				obj.addProperty("lastPayAmount", modelLst.getLastPayAmount());
-				obj.addProperty("totalPayInstallment", modelLst.getTotalPayInstallment());
-				obj.addProperty("preBalance", modelLst.getPreBalance());
+				obj.addProperty("flag", modelLst.getFlag());
+				obj.addProperty("loanType", modelLst.getLoanType());
+				obj.addProperty("sessionId", modelLst.getSessionId());
+				obj.addProperty("status", modelLst.getStatus());
+				obj.addProperty("uri", modelLst.getUri());
 				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
-				obj.addProperty("html", modelLst.getHtml());
-				obj.addProperty("contractNo", modelLst.getContractNo());
-				
+				obj.addProperty("proxy", modelLst.getProxy());
 				array.add(obj);
 			}
 			
-			LOG.info(msgIndex + " Call updateLoginStatus");
+			LOG.info("Call updateLoginStatus");
 			DMSApi.getInstance().updateStatus(array);
 		} catch (Exception e) {
 			LOG.error(e.toString());

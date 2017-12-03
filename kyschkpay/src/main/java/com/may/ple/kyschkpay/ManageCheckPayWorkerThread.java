@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -29,16 +31,15 @@ public class ManageCheckPayWorkerThread extends Thread {
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
-		List<String> proxiesIndex = new ArrayList<>();
+		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
+		Map<String, List<ChkPayWorkerModel>> proxies;
+		String proxiesIndexStr = "NOPROXY";
 		String contractNoColumnName;
 		JsonElement checkList;
 		JsonArray jsonArray;
 		JsonObject chkList;
-		int numOfEachProxy;
+		JsonObject data;
 		int currentPage;
-		int proxySize = 0;
-		int proxyIndex;
 		int totalItems;
 		int totalPages;
 		
@@ -50,29 +51,17 @@ public class ManageCheckPayWorkerThread extends Thread {
 					continue;
 				}
 				
-				//--: Initial worker
-				proxyIndex = 0;
-				
-//				proxiesIndex.add("NOPROXY");
-				proxiesIndex.add("13.114.101.65:8080");
-//				proxiesIndex.add("us-wa.proxymesh.com:31280");
-				
-				for (String prxIndex : proxiesIndex) {
-					proxies.put(prxIndex, new ArrayList<ChkPayWorkerModel>());
-				}
-				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
 					
+					proxies = new HashMap<>();
 					currentPage = 1;
 					chkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					if(chkList == null) break;
 					
 					totalItems = chkList.get("totalItems").getAsInt();
 					totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
-					numOfEachProxy = totalItems / proxiesIndex.size();
 					
-					LOG.debug("numOfEachProxy: " + numOfEachProxy);
 					LOG.debug("totalItems: " + totalItems);
 					if(totalItems == 0) continue;
 					
@@ -90,31 +79,25 @@ public class ManageCheckPayWorkerThread extends Thread {
 						jsonArray = checkList.getAsJsonArray();
 						
 						for (JsonElement el : jsonArray) {
-							proxies.get(proxiesIndex.get(proxyIndex)).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
-							proxySize++;
+							data = el.getAsJsonObject();
 							
-							if((proxyIndex + 1) < proxiesIndex.size()) {
-								if(proxySize == numOfEachProxy) {
-									LOG.debug("proxyIndex: " + proxyIndex);
-									LOG.debug("proxySize: " + proxySize);
-									
-									executor.execute(new ChkPayProxyWorker(
-											proxiesIndex.get(proxyIndex), 
-											proxies.get(proxiesIndex.get(proxyIndex))
-											));
-									
-									proxyIndex++;
-									proxySize = 0;
-								}
+							if(data.get("sys_proxy").isJsonNull()) {
+								proxiesIndexStr = "NOPROXY";
+							} else {
+								proxiesIndexStr = data.get("sys_proxy").getAsString();
 							}
-						}
-						
-						LOG.debug("Execute Last Worker Group");
-						executor.execute(new ChkPayProxyWorker(
-								proxiesIndex.get(proxyIndex), 
-								proxies.get(proxiesIndex.get(proxyIndex))
-								));
-						
+							if(proxies.get(proxiesIndexStr) == null) {
+								proxies.put(proxiesIndexStr, new ArrayList<ChkPayWorkerModel>());
+							}
+							
+							proxies.get(proxiesIndexStr).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
+						}	
+					}
+					
+					proxySet = proxies.entrySet();
+					for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
+						LOG.debug("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
+						executor.execute(new ChkPayProxyWorker(proxyEnt.getKey(), proxyEnt.getValue()));
 					}
 					
 					LOG.info("Finished for product id: " + prodId);

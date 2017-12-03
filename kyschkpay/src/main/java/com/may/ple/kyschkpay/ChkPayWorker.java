@@ -1,6 +1,5 @@
 package com.may.ple.kyschkpay;
 
-import java.io.IOException;
 import java.net.Proxy;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,11 +25,13 @@ public class ChkPayWorker implements Runnable {
 	private Double preBalanceOld;
 	private Double lastPayAmountOld;
 	private String contractNo;
+	private String msgIndex;
 	
 	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
 		this.chkPayModel = chkPayWorkerModel;
+		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
 	
 	@Override
@@ -129,9 +130,7 @@ public class ChkPayWorker implements Runnable {
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setErrMsg("Check Pay Session Timeout");
-		} catch (IOException e) {
-			LOG.error(e.toString());
-			Thread.sleep(60000);
+			LOG.error(msgIndex + " [sessionId " + sessionId + "] ############## " + e.toString());
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

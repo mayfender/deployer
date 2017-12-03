@@ -6,38 +6,35 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class LoginWorkerThread implements Runnable {
-	private static final Logger LOG = Logger.getLogger(LoginWorkerThread.class.getName());
-	private JsonElement element;
-	private String idCardNoColumnName;
-	private String birthDateColumnName;
+public class LoginWorker implements Runnable {
+	private static final Logger LOG = Logger.getLogger(LoginWorker.class.getName());
+	private LoginProxyWorker proxyWorker;
+	private LoginWorkerModel loginModel;
+	private StatusConstant loginStatus;
+	private Proxy proxy;
+	private String id;
+	private String sessionId;
+	private String cif;
 	private String idCard;
 	private String birthDate;
-	private String sessionId;
-	private StatusConstant loginStatus;
-	private String cif;
-	private String id;
-	private String productId;
-	private Proxy proxy;
+	private String msgIndex;
 	
-	public LoginWorkerThread(Proxy proxy, String productId, JsonElement element, String idCardNoColumnName, String birthDateColumnName) {
-		this.element = element;
-		this.idCardNoColumnName = idCardNoColumnName;
-		this.birthDateColumnName = birthDateColumnName;
-		this.productId = productId;
+	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel) {
+		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
+		this.loginModel = loginModel;
+		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
-
+	
 	@Override
 	public void run() {
 		try {
-			JsonObject data = element.getAsJsonObject();
+			JsonObject data = loginModel.getJsonElement().getAsJsonObject();
 			this.id = data.get("_id").getAsString();
-			this.idCard = data.get(this.idCardNoColumnName).getAsString();
-			this.birthDate = birthDateFormat(data.get(this.birthDateColumnName).getAsString());
+			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
+			this.birthDate = birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
 			
 			LoginRespModel resp = login(idCard, birthDate);				
 			CheckRespModel chkResp;
@@ -64,23 +61,23 @@ public class LoginWorkerThread implements Runnable {
 				addToUpdateList(null);
 			}
 			
-			LOG.info("Worker end : " + idCard);
+			LOG.info(msgIndex + " Worker end : " + idCard);
 		} catch (Exception e) {
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
-			model.setProductId(this.productId);
+			model.setProductId(loginModel.getProductId());
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setCreatedDateTime(new Date());
 			
-//			App.loginWorker.addToLoginList(model);
+			proxyWorker.addToLoginList(model);
 			LOG.error(e.toString());
 		}
 	}
 	
 	private LoginRespModel login(String idCard, String birthDate) throws Exception {
 		try {
-			LOG.debug("Start login");
+			LOG.debug(msgIndex + " Start login");
 			StatusConstant loginStatus = StatusConstant.LOGIN_FAIL;
 			LoginRespModel resp = null;
 			int errCount = 0;
@@ -93,13 +90,13 @@ public class LoginWorkerThread implements Runnable {
 				loginStatus = resp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
-					LOG.warn("Service Unavailable");
+					LOG.warn(msgIndex + " Service Unavailable");
 					break;
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
-					LOG.warn("Login fail : " + errCount);
+					LOG.warn(msgIndex + " Login fail : " + errCount);
 					errCount++;
 				} else {
-					LOG.info("Login Success");					
+					LOG.info(msgIndex + " Login Success");					
 				}
 			}
 			
@@ -112,7 +109,7 @@ public class LoginWorkerThread implements Runnable {
 	
 	private void addToUpdateList(CheckRespModel chkResp) throws Exception {
 		try {
-			LOG.debug("Start proceed " + this.sessionId);
+			LOG.debug(msgIndex + " Start proceed " + this.sessionId);
 			
 			if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 				LOG.debug("==============: SERVICE_UNAVAILABLE :==================");
@@ -121,7 +118,7 @@ public class LoginWorkerThread implements Runnable {
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
-			model.setProductId(this.productId);
+			model.setProductId(loginModel.getProductId());
 			
 			if(StatusConstant.LOGIN_FAIL == loginStatus) {
 				model.setStatus(loginStatus.getStatus());
@@ -133,10 +130,11 @@ public class LoginWorkerThread implements Runnable {
 				model.setFlag(chkResp.getFlag());
 				model.setAccNo(chkResp.getAccNo());
 				model.setUri(chkResp.getUri());
+				model.setProxy(proxy != null ? proxy.address().toString() : null);
 			}
 			
 			model.setCreatedDateTime(new Date());
-//			App.loginWorker.addToLoginList(model);
+			proxyWorker.addToLoginList(model);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

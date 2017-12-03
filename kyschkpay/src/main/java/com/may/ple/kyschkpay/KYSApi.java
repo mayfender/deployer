@@ -1,5 +1,6 @@
 package com.may.ple.kyschkpay;
 
+import java.io.IOException;
 import java.net.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -27,6 +28,15 @@ public class KYSApi {
 	private KYSApi(){}
 	
 	public static KYSApi getInstance(){
+		/*Authenticator.setDefault(
+		   new Authenticator() {
+		      public PasswordAuthentication getPasswordAuthentication() {
+		         return new PasswordAuthentication(
+		               "mayfender", "19042528".toCharArray());
+		      }
+		   }
+		);*/
+		
         return instance;
     }
 	
@@ -49,7 +59,7 @@ public class KYSApi {
 			LOG.debug("captchaTxt : "+ text);
 			
 			//[3]
-			doLogin(loginResp, text, cid, birthdate);
+			doLogin(proxy, loginResp, text, cid, birthdate);
 			
 			return loginResp;
 		} catch (Exception e) {
@@ -198,8 +208,12 @@ public class KYSApi {
 			}
 			
 			return paymentModel;
+		} catch (IOException e) {
+			LOG.error(e.toString());
+			PaymentModel paymentModel = new PaymentModel();
+			paymentModel.setError(true);
+			return paymentModel;
 		} catch (Exception e) {
-			LOG.error("[sessionId " +sessionId + "] ############## " + e.toString());
 			throw e;
 		}
 	}
@@ -225,7 +239,7 @@ public class KYSApi {
 						
 			LoginRespModel resp = new LoginRespModel();
 			resp.setSessionId(cookie.get("JSESSIONID"));
-			resp.setImageContent(getCaptchaImg(cookie, captchaImgUrl));
+			resp.setImageContent(getCaptchaImg(proxy, cookie, captchaImgUrl));
 						
 			return resp;
 		} catch (Exception e) {
@@ -234,13 +248,14 @@ public class KYSApi {
 		}
 	}
 
-	private byte[] getCaptchaImg(Map<String, String> cookie, String captchaImgUrl) throws Exception {
+	private byte[] getCaptchaImg(Proxy proxy, Map<String, String> cookie, String captchaImgUrl) throws Exception {
 		try {
 			LOG.debug("Start getCaptchaImg");
 			
 			// Fetch the captcha image
 			Response res = Jsoup
 					.connect(captchaImgUrl) 	// Extract image absolute URL
+					.proxy(proxy)
 					.timeout(CONN_TIMEOUT)
 					.cookies(cookie) 			// Grab cookies
 					.ignoreContentType(true) 	// Needed for fetching image
@@ -259,12 +274,13 @@ public class KYSApi {
 		}
 	}
 	
-	private void doLogin(LoginRespModel loginResp, String captcha, String cid, String birthdate) throws Exception {
+	private void doLogin(Proxy proxy, LoginRespModel loginResp, String captcha, String cid, String birthdate) throws Exception {
 		try {
 			LOG.debug("Start doLogin");
 			
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLogin.do")
 					.timeout(CONN_TIMEOUT)
+					.proxy(proxy)
 					.method(Method.POST)
 					.data("cid", cid)
 					.data("stuBirthdate", birthdate)

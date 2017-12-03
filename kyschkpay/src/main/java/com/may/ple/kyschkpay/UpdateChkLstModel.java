@@ -20,6 +20,7 @@ public class UpdateChkLstModel {
 	private Date createdDateTime;
 	private String contractNo;
 	private String html;
+	private String proxy;
 	
 	public String getProductId() {
 		return productId;
@@ -122,6 +123,12 @@ public class UpdateChkLstModel {
 	}
 	public void setHtml(String html) {
 		this.html = html;
+	}
+	public String getProxy() {
+		return proxy;
+	}
+	public void setProxy(String proxy) {
+		this.proxy = proxy;
 	}
 	
 }

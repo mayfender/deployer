@@ -8,8 +8,6 @@ import org.apache.log4j.Logger;
 
 public class App {
 	private static final Logger LOG = Logger.getLogger(App.class.getName());
-	public static ManageCheckPayWorkerThread chkPayWorker;
-	public static ManageLoginWorkerThread loginWorker;
 	private static final int START_WORKING_HOUR = 5;
 	private static final int END_WORKING_HOUR = 20;
 	
@@ -28,12 +26,10 @@ public class App {
 			LOG.info("prodIds : " + prodIds);
 			
 			LOG.info("Start ManageLoginWorkerThread");
-			loginWorker = new ManageLoginWorkerThread(prodIds);
-			loginWorker.start();
+			new ManageLoginWorkerThread(prodIds).start();
 			
 			LOG.info("Start ManageCheckPayWorkerThread");
-			chkPayWorker = new ManageCheckPayWorkerThread(prodIds);
-			chkPayWorker.start();
+			new ManageCheckPayWorkerThread(prodIds).start();
 		} catch (Exception e) {
 			LOG.error(e.toString());
 		}
