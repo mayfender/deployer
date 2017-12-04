@@ -97,7 +97,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 						for (JsonElement el : jsonArray) {
 							data = el.getAsJsonObject();
 							
-							if(data.get("sys_proxy").isJsonNull()) {
+							if(data.get("sys_proxy") == null || data.get("sys_proxy").isJsonNull()) {
 								proxiesIndexStr = "NOPROXY";
 							} else {
 								proxiesIndexStr = data.get("sys_proxy").getAsString();
@@ -119,7 +119,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					LOG.info("Finished for product id: " + prodId);
 					Thread.sleep(5000);
 					while(executor.getActiveCount() != 0){
-						LOG.debug("=============: Manager Worker active count : " + executor.getActiveCount());
+						LOG.debug("=============: CHK Manager Worker active count : " + executor.getActiveCount());
 						Thread.sleep(1000);
 					}
 				}
