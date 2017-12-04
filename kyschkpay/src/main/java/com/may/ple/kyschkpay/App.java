@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 public class App {
 	private static final Logger LOG = Logger.getLogger(App.class.getName());
+	public static Properties prop;
 	private static final int START_WORKING_HOUR = 5;
 	private static final int END_WORKING_HOUR = 20;
 	
@@ -29,10 +30,9 @@ public class App {
 			
 			//--[Read Properties file]
 			input = new FileInputStream("./conf.properties");
-			Properties prop = new Properties();
+			prop = new Properties();
 			prop.load(input);
 			input.close();
-			System.out.println(prop.get("test"));
 			
 			List<String> prodIds = Arrays.asList(args[0].split(","));
 			LOG.info("prodIds : " + prodIds);

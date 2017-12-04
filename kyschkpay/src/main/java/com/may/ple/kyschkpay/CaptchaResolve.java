@@ -26,10 +26,10 @@ public class CaptchaResolve {
 	private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
 	
 	public static String tesseract(String imgBase64) throws Exception {
-		try {			
-			String baseDir = "D:/python_captcha";
-			String tesseractPath = "C:/Program Files (x86)/Tesseract-OCR";
-			String pythonPath = "C:\\Users\\mayfender\\AppData\\Local\\Programs\\Python\\Python36-32";
+		try {
+			String baseDir = App.prop.get("python_script_dir").toString();
+			String tesseractPath = App.prop.get("tesseract_path").toString();
+			String pythonPath = App.prop.get("python_path").toString();
 			
 			return CaptchaUtil.tesseract(imgBase64, baseDir, tesseractPath, pythonPath);
 		} catch (Exception e) {
