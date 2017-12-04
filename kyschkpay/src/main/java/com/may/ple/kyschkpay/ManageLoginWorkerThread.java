@@ -27,7 +27,8 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	private List<String> initProxy() {
 		List<String> proxiesIndex = new ArrayList<>();
-		//---[Proxies]
+		
+		//--: Local
 		proxiesIndex.add("NOPROXY");
 		
 		//--: Free Proxies
@@ -37,8 +38,8 @@ public class ManageLoginWorkerThread extends Thread {
 		proxiesIndex.add("13.115.180.145:8080");
 		proxiesIndex.add("13.230.154.231:8080");*/
 		
-		
-		proxiesIndex.add("192.126.158.195:3128");
+		//--: Paid Proxies https://instantproxies.com
+		/*proxiesIndex.add("192.126.158.195:3128");
 		proxiesIndex.add("192.126.158.250:3128");
 		proxiesIndex.add("173.234.249.192:3128");
 		proxiesIndex.add("108.62.70.195:3128");
@@ -47,7 +48,7 @@ public class ManageLoginWorkerThread extends Thread {
 		proxiesIndex.add("173.234.249.26:3128");
 		proxiesIndex.add("173.234.249.3:3128");
 		proxiesIndex.add("173.234.249.189:3128");
-		proxiesIndex.add("108.62.70.15:3128");
+		proxiesIndex.add("108.62.70.15:3128");*/
 		return proxiesIndex;
 	}
 
