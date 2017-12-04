@@ -82,7 +82,7 @@ public class ChkPayWorker implements Runnable {
 			int count = 0;
 			
 			while(true) {
-				if(count == 10) {
+				if(count == 3) {
 					LOG.warn("Cann't get paymentInfo");
 					return;
 				}
