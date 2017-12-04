@@ -1,8 +1,11 @@
 package com.may.ple.kyschkpay;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -13,6 +16,8 @@ public class App {
 	
 	//--: args[0]: Product ID[proId-1,proId-2]
 	public static void main(String[] args) {
+		InputStream input = null;
+		
 		try {
 			LOG.info("Start Module...");
 			System.setProperty("java.net.preferIPv4Stack", "true");
@@ -21,6 +26,13 @@ public class App {
 				LOG.error("args can't be null");
 				return;
 			}
+			
+			//--[Read Properties file]
+			input = new FileInputStream("./conf.properties");
+			Properties prop = new Properties();
+			prop.load(input);
+			input.close();
+			System.out.println(prop.get("test"));
 			
 			List<String> prodIds = Arrays.asList(args[0].split(","));
 			LOG.info("prodIds : " + prodIds);
@@ -32,6 +44,10 @@ public class App {
 			new ManageCheckPayWorkerThread(prodIds).start();
 		} catch (Exception e) {
 			LOG.error(e.toString());
+		} finally {
+			if (input != null) {
+				try { input.close(); } catch (Exception e) {}
+			}
 		}
 	}
 	
