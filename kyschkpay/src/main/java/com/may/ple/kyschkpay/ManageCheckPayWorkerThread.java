@@ -34,6 +34,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
 		Map<String, List<ChkPayWorkerModel>> proxies;
 		String proxiesIndexStr = "NOPROXY";
+		boolean isClear = Boolean.FALSE;
 		String contractNoColumnName;
 		JsonElement checkList;
 		JsonArray jsonArray;
@@ -46,11 +47,20 @@ public class ManageCheckPayWorkerThread extends Thread {
 		while(true) {
 			try {
 				if(!App.checkWorkingHour()) {
+					if(!isClear) {
+						LOG.info("Clear status to login");
+						for (String prodId : prodIds) {
+							dmsApi.clearStatusChkLst(prodId);
+						}
+						isClear = Boolean.TRUE;
+					}
+					
 					LOG.info("Sleep 30 min");
 					Thread.sleep(1800000);
 					continue;
 				}
 				
+				isClear = Boolean.FALSE;
 				if(!dmsApi.login(USERNAME, PASSWORD)) {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);

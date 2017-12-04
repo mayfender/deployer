@@ -146,6 +146,31 @@ public class DMSApi {
 		}
 	}
 	
+	public void clearStatusChkLst(String productId) throws Exception {
+		CloseableHttpClient httpClient = null;
+		try {
+			LOG.debug("Start updateChkLst");
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
+			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/clearStatusChkLst");
+			httpPost.addHeader("content-type", "application/json; charset=utf8");
+			httpPost.addHeader("X-Auth-Token", this.token);
+			
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("productId", productId);
+			
+			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
+			httpPost.setEntity(userEntity);
+			
+			httpClient.execute(httpPost);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
 	public JsonObject updateStatus(JsonArray updateLst) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
