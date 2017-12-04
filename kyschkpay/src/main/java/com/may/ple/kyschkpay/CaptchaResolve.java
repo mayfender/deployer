@@ -27,9 +27,9 @@ public class CaptchaResolve {
 	
 	public static String tesseract(String imgBase64) throws Exception {
 		try {
-			String baseDir = App.prop.get("python_script_dir").toString();
-			String tesseractPath = App.prop.get("tesseract_path").toString();
-			String pythonPath = App.prop.get("python_path").toString();
+			String baseDir = App.prop.getProperty("python_script_dir");
+			String tesseractPath = App.prop.getProperty("tesseract_path");
+			String pythonPath = App.prop.getProperty("python_path");
 			
 			return CaptchaUtil.tesseract(imgBase64, baseDir, tesseractPath, pythonPath);
 		} catch (Exception e) {
