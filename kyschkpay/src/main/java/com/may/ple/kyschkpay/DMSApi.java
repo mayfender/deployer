@@ -146,9 +146,15 @@ public class DMSApi {
 		}
 	}
 	
-	public void clearStatusChkLst(String productId) throws Exception {
+	public JsonObject clearStatusChkLst(String productId, String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
+			
+			if(this.token == null) {
+				LOG.info("Call login");
+				login(username, pass);
+			}
+			
 			LOG.debug("Start updateChkLst");
 			HttpClientBuilder builder = HttpClientBuilder.create();
 			builder.setDefaultRequestConfig(REQUEST_CONFIG);
@@ -164,7 +170,8 @@ public class DMSApi {
 			StringEntity userEntity = new StringEntity(jsonObject.toString(), "utf8");
 			httpPost.setEntity(userEntity);
 			
-			httpClient.execute(httpPost);
+			HttpResponse response = httpClient.execute(httpPost);
+			return jsonParser(response);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

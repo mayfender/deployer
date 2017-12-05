@@ -50,7 +50,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					if(!isClear) {
 						LOG.info("Clear status to login");
 						for (String prodId : prodIds) {
-							dmsApi.clearStatusChkLst(prodId);
+							dmsApi.clearStatusChkLst(prodId, USERNAME, PASSWORD);
 						}
 						isClear = Boolean.TRUE;
 					}
