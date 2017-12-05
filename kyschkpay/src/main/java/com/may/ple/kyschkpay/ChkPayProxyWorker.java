@@ -101,7 +101,7 @@ public class ChkPayProxyWorker implements Runnable {
 				array.add(obj);
 			}
 			
-			LOG.info(msgIndex + " Call updateLoginStatus");
+			LOG.info(msgIndex + " Call updateLoginStatus size: " + array.size());
 			DMSApi.getInstance().updateStatus(array);
 		} catch (Exception e) {
 			LOG.error(e.toString());

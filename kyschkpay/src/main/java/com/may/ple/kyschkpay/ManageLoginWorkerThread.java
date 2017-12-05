@@ -134,6 +134,7 @@ public class ManageLoginWorkerThread extends Thread {
 											proxies.get(proxiesIndex.get(proxyIndex))
 											));
 									
+									proxies.put(proxiesIndex.get(proxyIndex), null);
 									proxyIndex++;
 									proxySize = 0;
 								}
