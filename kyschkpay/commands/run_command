@@ -1,2 +1,1 @@
-
-java -jar kyschkpay.jar 5a12d9eb30ab56137c27cb3f
+"C:\Program Files\Java\jdk1.7.0_80\bin\java" -Duser.language=en -Duser.region=UK -Dfile.encoding=UTF-8 -jar kyschkpay.jar 5a25060c1ec84414d0a8a5cb

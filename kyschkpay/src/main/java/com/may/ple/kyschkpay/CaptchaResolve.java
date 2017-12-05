@@ -3,7 +3,6 @@ package com.may.ple.kyschkpay;
 import java.io.File;
 import java.util.Calendar;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -86,7 +85,7 @@ public class CaptchaResolve {
 			HttpResponse response = httpClient.execute(httpPost);
 	        
 			String result = entityStr(response);
-			LOG.debug("captchaTxt : "+ result);
+			LOG.debug("captchaTxt : " + result);
 			String[] split = result.split("\\|");
 			result = split[split.length - 1].trim();
 			LOG.debug("captchaTxt final : "+ result);

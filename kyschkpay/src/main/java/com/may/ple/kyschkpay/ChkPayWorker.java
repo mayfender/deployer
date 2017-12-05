@@ -65,7 +65,7 @@ public class ChkPayWorker implements Runnable {
 			
 			chkPay();
 			
-			LOG.info("Worker end : ");
+			LOG.debug("Worker end : ");
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
 		}

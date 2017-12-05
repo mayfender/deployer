@@ -61,7 +61,7 @@ public class LoginWorker implements Runnable {
 				addToUpdateList(null);
 			}
 			
-			LOG.info(msgIndex + " Worker end : " + idCard);
+			LOG.debug(msgIndex + " Worker end : " + idCard);
 		} catch (Exception e) {
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);

@@ -58,7 +58,7 @@ public class LoginProxyWorker implements Runnable {
 		}
 	}
 	
-	public void addToLoginList(UpdateChkLstModel model) {
+	public synchronized void addToLoginList(UpdateChkLstModel model) {
 		try {
 			loginList.add(model);
 			LOG.debug(msgIndex + " chkPayList size: " + loginList.size());

@@ -58,7 +58,7 @@ public class ChkPayProxyWorker implements Runnable {
 		}
 	}
 	
-	public void addToChkPayList(UpdateChkLstModel model) {
+	public synchronized void addToChkPayList(UpdateChkLstModel model) {
 		try {
 			chkPayList.add(model);
 			LOG.debug(msgIndex + " chkPayList size: " + chkPayList.size());
