@@ -217,7 +217,7 @@ public class KYSApi {
 		}
 	}
 
-	private LoginRespModel getLoginPage(Proxy proxy) throws Exception {
+	public LoginRespModel getLoginPage(Proxy proxy) throws Exception {
 		try {
 			LOG.debug("Start getLoginPage");
 			

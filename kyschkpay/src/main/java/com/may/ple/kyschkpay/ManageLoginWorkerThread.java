@@ -59,6 +59,7 @@ public class ManageLoginWorkerThread extends Thread {
 		
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 		Map<String, List<LoginWorkerModel>> proxies;
+		boolean isClosed = Boolean.TRUE;
 		String birthDateColumnName;
 		String idCardNoColumnName;
 		JsonElement checkList;
@@ -75,9 +76,18 @@ public class ManageLoginWorkerThread extends Thread {
 			try {
 				if(!App.checkWorkingHour()) {
 					LOG.info("Sleep 30 min");
+					isClosed = Boolean.TRUE;
 					Thread.sleep(1800000);
 					continue;
 				}
+				
+				if(isClosed && KYSApi.getInstance().getLoginPage(null) == null) {
+					LOG.info("Not open nwo and sleep 10 min");
+					Thread.sleep(600000);
+					continue;
+				}
+				
+				isClosed = Boolean.FALSE;
 				
 				if(!dmsApi.login(USERNAME, PASSWORD)) {
 					LOG.warn("May be server is down.");
