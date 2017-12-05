@@ -126,8 +126,8 @@ public class ManageLoginWorkerThread extends Thread {
 							
 							if((proxyIndex + 1) < proxiesIndex.size()) {
 								if(proxySize == numOfEachProxy) {
-									LOG.debug("proxyIndex: " + proxyIndex);
-									LOG.debug("proxySize: " + proxySize);
+									LOG.info("proxyIndex: " + proxyIndex);
+									LOG.info("proxySize: " + proxySize);
 									
 									executor.execute(new LoginProxyWorker(
 											proxiesIndex.get(proxyIndex), 
@@ -138,14 +138,14 @@ public class ManageLoginWorkerThread extends Thread {
 									proxySize = 0;
 								}
 							}
-						}
-						
-						LOG.debug("Execute Last Worker Group");
-						executor.execute(new LoginProxyWorker(
-								proxiesIndex.get(proxyIndex), 
-								proxies.get(proxiesIndex.get(proxyIndex))
-								));
+						}	
 					}
+					
+					LOG.info("Execute Last Worker Group");
+					executor.execute(new LoginProxyWorker(
+							proxiesIndex.get(proxyIndex), 
+							proxies.get(proxiesIndex.get(proxyIndex))
+					));
 					
 					LOG.info("Finished for product id: " + prodId);
 					Thread.sleep(5000);

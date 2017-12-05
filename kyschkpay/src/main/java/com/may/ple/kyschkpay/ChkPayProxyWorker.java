@@ -45,13 +45,13 @@ public class ChkPayProxyWorker implements Runnable {
 			
 			LOG.info(msgIndex + " Assign Worker finished");
 			
-			Thread.sleep(5000);
+			Thread.sleep(10000);
 			while(executor.getActiveCount() != 0){
 				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
 				Thread.sleep(1000);
 			}
 			
-			LOG.debug(msgIndex + " all size: " + chkPayList.size());
+			LOG.info(msgIndex + " all size: " + chkPayList.size());
 			updateChkPayStatus();
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
