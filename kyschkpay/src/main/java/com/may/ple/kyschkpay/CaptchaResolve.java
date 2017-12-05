@@ -98,18 +98,71 @@ public class CaptchaResolve {
 		}
 	}
 	
+	public static String captchaSniper(byte[] captcha) throws Exception {
+		CloseableHttpClient httpClient = null;
+		try {
+			LOG.debug("Start initData");
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
+			HttpPost httpPost = new HttpPost("http://127.0.0.1");
+			
+			HttpEntity multipart = MultipartEntityBuilder.create()
+			.addBinaryBody("pict", captcha, ContentType.MULTIPART_FORM_DATA, "dummy.jpg").build();
+		    
+			httpPost.setEntity(multipart);			
+			HttpResponse response = httpClient.execute(httpPost);
+	        
+			String result = entityStr(response);
+			LOG.debug("captchaTxt : "+ result);
+			String[] split = result.split("\\|");
+			result = split[split.length - 1].trim();
+			LOG.debug("captchaTxt final : "+ result);
+			
+			return result;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
 	public static void main(String[] args) {
 		try {
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 			
-			File file = new File("D:\\python_captcha\\Captcha.jpg");
+			final File file = new File("D:\\python_captcha\\Captcha2.jpg");
+//			final File file = new File("C:\\Program Files (x86)\\CaptchaSniper517\\captchas\\typeu18\\captcha.png");
+			
+			
+			
 //			String txt = captchatronix(FileUtils.readFileToByteArray(file));
 			
-			byte[] data = FileUtils.readFileToByteArray(file);
+			/*byte[] data = FileUtils.readFileToByteArray(file);
 			String base64String = Base64.encodeBase64String(data);
 			
 			String txt = tesseract(base64String);
-			System.out.println(txt);
+			System.out.println(txt);*/
+			int i = 0;
+			while(true) {
+				if(i == 1) break;
+				
+				new Thread() {
+				    public void run() {
+				    	try {
+				    		String txt = captchaSniper(FileUtils.readFileToByteArray(file));
+				    		System.out.println(this.getId() + " " + txt);							
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+				    }
+				}.start();
+				
+				i++;
+			}
+			
+			
+			
 			
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 		} catch (Exception e) {
