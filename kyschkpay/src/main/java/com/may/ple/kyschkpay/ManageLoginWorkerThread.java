@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonArray;
@@ -27,9 +28,16 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	private List<String> initProxy() {
 		List<String> proxiesIndex = new ArrayList<>();
+		proxiesIndex.add("NOPROXY"); //--: Local
+		String property = App.prop.getProperty("proxies");
 		
-		//--: Local
-		proxiesIndex.add("NOPROXY");
+		if(StringUtils.isNotBlank(property)) {
+			String[] proxies = property.split(",");
+			for (String proxy : proxies) {
+				LOG.info("Add to proxy list : " + proxy);
+				proxiesIndex.add(proxy.trim());
+			}
+		}
 		
 		//--: Free Proxies
 		/*proxiesIndex.add("36.72.185.193:54214");
@@ -136,8 +144,7 @@ public class ManageLoginWorkerThread extends Thread {
 							
 							if((proxyIndex + 1) < proxiesIndex.size()) {
 								if(proxySize == numOfEachProxy) {
-									LOG.info("proxyIndex: " + proxyIndex);
-									LOG.info("proxySize: " + proxySize);
+									LOG.info("Sent to thread Pool proxyIndex: " + proxyIndex + "proxySize: " + proxySize);
 									
 									executor.execute(new LoginProxyWorker(
 											proxiesIndex.get(proxyIndex), 
