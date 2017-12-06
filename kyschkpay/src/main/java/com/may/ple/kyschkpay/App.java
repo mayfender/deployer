@@ -23,18 +23,13 @@ public class App {
 			LOG.info("Start Module...");
 			System.setProperty("java.net.preferIPv4Stack", "true");
 			
-			if(args == null || args.length == 0) {
-				LOG.error("args can't be null");
-				return;
-			}
-			
 			//--[Read Properties file]
 			input = new FileInputStream("./conf.properties");
 			prop = new Properties();
 			prop.load(input);
 			input.close();
 			
-			List<String> prodIds = Arrays.asList(args[0].split(","));
+			List<String> prodIds = Arrays.asList(prop.getProperty("productIds").split(","));
 			LOG.info("prodIds : " + prodIds);
 			
 			LOG.info("Start ManageLoginWorkerThread");
