@@ -16,7 +16,7 @@ public class ChkPayProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(ChkPayProxyWorker.class.getName());
 	private List<UpdateChkLstModel> chkPayList = new ArrayList<>();
 	private final int LIMITED_UPDATE_SIZE = 1000;
-	private static final int POOL_SIZE = 10;
+	private static final int POOL_SIZE = 5;
 	private List<ChkPayWorkerModel> worker;
 	private Proxy proxy;
 	private String msgIndex;
