@@ -90,7 +90,7 @@ public class ChkPayWorker implements Runnable {
 				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);
 				if(!paymentInfo.isError()) break;
 				
-				LOG.warn("Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
+				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
 				count++;
 				Thread.sleep(5000);
 			}
