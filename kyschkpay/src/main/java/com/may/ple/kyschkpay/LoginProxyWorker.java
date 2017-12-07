@@ -51,7 +51,6 @@ public class LoginProxyWorker implements Runnable {
 				Thread.sleep(1000);
 			}
 			
-			LOG.info(msgIndex + " chkPayList size: " + loginList.size());
 			updateLoginStatus();
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
@@ -61,10 +60,9 @@ public class LoginProxyWorker implements Runnable {
 	public synchronized void addToLoginList(UpdateChkLstModel model) {
 		try {
 			loginList.add(model);
-			LOG.debug(msgIndex + " chkPayList size: " + loginList.size());
+			LOG.debug(msgIndex + " addToLoginList");
 			
 			if(loginList.size() == LIMITED_UPDATE_SIZE) {
-				LOG.info("Call updateChkPayStatus");
 				updateLoginStatus();
 				loginList.clear();
 			}
@@ -77,7 +75,7 @@ public class LoginProxyWorker implements Runnable {
 		try {
 			if(loginList.size() == 0) return;
 			
-			LOG.info("Update login success");
+			LOG.info(msgIndex + " Update login success size: " + loginList.size());
 			JsonArray array = new JsonArray();
 			JsonObject obj;
 			
@@ -98,8 +96,8 @@ public class LoginProxyWorker implements Runnable {
 				array.add(obj);
 			}
 			
-			LOG.info("Call updateLoginStatus");
 			DMSApi.getInstance().updateStatus(array);
+			LOG.info(msgIndex + "End updateLoginStatus");
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
