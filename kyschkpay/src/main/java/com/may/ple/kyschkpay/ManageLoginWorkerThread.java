@@ -38,25 +38,6 @@ public class ManageLoginWorkerThread extends Thread {
 				proxiesIndex.add(proxy.trim());
 			}
 		}
-		
-		//--: Free Proxies
-		/*proxiesIndex.add("36.72.185.193:54214");
-		proxiesIndex.add("123.176.103.44:80");
-		proxiesIndex.add("110.77.187.189:54214");
-		proxiesIndex.add("13.115.180.145:8080");
-		proxiesIndex.add("13.230.154.231:8080");*/
-		
-		//--: Paid Proxies https://instantproxies.com
-		/*proxiesIndex.add("192.126.158.195:3128");
-		proxiesIndex.add("192.126.158.250:3128");
-		proxiesIndex.add("173.234.249.192:3128");
-		proxiesIndex.add("108.62.70.195:3128");
-		proxiesIndex.add("89.32.64.226:3128");
-		proxiesIndex.add("89.32.64.217:3128");				
-		proxiesIndex.add("173.234.249.26:3128");
-		proxiesIndex.add("173.234.249.3:3128");
-		proxiesIndex.add("173.234.249.189:3128");
-		proxiesIndex.add("108.62.70.15:3128");*/
 		return proxiesIndex;
 	}
 
