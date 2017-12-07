@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 public class LoginProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginProxyWorker.class.getName());
 	private List<UpdateChkLstModel> loginList = new ArrayList<>();
-	private final int LIMITED_UPDATE_SIZE = 500;
+	private final int LIMITED_UPDATE_SIZE = 250;
 	private static final int POOL_SIZE = 1;
 	private List<LoginWorkerModel> worker;
 	private Proxy proxy;
