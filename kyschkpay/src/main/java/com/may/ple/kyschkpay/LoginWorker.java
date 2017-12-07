@@ -36,15 +36,15 @@ public class LoginWorker implements Runnable {
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
 			this.birthDate = birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
 			
-			LoginRespModel resp = login(idCard, birthDate);				
+			LoginRespModel resp = login(this.idCard, birthDate);				
 			CheckRespModel chkResp;
 			
 			this.loginStatus = resp.getStatus();
 			this.sessionId = resp.getSessionId();
 			this.cif = resp.getCif();
 			
-			if(StatusConstant.LOGIN_SUCCESS == loginStatus) {
-				List<String> params = KYSApi.getInstance().getParam(proxy, this.sessionId, this.cif);
+			if(StatusConstant.LOGIN_SUCCESS == this.loginStatus) {
+				List<String> params = KYSApi.getInstance().getParam(this.proxy, this.sessionId, this.cif);
 				chkResp = new CheckRespModel();
 				chkResp.setLoanType(params.get(0).trim());
 				chkResp.setFlag(params.get(5).trim());
@@ -61,11 +61,11 @@ public class LoginWorker implements Runnable {
 				addToUpdateList(null);
 			}
 			
-			LOG.debug(msgIndex + " Worker end : " + idCard);
+			LOG.debug(msgIndex + " Worker end : " + this.idCard);
 		} catch (Exception e) {
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
-			model.setProductId(loginModel.getProductId());
+			model.setProductId(this.loginModel.getProductId());
 			model.setErrMsg(e.toString());
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setCreatedDateTime(new Date());
@@ -118,10 +118,10 @@ public class LoginWorker implements Runnable {
 			
 			UpdateChkLstModel model = new UpdateChkLstModel();
 			model.setId(this.id);
-			model.setProductId(loginModel.getProductId());
+			model.setProductId(this.loginModel.getProductId());
 			
-			if(StatusConstant.LOGIN_FAIL == loginStatus) {
-				model.setStatus(loginStatus.getStatus());
+			if(StatusConstant.LOGIN_FAIL == this.loginStatus) {
+				model.setStatus(this.loginStatus.getStatus());
 			} else {
 				model.setStatus(StatusConstant.LOGIN_SUCCESS.getStatus());
 				model.setSessionId(this.sessionId);
@@ -130,7 +130,7 @@ public class LoginWorker implements Runnable {
 				model.setFlag(chkResp.getFlag());
 				model.setAccNo(chkResp.getAccNo());
 				model.setUri(chkResp.getUri());
-				model.setProxy(proxy != null ? proxy.address().toString() : null);
+				model.setProxy(this.proxy != null ? this.proxy.address().toString() : null);
 			}
 			
 			model.setCreatedDateTime(new Date());

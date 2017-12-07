@@ -90,7 +90,7 @@ public class ManageLoginWorkerThread extends Thread {
 				}
 				
 				if(isClosed && KYSApi.getInstance().getLoginPage(null) == null) {
-					LOG.info("Not open nwo and sleep 10 min");
+					LOG.info("Not open now and sleep 10 min");
 					Thread.sleep(600000);
 					continue;
 				}
@@ -114,14 +114,16 @@ public class ManageLoginWorkerThread extends Thread {
 					}
 					
 					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
-					if(loginChkList == null) break;
+					if(loginChkList == null) {
+						LOG.info("Not found loginChkList");
+						continue;
+					}
 					
 					totalItems = loginChkList.get("totalItems").getAsInt();
 					totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					numOfEachProxy = totalItems / proxiesIndex.size();
 					
-					LOG.debug("numOfEachProxy: " + numOfEachProxy);
-					LOG.debug("totalItems: " + totalItems);
+					LOG.info("numOfEachProxy: " + numOfEachProxy + ", totalItems: " + totalItems);
 					if(totalItems == 0) continue;
 					
 					for (; currentPage <= totalPages; currentPage++) {
