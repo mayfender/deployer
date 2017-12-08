@@ -116,7 +116,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 				LOG.info("Start sent to thread pool");
 				proxySet = proxies.entrySet();
 				for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
-					LOG.debug("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
+					LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
 					executor.execute(new ChkPayProxyWorker(proxyEnt.getKey(), proxyEnt.getValue()));
 				}
 				
@@ -134,7 +134,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 			} finally {
 				try {
 					//--: Sleep 10 minutes
-					Thread.sleep(300000);
+//					Thread.sleep(300000);
 				} catch (Exception e2) {}
 			}
 		}
