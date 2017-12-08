@@ -2,7 +2,6 @@ package com.may.ple.kyschkpay;
 
 import java.io.IOException;
 import java.net.Proxy;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -331,9 +330,15 @@ public class KYSApi {
 			if(StringUtils.isBlank(dateStr)) return null;
 			
 			String[] split = dateStr.split("/");
+			
+			int dd = Integer.parseInt(split[0]);
+			int mm = Integer.parseInt(split[1]) - 1;
 			int yyyy = Integer.parseInt(split[2]) - 543;
 			
-			return new SimpleDateFormat("ddMMyyyy").parse(new String(split[0] + split[1] + yyyy));
+			Calendar in = Calendar.getInstance();
+			in.set(yyyy, mm, dd);
+			
+			return in.getTime();
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
