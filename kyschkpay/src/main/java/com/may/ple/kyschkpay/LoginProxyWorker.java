@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -15,7 +16,7 @@ import com.google.gson.JsonObject;
 public class LoginProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginProxyWorker.class.getName());
 	private List<UpdateChkLstModel> loginList = new ArrayList<>();
-	private final int LIMITED_UPDATE_SIZE = 250;
+	private final int LIMITED_UPDATE_SIZE = 100;
 	private static final int POOL_SIZE = 5;
 	private List<LoginWorkerModel> worker;
 	private Proxy proxy;
@@ -44,11 +45,10 @@ public class LoginProxyWorker implements Runnable {
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
+			executor.shutdown();
 			
-			Thread.sleep(10000);
-			while(executor.getActiveCount() != 0){
+			while (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
 				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
-				Thread.sleep(1000);
 			}
 			
 			updateLoginStatus();

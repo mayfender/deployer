@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -44,11 +45,10 @@ public class ChkPayProxyWorker implements Runnable {
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
+			executor.shutdown();
 			
-			Thread.sleep(10000);
-			while(executor.getActiveCount() != 0){
+			while (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
 				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
-				Thread.sleep(1000);
 			}
 			
 			LOG.info(msgIndex + " all size: " + chkPayList.size());
