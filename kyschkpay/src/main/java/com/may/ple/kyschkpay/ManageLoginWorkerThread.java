@@ -161,7 +161,7 @@ public class ManageLoginWorkerThread extends Thread {
 				LOG.error(e.toString(), e);
 			} finally {
 				try {
-					//--: Sleep 10 minutes
+					//--: Sleep 1 minutes
 					Thread.sleep(60000);
 				} catch (Exception e2) {}
 			}

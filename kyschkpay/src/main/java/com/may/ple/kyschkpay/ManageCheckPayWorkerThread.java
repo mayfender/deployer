@@ -131,11 +131,6 @@ public class ManageCheckPayWorkerThread extends Thread {
 				LOG.info("Finished all product");
 			} catch (Exception e) {
 				LOG.error(e.toString(), e);
-			} finally {
-				try {
-					//--: Sleep 10 minutes
-//					Thread.sleep(300000);
-				} catch (Exception e2) {}
 			}
 		}
 	}
