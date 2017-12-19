@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -45,10 +44,11 @@ public class LoginProxyWorker implements Runnable {
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
-			executor.shutdown();
 			
-			while (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+			Thread.sleep(10000);
+			while(executor.getActiveCount() != 0){
 				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
+				Thread.sleep(1000);
 			}
 			
 			updateLoginStatus();
