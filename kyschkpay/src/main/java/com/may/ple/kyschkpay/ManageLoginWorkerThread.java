@@ -64,9 +64,9 @@ public class ManageLoginWorkerThread extends Thread {
 		while(true) {
 			try {
 				if(!App.checkWorkingHour()) {
-					LOG.info("Sleep 30 min");
+					LOG.debug("Sleep 30 min");
 					isClosed = Boolean.TRUE;
-					Thread.sleep(1800000);
+					Thread.sleep(60000);
 					continue;
 				}
 				
