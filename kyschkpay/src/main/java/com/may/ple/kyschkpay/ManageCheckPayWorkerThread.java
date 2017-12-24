@@ -81,7 +81,11 @@ public class ManageCheckPayWorkerThread extends Thread {
 					totalPages = (int)Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
 					
 					LOG.info("totalItems: " + totalItems);
-					if(totalItems == 0) continue;
+					if(totalItems == 0) {
+						LOG.info("Wait 1 minute");
+						Thread.sleep(60000);
+						continue;
+					}
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
@@ -111,21 +115,22 @@ public class ManageCheckPayWorkerThread extends Thread {
 							proxies.get(proxiesIndexStr).add(new ChkPayWorkerModel(prodId, el, contractNoColumnName));
 						}	
 					}
-				}
-				
-				LOG.info("Start sent to thread pool");
-				proxySet = proxies.entrySet();
-				for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
-					LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
-					executor.execute(new ChkPayProxyWorker(proxyEnt.getKey(), proxyEnt.getValue()));
-				}
-				
-				proxies.clear();
-				Thread.sleep(10000);
-				
-				while(executor.getActiveCount() != 0){
-					LOG.debug("=============: CHK Manager Worker active count : " + executor.getActiveCount());
-					Thread.sleep(1000);
+										
+					LOG.info("Start sent to thread pool prd: " + prodId);
+					proxySet = proxies.entrySet();
+					for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
+						LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
+						executor.execute(new ChkPayProxyWorker(proxyEnt.getKey(), proxyEnt.getValue()));
+					}
+					
+					proxies.clear();
+					Thread.sleep(10000);
+					
+					while(executor.getActiveCount() != 0){
+						LOG.debug("=============: CHK Manager Worker active count : " + executor.getActiveCount());
+						Thread.sleep(1000);
+					}
+					LOG.info("Finished product " + prodId);
 				}
 				
 				LOG.info("Finished all product");

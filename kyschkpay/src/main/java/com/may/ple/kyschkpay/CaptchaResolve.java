@@ -31,7 +31,6 @@ public class CaptchaResolve {
 			String pythonPath = App.prop.getProperty("python_path");
 			
 			String txt = CaptchaUtil.tesseract(imgBase64, baseDir, tesseractPath, pythonPath);
-			Thread.sleep(1000);
 			
 			return txt;
 		} catch (Exception e) {
