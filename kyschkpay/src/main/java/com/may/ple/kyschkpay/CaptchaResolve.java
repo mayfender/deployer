@@ -23,6 +23,13 @@ import org.jsoup.select.Elements;
 public class CaptchaResolve {
 	private static final Logger LOG = Logger.getLogger(CaptchaResolve.class.getName());
 	private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
+	private static final CaptchaResolve instance = new CaptchaResolve();
+	
+	private CaptchaResolve(){}
+	
+	public synchronized static CaptchaResolve getInstance(){
+        return instance;
+    }
 	
 	public static String tesseract(String imgBase64) throws Exception {
 		try {
@@ -39,16 +46,16 @@ public class CaptchaResolve {
 		}
 	}
 	
-	public static String tess4j(byte[] in) throws Exception {
+	/*public String tess4j(byte[] in) throws Exception {
 		try {
-			return Tess4jCaptcha.solve(in);
+			return Tess4jCaptcha.getInstance().solve(in);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
 		}
-	}
+	}*/
 	
-	public static String captchasolutions(String imgBase64) throws Exception {
+	public String captchasolutions(String imgBase64) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start initData");
@@ -77,7 +84,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	public static String captchatronix(byte[] captcha) throws Exception {
+	public String captchatronix(byte[] captcha) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start initData");
@@ -109,7 +116,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	public static String captchaSniper(byte[] captcha) throws Exception {
+	public String captchaSniper(byte[] captcha) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start initData");
@@ -138,7 +145,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	public static void main(String[] args) {
+	public void main(String[] args) {
 		try {
 			System.out.println(String.format("%1$tH:%1$tM:%1$tS", Calendar.getInstance().getTime()));
 			
@@ -181,7 +188,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	private static String xmlParser(HttpResponse response) throws Exception {
+	private String xmlParser(HttpResponse response) throws Exception {
 		try {
 			LOG.debug("Start jsonParser");
 			String jsonStr = entityStr(response);
@@ -195,7 +202,7 @@ public class CaptchaResolve {
 		}
 	}
 	
-	private static String entityStr(HttpResponse response) throws Exception {
+	private String entityStr(HttpResponse response) throws Exception {
 		try {
 			LOG.debug("Start jsonStr");
 			if (response.getStatusLine().getStatusCode() != 200) {

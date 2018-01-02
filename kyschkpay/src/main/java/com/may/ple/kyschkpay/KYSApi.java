@@ -25,7 +25,7 @@ public class KYSApi {
 	
 	private KYSApi(){}
 	
-	public static KYSApi getInstance(){
+	public synchronized static KYSApi getInstance(){
 		/*Authenticator.setDefault(
 		   new Authenticator() {
 		      public PasswordAuthentication getPasswordAuthentication() {
@@ -52,7 +52,7 @@ public class KYSApi {
 			}
 			
 			//[2]
-			String text = CaptchaResolve.tess4j(loginResp.getImageContent());
+			String text = new Tess4jCaptcha().solve(loginResp.getImageContent());
 			Thread.sleep(1000);
 			
 //			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));

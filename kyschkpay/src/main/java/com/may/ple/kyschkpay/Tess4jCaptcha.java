@@ -14,7 +14,8 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.util.LoadLibs;
 
 public class Tess4jCaptcha {
-	private static final int WHITE = 0x00FFFFF5, BLACK = 0x0000000;
+	private final int WHITE = 0x00FFFFF5, BLACK = 0x0000000;
+	private ITesseract tess;
 	
 	/*public static void main(String[] args) {
 		try {
@@ -26,7 +27,15 @@ public class Tess4jCaptcha {
 		}
 	}*/
 	
-	public static String solve(byte[] in) throws Exception {	    
+	public Tess4jCaptcha(){
+		tess = new Tesseract();  
+		tess.setTessVariable("tessedit_char_whitelist", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+		
+		File tessDataFolder = LoadLibs.extractTessResources("tessdata");
+		tess.setDatapath(tessDataFolder.getAbsolutePath());
+	}
+	
+	public String solve(byte[] in) throws Exception {	    
 		try {
 			BufferedImage image = denoise(in);
 			return crackImage(image);
@@ -35,21 +44,16 @@ public class Tess4jCaptcha {
 		}
 	}
 	
-	private static String crackImage(BufferedImage image) throws Exception {
+	private String crackImage(BufferedImage image) throws Exception {
 	    try {  
-	    	ITesseract instance = new Tesseract();  
-	    	instance.setTessVariable("tessedit_char_whitelist", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-	    	
-	    	File tessDataFolder = LoadLibs.extractTessResources("tessdata");
-	    	instance.setDatapath(tessDataFolder.getAbsolutePath());
-	        String result = instance.doOCR(image);  
+	        String result = tess.doOCR(image);  
 	        return result;  
 	    } catch (Exception e) {  
 	        throw e;
 	    }  
 	}
 
-	private static BufferedImage denoise(byte[] imageBytes) throws Exception {
+	private BufferedImage denoise(byte[] imageBytes) throws Exception {
 		InputStream arryIn = null, in = null;
 		
 		try (
@@ -136,11 +140,11 @@ public class Tess4jCaptcha {
 		}
 	}
 
-    private static int countVerticalWhite(BufferedImage image, int x, int y) {
+    private int countVerticalWhite(BufferedImage image, int x, int y) {
 		return (countAboveWhite(image, x, y) + countBelowWhite(image, x, y)) + 1;
 	}
         
-	private static int countAboveWhite(BufferedImage image, int x, int y) {
+	private int countAboveWhite(BufferedImage image, int x, int y) {
 		int aboveWhite = 0;
 		y--;
 		while (y-- > 0)
@@ -150,7 +154,7 @@ public class Tess4jCaptcha {
 				break;
 		return aboveWhite;
 	}
-	private static int countBelowWhite(BufferedImage image, int x, int y) {
+	private int countBelowWhite(BufferedImage image, int x, int y) {
 		int belowWhite = 0;
 		y++;
 		while (y < image.getHeight())
@@ -160,10 +164,10 @@ public class Tess4jCaptcha {
 				break;
 		return belowWhite;
 	}
-	private static int countHorizontalWhite(BufferedImage image, int x, int y) {
+	private int countHorizontalWhite(BufferedImage image, int x, int y) {
 		return (countLeftWhite(image, x, y) + countRightWhite(image, x, y)) + 1;
 	}
-	private static int countLeftWhite(BufferedImage image, int x, int y) {
+	private int countLeftWhite(BufferedImage image, int x, int y) {
 		int leftWhite = 0;
 		x--;
 		while (x-- > 0)
@@ -173,7 +177,7 @@ public class Tess4jCaptcha {
 				break;
 		return leftWhite;
 	}
-	private static int countRightWhite(BufferedImage image, int x, int y) {
+	private int countRightWhite(BufferedImage image, int x, int y) {
 		int rightWhite = 0;
 		x++;
 		while (x < image.getWidth())
@@ -183,7 +187,7 @@ public class Tess4jCaptcha {
 				break;
 		return rightWhite;
 	}
-	private static int countBlackNeighbors(BufferedImage image, int x, int y) {
+	private int countBlackNeighbors(BufferedImage image, int x, int y) {
 		int numBlacks = 0;
 		if (pixelColor(image, x - 1, y) != WHITE)
 			numBlacks++;
@@ -204,13 +208,13 @@ public class Tess4jCaptcha {
 		return numBlacks;
 	}
 
-	private static int pixelColor(BufferedImage image, int x, int y) {
+	private int pixelColor(BufferedImage image, int x, int y) {
 		if (x >= image.getWidth() || x < 0 || y < 0 || y >= image.getHeight())
 			return WHITE;
 		return image.getRGB(x, y) & WHITE;
 	}
 	
-	private static BufferedImage createGrayscalePic(BufferedImage raw) {
+	private BufferedImage createGrayscalePic(BufferedImage raw) {
         BufferedImage temp = new BufferedImage(raw.getWidth(), raw.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
         Graphics g = temp.getGraphics();
         g.drawImage(raw, 0, 0, null);
