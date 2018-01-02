@@ -38,6 +38,16 @@ public class CaptchaResolve {
 			throw e;
 		}
 	}
+	
+	public static String tess4j(byte[] in) throws Exception {
+		try {
+			return Tess4jCaptcha.solve(in);
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
 	public static String captchasolutions(String imgBase64) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {

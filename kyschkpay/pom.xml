@@ -4,7 +4,7 @@
 	<groupId>com.may.ple</groupId>
 	<artifactId>kyschkpay</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>kyschkpay</name>
 
 	<properties>
@@ -67,6 +67,11 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.tess4j</groupId>
+			<artifactId>tess4j</artifactId>
+			<version>3.4.2</version>
 		</dependency>
 	</dependencies>
 	<build>
