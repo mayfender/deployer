@@ -46,15 +46,6 @@ public class CaptchaResolve {
 		}
 	}
 	
-	/*public String tess4j(byte[] in) throws Exception {
-		try {
-			return Tess4jCaptcha.getInstance().solve(in);
-		} catch (Exception e) {
-			LOG.error(e.toString());
-			throw e;
-		}
-	}*/
-	
 	public String captchasolutions(String imgBase64) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
