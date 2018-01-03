@@ -35,7 +35,7 @@ public class Tess4jCaptcha {
 					public void run() {
 						try {						
 							String txt = new Tess4jCaptcha().solve(Files.readAllBytes(Paths.get(INPUT)));			
-							System.out.println(txt);					
+							System.out.println(Thread.currentThread() + " - " +txt);					
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
