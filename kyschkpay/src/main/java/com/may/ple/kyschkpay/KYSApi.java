@@ -25,7 +25,7 @@ public class KYSApi {
 	
 	private KYSApi(){}
 	
-	public synchronized static KYSApi getInstance(){
+	public static KYSApi getInstance(){
 		/*Authenticator.setDefault(
 		   new Authenticator() {
 		      public PasswordAuthentication getPasswordAuthentication() {
