@@ -16,7 +16,7 @@ public class LoginProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginProxyWorker.class.getName());
 	private List<UpdateChkLstModel> loginList = new ArrayList<>();
 	private final int LIMITED_UPDATE_SIZE = 100;
-	private static final int POOL_SIZE = 10;
+	private static final int POOL_SIZE = 70;
 	private List<LoginWorkerModel> worker;
 	private Proxy proxy;
 	private String msgIndex;
