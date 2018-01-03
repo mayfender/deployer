@@ -27,7 +27,7 @@ public class CaptchaResolve {
 	
 	private CaptchaResolve(){}
 	
-	public synchronized static CaptchaResolve getInstance(){
+	public static CaptchaResolve getInstance(){
         return instance;
     }
 	
