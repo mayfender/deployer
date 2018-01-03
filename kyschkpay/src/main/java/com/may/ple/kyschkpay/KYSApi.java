@@ -53,7 +53,6 @@ public class KYSApi {
 			
 			//[2]
 			String text = new Tess4jCaptcha().solve(loginResp.getImageContent());
-			Thread.sleep(1000);
 			
 //			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));
 //			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());

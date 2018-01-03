@@ -6,6 +6,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
@@ -13,19 +18,40 @@ import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.util.LoadLibs;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class Tess4jCaptcha {
 	private final int WHITE = 0x00FFFFF5, BLACK = 0x0000000;
 	private ITesseract tess;
 	
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		try {
-			String INPUT = "C:\\Users\\LENOVO\\Desktop\\งาน\\Captcha.jpg";
-			String txt = DenoiseCaptcha.solve(Files.readAllBytes(Paths.get(INPUT)));
-			System.out.println(txt);
+			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(50);
+			final String INPUT = "C:\\Users\\sarawuti\\Desktop\\PT_Siam\\Captcha.jpg";
+			
+			for (int i = 0; i < 100; i++) {
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						try {						
+							String txt = new Tess4jCaptcha().solve(Files.readAllBytes(Paths.get(INPUT)));			
+							System.out.println(txt);					
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+
+			executor.shutdown();
+			
+			executor.awaitTermination(1, TimeUnit.DAYS);
+			
+			System.out.println("finished");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}*/
+	}
 	
 	public Tess4jCaptcha(){
 		tess = new Tesseract();  
@@ -46,8 +72,7 @@ public class Tess4jCaptcha {
 	
 	private String crackImage(BufferedImage image) throws Exception {
 	    try {  
-	        String result = tess.doOCR(image);  
-	        return result;  
+	        return StringUtils.trimToEmpty(tess.doOCR(image));  
 	    } catch (Exception e) {  
 	        throw e;
 	    }  
