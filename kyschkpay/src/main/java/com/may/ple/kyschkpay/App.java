@@ -15,7 +15,6 @@ public class App {
 	private static final int START_WORKING_HOUR = 5;
 	private static final int END_WORKING_HOUR = 20;
 	
-	//--: args[0]: Product ID[proId-1,proId-2]
 	public static void main(String[] args) {
 		InputStream input = null;
 		
