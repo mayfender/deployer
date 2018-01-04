@@ -1,6 +1,8 @@
 package com.may.ple.kyschkpay;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -26,14 +28,14 @@ public class KYSApi {
 	private KYSApi(){}
 	
 	public static KYSApi getInstance(){
-		/*Authenticator.setDefault(
+		Authenticator.setDefault(
 		   new Authenticator() {
 		      public PasswordAuthentication getPasswordAuthentication() {
 		         return new PasswordAuthentication(
-		               "mayfender", "19042528".toCharArray());
+		               "mayfender-hs70l", "GQ7FjwqHxD".toCharArray());
 		      }
 		   }
-		);*/
+		);
 		
         return instance;
     }
