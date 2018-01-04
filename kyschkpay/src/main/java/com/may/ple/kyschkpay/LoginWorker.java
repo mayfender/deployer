@@ -93,10 +93,11 @@ public class LoginWorker implements Runnable {
 					LOG.warn(msgIndex + " Service Unavailable");
 					break;
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
-					LOG.warn(msgIndex + " Login fail : " + errCount);
+					LOG.debug(msgIndex + " Login fail : " + errCount);
 					errCount++;
+					Thread.sleep(1000);
 				} else {
-					LOG.info(msgIndex + " Login Success");					
+					LOG.debug(msgIndex + " Login Success");					
 				}
 			}
 			

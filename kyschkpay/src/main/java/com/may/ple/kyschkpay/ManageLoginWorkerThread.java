@@ -54,6 +54,7 @@ public class ManageLoginWorkerThread extends Thread {
 		JsonElement checkList;
 		JsonArray jsonArray;
 		JsonObject loginChkList;
+		String token = null;
 		int numOfEachProxy;
 		int currentPage;
 		int proxySize = 0;
@@ -78,7 +79,7 @@ public class ManageLoginWorkerThread extends Thread {
 				
 				isClosed = Boolean.FALSE;
 				
-				if(!dmsApi.login(USERNAME, PASSWORD)) {
+				if(StringUtils.isBlank(token = dmsApi.login(USERNAME, PASSWORD))) {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
 					continue;
@@ -94,7 +95,7 @@ public class ManageLoginWorkerThread extends Thread {
 						proxies.put(prxIndex, new ArrayList<LoginWorkerModel>());
 					}
 					
-					loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
+					loginChkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 					if(loginChkList == null) {
 						LOG.info("Not found loginChkList");
 						continue;
@@ -109,7 +110,7 @@ public class ManageLoginWorkerThread extends Thread {
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {							
-							loginChkList = dmsApi.getChkList(prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
+							loginChkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 							if(loginChkList == null) break;
 						}
 						
@@ -130,6 +131,7 @@ public class ManageLoginWorkerThread extends Thread {
 									LOG.info("Sent to thread Pool proxyIndex: " + proxyIndex + "proxySize: " + proxySize);
 									
 									executor.execute(new LoginProxyWorker(
+											token,
 											proxiesIndex.get(proxyIndex), 
 											proxies.get(proxiesIndex.get(proxyIndex))
 											));
@@ -144,6 +146,7 @@ public class ManageLoginWorkerThread extends Thread {
 					
 					LOG.info("Execute Last Worker Group");
 					executor.execute(new LoginProxyWorker(
+							token,
 							proxiesIndex.get(proxyIndex), 
 							proxies.get(proxiesIndex.get(proxyIndex))
 					));

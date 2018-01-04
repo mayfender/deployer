@@ -20,9 +20,11 @@ public class LoginProxyWorker implements Runnable {
 	private List<LoginWorkerModel> worker;
 	private Proxy proxy;
 	private String msgIndex;
+	private String token;
 	
-	public LoginProxyWorker(String proxy, List<LoginWorkerModel> worker) {
+	public LoginProxyWorker(String token, String proxy, List<LoginWorkerModel> worker) {
 		this.worker = worker;
+		this.token = token;
 		
 		if(!proxy.equals("NOPROXY")) {			
 			String[] proxyStr = proxy.split(":");
@@ -96,7 +98,7 @@ public class LoginProxyWorker implements Runnable {
 				array.add(obj);
 			}
 			
-			DMSApi.getInstance().updateStatus(array);
+			DMSApi.getInstance().updateStatus(this.token, array);
 			LOG.info(msgIndex + "End updateLoginStatus");
 		} catch (Exception e) {
 			LOG.error(e.toString());

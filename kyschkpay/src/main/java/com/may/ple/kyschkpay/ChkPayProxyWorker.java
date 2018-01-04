@@ -20,9 +20,11 @@ public class ChkPayProxyWorker implements Runnable {
 	private List<ChkPayWorkerModel> worker;
 	private Proxy proxy;
 	private String msgIndex;
+	private String token;
 	
-	public ChkPayProxyWorker(String proxy, List<ChkPayWorkerModel> worker) {
+	public ChkPayProxyWorker(String token, String proxy, List<ChkPayWorkerModel> worker) {
 		this.worker = worker;
+		this.token = token;
 		
 		if(!proxy.equals("NOPROXY")) {			
 			String[] proxyStr = proxy.split(":");
@@ -73,7 +75,7 @@ public class ChkPayProxyWorker implements Runnable {
 		}
 	}
 	
-	private void updateChkPayStatus() throws Exception {
+	private synchronized void updateChkPayStatus() throws Exception {
 		try {
 			if(chkPayList.size() == 0) return;
 			
@@ -102,7 +104,7 @@ public class ChkPayProxyWorker implements Runnable {
 			}
 			
 			LOG.info(msgIndex + " Call updateLoginStatus size: " + array.size());
-			DMSApi.getInstance().updateStatus(array);
+			DMSApi.getInstance().updateStatus(this.token, array);
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

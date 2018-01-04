@@ -25,7 +25,6 @@ public class DMSApi {
 	private static final DMSApi instance = new DMSApi();
 	private final String BASE_URL = App.prop.getProperty("dms_url");
 	private final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(5 * 1000).build();
-	private String token;
 	
 	private DMSApi() {}
 	
@@ -33,7 +32,7 @@ public class DMSApi {
         return instance;
     }
 	
-	public boolean login(String username, String pass) throws Exception {
+	public String login(String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start Login");
@@ -54,13 +53,13 @@ public class DMSApi {
 			HttpResponse response = httpClient.execute(httpPost);
 			
 			JsonObject jsonObj = jsonParser(response);
-			this.token = jsonObj.get("token").getAsString();
+			String token = jsonObj.get("token").getAsString();
 			
 			LOG.debug("token : " + token);
-			return true;
+			return token;
 		} catch (Exception e) {
 			LOG.error(e.toString());
-			return false;
+			return null;
 		} finally {
 			try {
 				if(httpClient != null) httpClient.close(); 
@@ -68,7 +67,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject initData(String productId) throws Exception {
+	public JsonObject initData(String token, String productId) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start initData");
@@ -79,7 +78,7 @@ public class DMSApi {
 			HttpGet httpPost = new HttpGet(BASE_URL + "/restAct/paymentOnlineCheck/initData?productId=" + productId);
 			
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", this.token);
+			httpPost.addHeader("X-Auth-Token", token);
 			
 			HttpResponse response = httpClient.execute(httpPost);
 			return jsonParser(response);
@@ -89,7 +88,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject getChkList(String productId, int currentPage, int itemsPerPage, String workType) throws Exception {
+	public JsonObject getChkList(String token, String productId, int currentPage, int itemsPerPage, String workType) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start getChkList");
@@ -99,7 +98,7 @@ public class DMSApi {
 			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/getCheckList");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", this.token);
+			httpPost.addHeader("X-Auth-Token", token);
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("productId", productId);
@@ -118,7 +117,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject img2txt(String captChaPath) throws Exception {
+	public JsonObject img2txt(String token, String captChaPath) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start img2txt");
@@ -128,7 +127,7 @@ public class DMSApi {
 			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/tools/img2txt");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", this.token);
+			httpPost.addHeader("X-Auth-Token", token);
 			
 			String imgBase64 = Base64.encodeBase64String(FileUtils.readFileToByteArray(new File(captChaPath)));
 			
@@ -146,11 +145,11 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject clearStatusChkLst(String productId, String username, String pass) throws Exception {
+	public JsonObject clearStatusChkLst(String token, String productId, String username, String pass) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			
-			if(this.token == null) {
+			if(token == null) {
 				LOG.info("Call login");
 				login(username, pass);
 			}
@@ -162,7 +161,7 @@ public class DMSApi {
 			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/clearStatusChkLst");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", this.token);
+			httpPost.addHeader("X-Auth-Token", token);
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("productId", productId);
@@ -178,7 +177,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateStatus(JsonArray updateLst) throws Exception {
+	public JsonObject updateStatus(String token, JsonArray updateLst) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
@@ -188,7 +187,7 @@ public class DMSApi {
 			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/updateChkLst");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
-			httpPost.addHeader("X-Auth-Token", this.token);
+			httpPost.addHeader("X-Auth-Token", token);
 			
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.add("updateList", updateLst);
