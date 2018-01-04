@@ -38,7 +38,7 @@ public class KYSApi {
         return instance;
     }
 	
-	public LoginRespModel login(Proxy proxy, String cid, String birthdate) throws Exception {		
+	public LoginRespModel login(Proxy proxy, String cid, String birthdate, int round) throws Exception {		
 		try {
 			LOG.debug("Start login");
 			
@@ -58,7 +58,7 @@ public class KYSApi {
 			
 			//[3]
 			doLogin(proxy, loginResp, text, cid, birthdate);
-			LOG.info(loginResp.getStatus() + " for " + text);
+			LOG.info(loginResp.getStatus() + " for " + text + " round: " + round);
 			
 			return loginResp;
 		} catch (Exception e) {

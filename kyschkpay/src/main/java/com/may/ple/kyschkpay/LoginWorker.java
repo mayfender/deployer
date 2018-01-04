@@ -86,14 +86,13 @@ public class LoginWorker implements Runnable {
 				
 				if(errCount == 3) break;
 				
-				resp = KYSApi.getInstance().login(proxy, idCard, birthDate);
+				resp = KYSApi.getInstance().login(proxy, idCard, birthDate, errCount);
 				loginStatus = resp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
 					LOG.warn(msgIndex + " Service Unavailable");
 					break;
 				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
-					LOG.warn(msgIndex + " Login fail : " + errCount);
 					errCount++;
 					Thread.sleep(1000);
 				} else {
