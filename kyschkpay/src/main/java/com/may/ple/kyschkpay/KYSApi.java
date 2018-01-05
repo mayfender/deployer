@@ -49,7 +49,7 @@ public class KYSApi {
 				
 				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
 				
-				System.out.println(loginPage.getStatus());
+				System.out.println(loginPage.getSessionId());
 				i++;
 			}
 		} catch (Exception e) {
