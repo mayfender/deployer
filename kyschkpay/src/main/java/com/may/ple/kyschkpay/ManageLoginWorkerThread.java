@@ -128,7 +128,7 @@ public class ManageLoginWorkerThread extends Thread {
 							
 							if((proxyIndex + 1) < proxiesIndex.size()) {
 								if(proxySize == numOfEachProxy) {
-									LOG.info("Sent to thread Pool proxyIndex: " + proxyIndex + "proxySize: " + proxySize);
+									LOG.info("Sent to thread Pool proxyIndex: " + proxyIndex + " proxySize: " + proxySize);
 									
 									executor.execute(new LoginProxyWorker(
 											token,

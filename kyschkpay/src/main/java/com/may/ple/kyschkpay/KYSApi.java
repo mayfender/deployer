@@ -1,8 +1,7 @@
 package com.may.ple.kyschkpay;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -23,19 +22,50 @@ public class KYSApi {
 	private static final Logger LOG = Logger.getLogger(KYSApi.class.getName());
 	public static final String LINK = "https://www.e-studentloan.ktb.co.th";
 	private static final KYSApi instance = new KYSApi();
-	private static final int CONN_TIMEOUT = 5000;
+	private static final int CONN_TIMEOUT = 30000;
 	
 	private KYSApi(){}
 	
+	public static void main(String[] args) {
+		try {
+			int i = 0;
+			while(true) {
+				if(i == 100) break;
+				
+				Proxy proxy = new Proxy(
+						Proxy.Type.HTTP,
+						InetSocketAddress.createUnresolved("122.154.123.2", 3128)
+						);
+				
+				
+				
+				
+	//			Response res = Jsoup
+	//					.connect("https://www.sanook.com/")
+	//					.proxy(proxy)
+	//					.timeout(CONN_TIMEOUT)
+	//					.method(Method.GET).execute();
+	//			Document doc = res.parse();
+				
+				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
+				
+				System.out.println(loginPage.getStatus());
+				i++;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static KYSApi getInstance(){
-		Authenticator.setDefault(
+		/*Authenticator.setDefault(
 		   new Authenticator() {
 		      public PasswordAuthentication getPasswordAuthentication() {
 		         return new PasswordAuthentication(
 		               "mayfender-hs70l", "GQ7FjwqHxD".toCharArray());
 		      }
 		   }
-		);
+		);*/
 		
         return instance;
     }
@@ -60,7 +90,7 @@ public class KYSApi {
 			
 			//[3]
 			doLogin(proxy, loginResp, text, cid, birthdate);
-			LOG.info(loginResp.getStatus() + " for " + text + " round: " + round);
+			LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + loginResp.getStatus() + " for " + text + " round: " + round);
 			
 			return loginResp;
 		} catch (Exception e) {
