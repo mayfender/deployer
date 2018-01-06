@@ -184,7 +184,7 @@ public class KYSApi {
 		}
 	}
 	
-	public PaymentModel getPaymentInfo(Proxy proxy, String sessionId, String cif, String url, String loanType, String accNo, Date lastPayDateOld) throws Exception {
+	public PaymentModel getPaymentInfo(Proxy proxy, String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
 		try {
 			if(!App.checkWorkingHour()) {
 				PaymentModel paymentModel = refresh(proxy, sessionId, cif);
@@ -239,14 +239,9 @@ public class KYSApi {
 			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val().replace(",", "").trim()));
 			
-			if(paymentModel.getLastPayDate() != null) {
-				if(lastPayDateOld != null) {
-					if(DateUtils.isSameDay(paymentModel.getLastPayDate(), lastPayDateOld) || paymentModel.getLastPayDate().after(lastPayDateOld)) {						
-						paymentModel.setHtml(doc.html());
-					}
-				} else {					
-					paymentModel.setHtml(doc.html());
-				}
+			Date today = Calendar.getInstance().getTime();
+			if(paymentModel.getLastPayDate() != null && DateUtils.isSameDay(paymentModel.getLastPayDate(), today)) {
+				paymentModel.setHtml(doc.html());
 			}
 			
 			return paymentModel;
