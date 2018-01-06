@@ -1,7 +1,6 @@
 package com.may.ple.kyschkpay;
 
 import java.net.Proxy;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -23,6 +22,7 @@ public class ChkPayWorker implements Runnable {
 	private String accNo;
 	private Double totalPayInstallmentOld;
 	private Double preBalanceOld;
+	private Date lastPayDateOld;
 	private Double lastPayAmountOld;
 	private String contractNo;
 	private String msgIndex;
@@ -57,6 +57,9 @@ public class ChkPayWorker implements Runnable {
 			} else {
 				this.preBalanceOld = -1d;				
 			}
+			if((lastPayAmount = data.get("sys_lastPayDate")) != null) {
+				this.lastPayDateOld = new Date(lastPayAmount.getAsLong());
+			}
 			if((lastPayAmount = data.get("sys_lastPayAmount")) != null) {
 				this.lastPayAmountOld = lastPayAmount.getAsDouble();				
 			} else {
@@ -87,7 +90,7 @@ public class ChkPayWorker implements Runnable {
 					return;
 				}
 				
-				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);
+				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo, this.lastPayDateOld);
 				if(!paymentInfo.isError()) break;
 				
 				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
@@ -102,30 +105,23 @@ public class ChkPayWorker implements Runnable {
 			
 			Date lastPayDate = paymentInfo.getLastPayDate();
 			if(lastPayDate != null) {
-				double totalPayInstallment = paymentInfo.getTotalPayInstallment().doubleValue();
-				double preBalance = paymentInfo.getPreBalance().doubleValue();
-				double lastPayAmount = paymentInfo.getLastPayAmount().doubleValue();
-				Date today = Calendar.getInstance().getTime();
-				
-				/*Calendar calendar = Calendar.getInstance();
-				calendar.set(2017, 6, 14);
-				Date today = calendar.getTime();*/
-				
-				if(DateUtils.isSameDay(lastPayDate, today)) {
-					if(lastPayAmountOld != lastPayAmount ||
-						totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
-						preBalanceOld.doubleValue() != preBalance) {
-						
-						LOG.info("==================: Have Paid :===================");
-						model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
+				if(this.lastPayDateOld != null) {
+					if(DateUtils.isSameDay(lastPayDate, this.lastPayDateOld)) {
+						LOG.info("Call paidValidate [1]");
 						model.setLastPayDate(lastPayDate);
-						model.setLastPayAmount(lastPayAmount);
-						model.setTotalPayInstallment(totalPayInstallment);
-						model.setPreBalance(preBalance);
-						model.setContractNo(this.contractNo);
-						model.setHtml(paymentInfo.getHtml());
+						paidValidate(model, paymentInfo, true);
+					} else if(lastPayDate.after(this.lastPayDateOld)) {
+						LOG.info("Call paidValidate [2]");
+						model.setLastPayDate(lastPayDate);
+						paidValidate(model, paymentInfo, false);						
+					} else {
+						LOG.info("lastPayDate is not later than lastPayDateOld");
 					}
-				}		
+				} else {
+					LOG.info("Call paidValidate [3]");
+					model.setLastPayDate(lastPayDate);
+					paidValidate(model, paymentInfo, false);
+				}
 			}
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
@@ -139,6 +135,35 @@ public class ChkPayWorker implements Runnable {
 		model.setCreatedDateTime(new Date());
 		proxyWorker.addToChkPayList(model);
 		LOG.info(msgIndex + " End checkpay");
+	}
+	
+	private void paidValidate(UpdateChkLstModel model, PaymentModel paymentInfo, boolean isSameDate) {
+		try {
+			double totalPayInstallment = paymentInfo.getTotalPayInstallment().doubleValue();
+			double preBalance = paymentInfo.getPreBalance().doubleValue();
+			double lastPayAmount = paymentInfo.getLastPayAmount().doubleValue();
+			boolean isPaid = Boolean.TRUE;
+			
+			if(isSameDate) {
+				boolean lastPayAmountCond = this.lastPayAmountOld != lastPayAmount;
+				boolean preBalanceCond = this.preBalanceOld.doubleValue() != preBalance;
+				boolean totalPayInstallmentCond = this.totalPayInstallmentOld.doubleValue() > totalPayInstallment;				
+				isPaid = lastPayAmountCond || preBalanceCond || totalPayInstallmentCond;
+			}
+			
+			if(isPaid) {
+				LOG.info("==================: Have Paid :===================");
+				model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
+				model.setLastPayAmount(lastPayAmount);
+				model.setTotalPayInstallment(totalPayInstallment);
+				model.setPreBalance(preBalance);
+				model.setContractNo(this.contractNo);
+				model.setHtml(paymentInfo.getHtml());
+			}			
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
 	}
 	
 }
