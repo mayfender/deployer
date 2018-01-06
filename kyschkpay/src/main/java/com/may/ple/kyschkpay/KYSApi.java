@@ -24,7 +24,22 @@ public class KYSApi {
 	private static final KYSApi instance = new KYSApi();
 	private static final int CONN_TIMEOUT = 30000;
 	
-	private KYSApi(){}
+	private KYSApi(){
+		/*String proxyAuth = App.prop.getProperty("proxy_auth");
+		if(StringUtils.isNotBlank(proxyAuth)) {
+			final String[] proxyAuthArr = proxyAuth.split(":");
+			
+			Authenticator.setDefault(
+			   new Authenticator() {
+			      public PasswordAuthentication getPasswordAuthentication() {
+			         return new PasswordAuthentication(
+			        	proxyAuthArr[0], proxyAuthArr[1].toCharArray()
+			         );
+			      }
+			   }
+			);
+		}*/
+	}
 	
 	public static void main(String[] args) {
 		try {
@@ -58,15 +73,6 @@ public class KYSApi {
 	}
 	
 	public static KYSApi getInstance(){
-		/*Authenticator.setDefault(
-		   new Authenticator() {
-		      public PasswordAuthentication getPasswordAuthentication() {
-		         return new PasswordAuthentication(
-		               "mayfender-hs70l", "GQ7FjwqHxD".toCharArray());
-		      }
-		   }
-		);*/
-		
         return instance;
     }
 	
@@ -178,7 +184,7 @@ public class KYSApi {
 		}
 	}
 	
-	public PaymentModel getPaymentInfo(Proxy proxy, String sessionId, String cif, String url, String loanType, String accNo) throws Exception {
+	public PaymentModel getPaymentInfo(Proxy proxy, String sessionId, String cif, String url, String loanType, String accNo, Date lastPayDateOld) throws Exception {
 		try {
 			if(!App.checkWorkingHour()) {
 				PaymentModel paymentModel = refresh(proxy, sessionId, cif);
@@ -233,9 +239,14 @@ public class KYSApi {
 			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val().replace(",", "").trim()));
 			
-			Date today = Calendar.getInstance().getTime();
-			if(paymentModel.getLastPayDate() != null && DateUtils.isSameDay(paymentModel.getLastPayDate(), today)) {
-				paymentModel.setHtml(doc.html());
+			if(paymentModel.getLastPayDate() != null) {
+				if(lastPayDateOld != null) {
+					if(DateUtils.isSameDay(paymentModel.getLastPayDate(), lastPayDateOld) || paymentModel.getLastPayDate().after(lastPayDateOld)) {						
+						paymentModel.setHtml(doc.html());
+					}
+				} else {					
+					paymentModel.setHtml(doc.html());
+				}
 			}
 			
 			return paymentModel;
