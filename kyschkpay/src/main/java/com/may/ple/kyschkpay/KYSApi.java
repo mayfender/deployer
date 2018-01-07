@@ -52,16 +52,6 @@ public class KYSApi {
 						InetSocketAddress.createUnresolved("122.154.123.2", 3128)
 						);
 				
-				
-				
-				
-	//			Response res = Jsoup
-	//					.connect("https://www.sanook.com/")
-	//					.proxy(proxy)
-	//					.timeout(CONN_TIMEOUT)
-	//					.method(Method.GET).execute();
-	//			Document doc = res.parse();
-				
 				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
 				
 				System.out.println(loginPage.getSessionId());
