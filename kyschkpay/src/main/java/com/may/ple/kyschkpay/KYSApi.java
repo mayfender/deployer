@@ -1,7 +1,8 @@
 package com.may.ple.kyschkpay;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -25,7 +26,7 @@ public class KYSApi {
 	private static final int CONN_TIMEOUT = 30000;
 	
 	private KYSApi(){
-		/*String proxyAuth = App.prop.getProperty("proxy_auth");
+		String proxyAuth = App.prop.getProperty("proxy_auth");
 		if(StringUtils.isNotBlank(proxyAuth)) {
 			final String[] proxyAuthArr = proxyAuth.split(":");
 			
@@ -38,27 +39,6 @@ public class KYSApi {
 			      }
 			   }
 			);
-		}*/
-	}
-	
-	public static void main(String[] args) {
-		try {
-			int i = 0;
-			while(true) {
-				if(i == 100) break;
-				
-				Proxy proxy = new Proxy(
-						Proxy.Type.HTTP,
-						InetSocketAddress.createUnresolved("122.154.123.2", 3128)
-						);
-				
-				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
-				
-				System.out.println(loginPage.getSessionId());
-				i++;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
