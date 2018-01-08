@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.lang3.StringUtils;
+
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.util.LoadLibs;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class Tess4jCaptcha {
 	private final int WHITE = 0x00FFFFF5, BLACK = 0x0000000;
@@ -72,8 +72,7 @@ public class Tess4jCaptcha {
 	
 	private String crackImage(BufferedImage image) throws Exception {
 	    try {  
-	    	String txt = StringUtils.trimToEmpty(tess.doOCR(image));
-	    	return txt.replaceAll("\\s","");
+	    	return StringUtils.trimToEmpty(tess.doOCR(image)).replaceAll("\\s","");
 	    } catch (Exception e) {  
 	        throw e;
 	    }  
