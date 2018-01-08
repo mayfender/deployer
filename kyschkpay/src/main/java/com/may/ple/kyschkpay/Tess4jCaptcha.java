@@ -27,15 +27,15 @@ public class Tess4jCaptcha {
 	public static void main(String[] args) {
 		try {
 			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(50);
-			final String INPUT = "C:\\Users\\sarawuti\\Desktop\\PT_Siam\\Captcha.jpg";
+			final String INPUT = "C:\\Users\\mayfender\\Desktop\\กยศ\\Captcha.jpg";
 			
-			for (int i = 0; i < 100; i++) {
+			for (int i = 0; i < 1; i++) {
 				executor.execute(new Runnable() {
 					@Override
 					public void run() {
 						try {						
 							String txt = new Tess4jCaptcha().solve(Files.readAllBytes(Paths.get(INPUT)));			
-							System.out.println(Thread.currentThread() + " - " +txt);					
+							System.out.println(Thread.currentThread() + " - " + txt);					
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -72,7 +72,8 @@ public class Tess4jCaptcha {
 	
 	private String crackImage(BufferedImage image) throws Exception {
 	    try {  
-	        return StringUtils.trimToEmpty(tess.doOCR(image));  
+	    	String txt = StringUtils.trimToEmpty(tess.doOCR(image));
+	    	return txt.replaceAll("\\s","");
 	    } catch (Exception e) {  
 	        throw e;
 	    }  
