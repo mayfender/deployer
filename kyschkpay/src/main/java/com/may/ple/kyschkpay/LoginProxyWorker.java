@@ -54,6 +54,7 @@ public class LoginProxyWorker implements Runnable {
 			}
 			
 			updateLoginStatus();
+			LOG.info(msgIndex + " Finished");
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
 		}
