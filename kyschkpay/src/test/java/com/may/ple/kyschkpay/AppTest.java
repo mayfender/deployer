@@ -1,16 +1,10 @@
 package com.may.ple.kyschkpay;
 
-import java.io.FileInputStream;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
-import java.util.Map;
 import java.util.Properties;
-
-import org.jsoup.Jsoup;
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -42,7 +36,7 @@ public class AppTest extends TestCase {
 	 */
 	public void testApp() {
 		try {
-			
+			App.prop = new Properties();
 			Authenticator.setDefault(
 					   new Authenticator() {
 					      public PasswordAuthentication getPasswordAuthentication() {
@@ -56,22 +50,21 @@ public class AppTest extends TestCase {
 			
 			int i = 0;
 			while(true) {
-				if(i == 1) break;
+				if(i == 100) break;
 				
 				Proxy proxy = new Proxy(
 						Proxy.Type.HTTP,
 						InetSocketAddress.createUnresolved("103.86.49.81", 8080)
 						);
 				
-				/*LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);*/
+				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
 				
-				Response res = Jsoup
+				/*Response res = Jsoup
 						.connect("https://www.google.co.th")
 						.proxy(proxy)
-						.method(Method.GET).execute();
+						.method(Method.GET).execute();*/
 				
-				System.out.println(res);
-//				System.out.println(loginPage.getSessionId());
+				System.out.println(loginPage.getSessionId());
 				i++;
 			}
 		} catch (Exception e) {
