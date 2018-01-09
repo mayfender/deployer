@@ -57,7 +57,7 @@ public class ManageLoginWorkerThread extends Thread {
 		String token = null;
 		int numOfEachProxy;
 		int currentPage;
-		int proxySize = 0;
+		int proxySize;
 		int proxyIndex;
 		int totalItems;
 		int totalPages;
@@ -90,6 +90,7 @@ public class ManageLoginWorkerThread extends Thread {
 					
 					currentPage = 1;
 					proxyIndex = 0;
+					proxySize = 0;
 					proxies = new HashMap<>();
 					for (String prxIndex : proxiesIndex) {
 						proxies.put(prxIndex, new ArrayList<LoginWorkerModel>());
