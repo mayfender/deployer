@@ -103,7 +103,6 @@ public class ShowPaymentInfoWorker implements Runnable {
 						jsonWrite.addProperty("flag", params.get(5).trim());
 						jsonWrite.addProperty("accNo", params.get(2).trim());
 						jsonWrite.addProperty("cif", loginResp.getCif());
-						jsonWrite.addProperty("proxy", proxy != null ? proxy.address().toString() : null);
 						
 						round++;
 						continue;
