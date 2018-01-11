@@ -28,7 +28,6 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	private List<String> initProxy() {
 		List<String> proxiesIndex = new ArrayList<>();
-		proxiesIndex.add("NOPROXY"); //--: Local
 		String property = App.prop.getProperty("proxies");
 		
 		if(StringUtils.isNotBlank(property)) {

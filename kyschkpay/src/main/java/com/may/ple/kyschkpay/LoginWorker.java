@@ -34,7 +34,7 @@ public class LoginWorker implements Runnable {
 			JsonObject data = loginModel.getJsonElement().getAsJsonObject();
 			this.id = data.get("_id").getAsString();
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
-			this.birthDate = birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
+			this.birthDate = DateUtil.birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
 			
 			LoginRespModel resp = login(this.idCard, birthDate);				
 			CheckRespModel chkResp;
@@ -139,17 +139,6 @@ public class LoginWorker implements Runnable {
 			LOG.error(e.toString());
 			throw e;
 		}
-	}
-	
-	private static String birthDateFormat(String str) {
-		if(str.contains("/")) {
-			return str;
-		}
-		
-		String day = str.substring(0, 2);
-		String month = str.substring(2, 4);
-		String year = str.substring(4);
-		return day + "/" + month + "/" + year;
 	}
 	
 }

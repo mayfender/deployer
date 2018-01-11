@@ -162,21 +162,9 @@ public class KYSApi {
 				return paymentModel;
 			}
 			
-			LOG.debug("Start get paymentInfo");
-			Response res = Jsoup.connect(url)
-					.proxy(proxy)
-					.timeout(CONN_TIMEOUT)
-					.method(Method.POST)
-					.data("loanType", loanType)
-					.data("accNo", accNo)
-					.data("cif", cif)
-					.data("browser", "Fire Fox Or Other")
-					.header("Content-Type", "application/x-www-form-urlencoded")
-					.cookie("JSESSIONID", sessionId)
-					.postDataCharset("UTF-8")
-					.execute();
+			LOG.debug("Call getPaymentInfoPage");
+			Document doc = getPaymentInfoPage(proxy, url, loanType, accNo, cif, sessionId);
 			
-			Document doc = res.parse();
 			PaymentModel paymentModel = new PaymentModel();
 			Elements tab1El = doc.select("#tab1");
 			if(tab1El.size() == 0) {
@@ -221,6 +209,29 @@ public class KYSApi {
 			paymentModel.setError(true);
 			return paymentModel;
 		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public Document getPaymentInfoPage(Proxy proxy, String url, String loanType, String accNo, String cif, String sessionId) throws Exception {
+		try {
+			LOG.debug("getPaymentInfoPage");
+			Response res = Jsoup.connect(url)
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
+					.method(Method.POST)
+					.data("loanType", loanType)
+					.data("accNo", accNo)
+					.data("cif", cif)
+					.data("browser", "Fire Fox Or Other")
+					.header("Content-Type", "application/x-www-form-urlencoded")
+					.cookie("JSESSIONID", sessionId)
+					.postDataCharset("UTF-8")
+					.execute();
+			
+			return res.parse();
+		} catch (Exception e) {
+			LOG.error(e.toString());
 			throw e;
 		}
 	}
