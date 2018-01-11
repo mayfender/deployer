@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -89,7 +90,21 @@ public class ShowPaymentInfoWorker implements Runnable {
 						break;
 					} else {
 						sessionId = loginResp.getSessionId();
+						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
+					
+						if(params.get(5).trim().equals("1")) {
+							jsonWrite.addProperty("uri", KYSApi.LINK + "/STUDENT/ESLMTI001.do");
+						} else {
+							jsonWrite.addProperty("uri", KYSApi.LINK + "/STUDENT/ESLMTI003.do");
+						}
+						
 						jsonWrite.addProperty("sessionId", sessionId);
+						jsonWrite.addProperty("loanType", params.get(0).trim());
+						jsonWrite.addProperty("flag", params.get(5).trim());
+						jsonWrite.addProperty("accNo", params.get(2).trim());
+						jsonWrite.addProperty("cif", loginResp.getCif());
+						jsonWrite.addProperty("proxy", proxy != null ? proxy.address().toString() : null);
+						
 						round++;
 						continue;
 					}
