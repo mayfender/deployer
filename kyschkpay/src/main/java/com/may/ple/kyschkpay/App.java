@@ -31,11 +31,11 @@ public class App {
 			List<String> prodIds = Arrays.asList(prop.getProperty("productIds").split(","));
 			LOG.info("prodIds : " + prodIds);
 			
-			/*LOG.info("Start ManageLoginWorkerThread");
+			LOG.info("Start ManageLoginWorkerThread");
 			new ManageLoginWorkerThread(prodIds).start();
 			
 			LOG.info("Start ManageCheckPayWorkerThread");
-			new ManageCheckPayWorkerThread(prodIds).start();*/
+			new ManageCheckPayWorkerThread(prodIds).start();
 			
 			LOG.info("Start ManageExtWorkerThread");
 			new ManageExtWorkerThread().start();
