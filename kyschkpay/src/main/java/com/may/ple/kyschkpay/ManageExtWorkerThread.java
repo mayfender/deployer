@@ -10,9 +10,9 @@ import org.apache.log4j.Logger;
 
 public class ManageExtWorkerThread extends Thread {
 	private static final Logger LOG = Logger.getLogger(ManageExtWorkerThread.class.getName());
-	private static final int CORE_POOL_SIZE = 15;
-	private static final int MAXIMUM_POOL_SIZE = 30;
-	private static final int KEEP_ALIVE_TIME = 60;
+	private static final int CORE_POOL_SIZE = 25;
+	private static final int MAXIMUM_POOL_SIZE = 50;
+	private static final int KEEP_ALIVE_TIME = 180;
 	private static final int SERVER_PORT = 9001;
 	
 	@Override
