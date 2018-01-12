@@ -61,21 +61,24 @@ public class ShowPaymentInfoWorker implements Runnable {
 			boolean isErr = false;
 			String html = "";
 			int round = 0;
-			Document doc;
+			Document doc = null;
+			String onload = "";
 			
 			while(true) {
-				LOG.info("Call getPaymentInfoPage");
-				doc = getPaymentInfoPage(proxy, uri, loanType, accNo, cif, sessionId);
-				
-				if(doc == null) {
-					isErr = true;
-					break;
+				if(StringUtils.isNotBlank(sessionId)) {
+					LOG.info("Call getPaymentInfoPage");
+					doc = getPaymentInfoPage(proxy, uri, loanType, accNo, cif, sessionId);
+					
+					if(doc == null) {
+						isErr = true;
+						break;
+					}
+					
+					Elements body = doc.select("body");
+					onload = body.get(0).attr("onload");
 				}
 				
-				Elements body = doc.select("body");
-				String onload = body.get(0).attr("onload");
-				
-				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login")) {
+				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login") || StringUtils.isBlank(sessionId)) {
 					LOG.warn("Session Timeout");
 					
 					if(round == 1) {
@@ -90,19 +93,25 @@ public class ShowPaymentInfoWorker implements Runnable {
 						break;
 					} else {
 						sessionId = loginResp.getSessionId();
+						
 						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
+						
+						loanType = params.get(0).trim();
+						accNo = params.get(2).trim();
+						cif = loginResp.getCif();
 					
 						if(params.get(5).trim().equals("1")) {
-							jsonWrite.addProperty("uri", KYSApi.LINK + "/STUDENT/ESLMTI001.do");
+							uri = KYSApi.LINK + "/STUDENT/ESLMTI001.do";
 						} else {
-							jsonWrite.addProperty("uri", KYSApi.LINK + "/STUDENT/ESLMTI003.do");
+							uri = KYSApi.LINK + "/STUDENT/ESLMTI003.do";
 						}
 						
 						jsonWrite.addProperty("sessionId", sessionId);
-						jsonWrite.addProperty("loanType", params.get(0).trim());
+						jsonWrite.addProperty("loanType", loanType);
 						jsonWrite.addProperty("flag", params.get(5).trim());
-						jsonWrite.addProperty("accNo", params.get(2).trim());
-						jsonWrite.addProperty("cif", loginResp.getCif());
+						jsonWrite.addProperty("accNo", accNo);
+						jsonWrite.addProperty("cif", cif);
+						jsonWrite.addProperty("uri", uri);
 						
 						round++;
 						continue;
