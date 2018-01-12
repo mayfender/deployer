@@ -128,6 +128,10 @@ public class ShowPaymentInfoWorker implements Runnable {
 			LOG.info("Finished");
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
+		} finally {
+			try {
+				if(socket != null) socket.close();				
+			} catch (Exception e2) {}
 		}
 	}
 	
