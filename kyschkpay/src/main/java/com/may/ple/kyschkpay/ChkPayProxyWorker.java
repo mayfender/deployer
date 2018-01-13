@@ -38,9 +38,9 @@ public class ChkPayProxyWorker implements Runnable {
 	
 	@Override
 	public void run() {
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		
 		try {
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-			
 			for (ChkPayWorkerModel chkPayWorkerModel : worker) {
 				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel));
 			}
@@ -57,6 +57,8 @@ public class ChkPayProxyWorker implements Runnable {
 			updateChkPayStatus();
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
+		} finally {
+			executor.shutdownNow();
 		}
 	}
 	

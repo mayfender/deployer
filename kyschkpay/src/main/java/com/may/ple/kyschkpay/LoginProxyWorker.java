@@ -38,9 +38,9 @@ public class LoginProxyWorker implements Runnable {
 	
 	@Override
 	public void run() {
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		
 		try {
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-			
 			for (LoginWorkerModel loginWorkerModel : worker) {
 				executor.execute(new LoginWorker(this, proxy, loginWorkerModel));
 			}
@@ -57,6 +57,8 @@ public class LoginProxyWorker implements Runnable {
 			LOG.info(msgIndex + " Finished");
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
+		} finally {
+			executor.shutdownNow();
 		}
 	}
 	
