@@ -89,8 +89,8 @@ public class ManageCheckPayWorkerThread extends Thread {
 					
 					LOG.info("totalItems: " + totalItems);
 					if(totalItems == 0) {
-						LOG.info("Wait 1 minute");
-						Thread.sleep(60000);
+						LOG.info("Wait 30 sec");
+						Thread.sleep(30000);
 						continue;
 					}
 					

@@ -109,7 +109,11 @@ public class ManageLoginWorkerThread extends Thread {
 					numOfEachProxy = totalItems / proxiesIndex.size();
 					
 					LOG.info("numOfEachProxy: " + numOfEachProxy + ", totalItems: " + totalItems);
-					if(totalItems == 0) continue;
+					if(totalItems == 0) {
+						LOG.info("Wait 30 sec");
+						Thread.sleep(30000);
+						continue;
+					}
 					
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {
