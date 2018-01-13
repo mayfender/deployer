@@ -21,6 +21,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	private static final int POOL_SIZE = 100;
+	private static final int CHK_POOL_SIZE = 2;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
 	
@@ -33,6 +34,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 		DMSApi dmsApi = DMSApi.getInstance();
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
+		Map<String, ThreadPoolExecutor> chkPayPools = new HashMap<>();
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
 		String proxiesIndexStr = "NOPROXY";
 		boolean isClear = Boolean.FALSE;
@@ -75,6 +77,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					LOG.info("Start for product id: " + prodId);
 					
 					currentPage = 1;
+					LOG.info("Call getChkList");
 					chkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					if(chkList == null) {
 						LOG.info("Not found loginChkList");
@@ -92,7 +95,9 @@ public class ManageCheckPayWorkerThread extends Thread {
 					}
 					
 					for (; currentPage <= totalPages; currentPage++) {
-						if(currentPage > 1) {							
+						if(currentPage > 1) {
+							Thread.sleep(500);
+							LOG.info("Call getChkList");
 							chkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 							if(chkList == null) break;
 						}
@@ -112,7 +117,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 							} else {
 								proxiesIndexStr = data.get("sys_proxy").getAsString();
 							}
-							if(proxies.get(proxiesIndexStr) == null) {
+							if(!proxies.containsKey(proxiesIndexStr)) {
 								proxies.put(proxiesIndexStr, new ArrayList<ChkPayWorkerModel>());
 							}
 							
@@ -123,8 +128,13 @@ public class ManageCheckPayWorkerThread extends Thread {
 					LOG.info("Start sent to thread pool prd: " + prodId);
 					proxySet = proxies.entrySet();
 					for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
+						if(!chkPayPools.containsKey(proxyEnt.getKey())) {
+							LOG.info("Create pool for " + proxyEnt.getKey());
+							chkPayPools.put(proxyEnt.getKey(), (ThreadPoolExecutor)Executors.newFixedThreadPool(CHK_POOL_SIZE));
+						}
+						
 						LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
-						executor.execute(new ChkPayProxyWorker(token, proxyEnt.getKey(), proxyEnt.getValue()));
+						executor.execute(new ChkPayProxyWorker(chkPayPools.get(proxyEnt.getKey()), token, proxyEnt.getKey(), proxyEnt.getValue()));
 					}
 					
 					proxies.clear();

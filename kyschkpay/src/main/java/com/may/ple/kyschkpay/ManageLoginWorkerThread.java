@@ -16,18 +16,20 @@ import com.google.gson.JsonObject;
 
 public class ManageLoginWorkerThread extends Thread {
 	private static final Logger LOG = Logger.getLogger(ManageLoginWorkerThread.class.getName());
+	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
 	private static final int POOL_SIZE = 100;
+	private static final int LOGIN_POOL_SIZE = 3;
 	private static final int ITEMS_PER_PAGE = 1000;
+	private List<String> proxiesIndex = new ArrayList<>();
 	private List<String> prodIds;
 	
 	public ManageLoginWorkerThread(List<String> prodIds) {
 		this.prodIds = prodIds;
 	}
 	
-	private List<String> initProxy() {
-		List<String> proxiesIndex = new ArrayList<>();
+	private void initProxy() {
 		String property = App.prop.getProperty("proxies");
 		
 		if(StringUtils.isNotBlank(property)) {
@@ -35,15 +37,15 @@ public class ManageLoginWorkerThread extends Thread {
 			for (String proxy : proxies) {
 				LOG.info("Add to proxy list : " + proxy);
 				proxiesIndex.add(proxy.trim());
+				loginPools.put(proxy.trim(), (ThreadPoolExecutor)Executors.newFixedThreadPool(LOGIN_POOL_SIZE));
 			}
 		}
-		return proxiesIndex;
 	}
 
 	@Override
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
-		List<String> proxiesIndex = initProxy();
+		initProxy();
 		
 		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
 		Map<String, List<LoginWorkerModel>> proxies;
@@ -95,6 +97,7 @@ public class ManageLoginWorkerThread extends Thread {
 						proxies.put(prxIndex, new ArrayList<LoginWorkerModel>());
 					}
 					
+					LOG.info("Call getChkList");
 					loginChkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 					if(loginChkList == null) {
 						LOG.info("Not found loginChkList");
@@ -109,7 +112,9 @@ public class ManageLoginWorkerThread extends Thread {
 					if(totalItems == 0) continue;
 					
 					for (; currentPage <= totalPages; currentPage++) {
-						if(currentPage > 1) {							
+						if(currentPage > 1) {
+							Thread.sleep(500);
+							LOG.info("Call getChkList");
 							loginChkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "LOGIN");
 							if(loginChkList == null) break;
 						}
@@ -131,6 +136,7 @@ public class ManageLoginWorkerThread extends Thread {
 									LOG.info("Sent to thread Pool proxyIndex: " + proxyIndex + " proxySize: " + proxySize);
 									
 									executor.execute(new LoginProxyWorker(
+											loginPools.get(proxiesIndex.get(proxyIndex)),
 											token,
 											proxiesIndex.get(proxyIndex), 
 											proxies.get(proxiesIndex.get(proxyIndex))
@@ -146,6 +152,7 @@ public class ManageLoginWorkerThread extends Thread {
 					
 					LOG.info("Execute Last Worker Group");
 					executor.execute(new LoginProxyWorker(
+							loginPools.get(proxiesIndex.get(proxyIndex)),
 							token,
 							proxiesIndex.get(proxyIndex), 
 							proxies.get(proxiesIndex.get(proxyIndex))

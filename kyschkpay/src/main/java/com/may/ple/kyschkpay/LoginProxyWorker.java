@@ -4,7 +4,6 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
@@ -16,13 +15,14 @@ public class LoginProxyWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginProxyWorker.class.getName());
 	private List<UpdateChkLstModel> loginList = new ArrayList<>();
 	private final int LIMITED_UPDATE_SIZE = 100;
-	private static final int POOL_SIZE = 3;
 	private List<LoginWorkerModel> worker;
+	private ThreadPoolExecutor executor;
 	private Proxy proxy;
 	private String msgIndex;
 	private String token;
 	
-	public LoginProxyWorker(String token, String proxy, List<LoginWorkerModel> worker) {
+	public LoginProxyWorker(ThreadPoolExecutor executor, String token, String proxy, List<LoginWorkerModel> worker) {
+		this.executor = executor;
 		this.worker = worker;
 		this.token = token;
 		
@@ -38,8 +38,6 @@ public class LoginProxyWorker implements Runnable {
 	
 	@Override
 	public void run() {
-		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
-		
 		try {
 			for (LoginWorkerModel loginWorkerModel : worker) {
 				executor.execute(new LoginWorker(this, proxy, loginWorkerModel));
@@ -57,8 +55,6 @@ public class LoginProxyWorker implements Runnable {
 			LOG.info(msgIndex + " Finished");
 		} catch (Exception e) {
 			LOG.error(e.toString(), e);
-		} finally {
-			executor.shutdownNow();
 		}
 	}
 	
