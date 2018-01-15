@@ -82,9 +82,9 @@ public class ChkPayWorker implements Runnable {
 			int count = 0;
 			
 			while(true) {
-				if(count == 3) {
-					LOG.warn("Cann't get paymentInfo");
-					return;
+				if(count == 5) {
+					LOG.error("Cann't get paymentInfo");
+					throw new CustomException(1, "Cann't get paymentInfo");
 				}
 				
 				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);
