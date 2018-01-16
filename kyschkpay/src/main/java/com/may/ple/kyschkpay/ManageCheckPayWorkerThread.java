@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -20,7 +22,6 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static final Logger LOG = Logger.getLogger(ManageCheckPayWorkerThread.class.getName());
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 100;
 	private static final int CHK_POOL_SIZE = 2;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
@@ -32,7 +33,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	@Override
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
-		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
 		Map<String, ThreadPoolExecutor> chkPayPools = new HashMap<>();
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;

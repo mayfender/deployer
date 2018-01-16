@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -19,7 +21,6 @@ public class ManageLoginWorkerThread extends Thread {
 	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int POOL_SIZE = 100;
 	private static final int LOGIN_POOL_SIZE = 3;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> proxiesIndex = new ArrayList<>();
@@ -47,7 +48,7 @@ public class ManageLoginWorkerThread extends Thread {
 		DMSApi dmsApi = DMSApi.getInstance();
 		initProxy();
 		
-		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(POOL_SIZE);
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 		Map<String, List<LoginWorkerModel>> proxies;
 		boolean isClosed = Boolean.TRUE;
 		String birthDateColumnName;
