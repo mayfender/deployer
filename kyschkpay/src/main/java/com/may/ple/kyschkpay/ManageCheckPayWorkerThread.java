@@ -75,8 +75,10 @@ public class ManageCheckPayWorkerThread extends Thread {
 				}
 				
 				LOG.info("chkPayPools: " + chkPayPools);
-				executor.setCorePoolSize(chkPayPools.size());
-				executor.setMaximumPoolSize(chkPayPools.size());
+				if(chkPayPools.size() > 0) {
+					executor.setCorePoolSize(chkPayPools.size());
+					executor.setMaximumPoolSize(chkPayPools.size());
+				}
 				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
