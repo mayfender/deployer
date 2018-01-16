@@ -33,7 +33,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	@Override
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
 		Map<String, ThreadPoolExecutor> chkPayPools = new HashMap<>();
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
@@ -73,6 +73,10 @@ public class ManageCheckPayWorkerThread extends Thread {
 					Thread.sleep(30000);
 					continue;
 				}
+				
+				LOG.info("chkPayPools: " + chkPayPools);
+				executor.setCorePoolSize(chkPayPools.size());
+				executor.setMaximumPoolSize(chkPayPools.size());
 				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);

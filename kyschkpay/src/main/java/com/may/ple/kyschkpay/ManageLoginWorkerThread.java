@@ -5,9 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -48,7 +46,7 @@ public class ManageLoginWorkerThread extends Thread {
 		DMSApi dmsApi = DMSApi.getInstance();
 		initProxy();
 		
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+		ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(loginPools.size());
 		Map<String, List<LoginWorkerModel>> proxies;
 		boolean isClosed = Boolean.TRUE;
 		String birthDateColumnName;
