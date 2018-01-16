@@ -74,7 +74,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					continue;
 				}
 				
-				LOG.info("chkPayPools: " + chkPayPools);
+				LOG.info("chkPayPools: " + chkPayPools.size());
 				if(chkPayPools.size() > 0) {
 					executor.setCorePoolSize(chkPayPools.size());
 					executor.setMaximumPoolSize(chkPayPools.size());
