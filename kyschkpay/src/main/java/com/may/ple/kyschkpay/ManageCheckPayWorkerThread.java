@@ -33,7 +33,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 	@Override
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 30, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
 		Map<String, ThreadPoolExecutor> chkPayPools = new HashMap<>();
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
