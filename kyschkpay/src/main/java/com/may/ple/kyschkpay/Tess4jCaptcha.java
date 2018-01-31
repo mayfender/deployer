@@ -6,8 +6,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 
@@ -23,12 +21,13 @@ public class Tess4jCaptcha {
 	
 	public static void main(String[] args) {
 		try {
-			String INPUT = "D:\\captcha\\temp.png";
+			String INPUT = "D:\\captcha\\temp.jpg";
 			
 			Tess4jCaptcha captcha = new Tess4jCaptcha();
-			BufferedImage denoise = captcha.denoise(Files.readAllBytes(Paths.get(INPUT)));
-			ImageIO.write(denoise, "jpg", new File("D:\\captcha\\temp.jpg"));
+//			BufferedImage denoise = captcha.denoise(Files.readAllBytes(Paths.get(INPUT)));
+//			ImageIO.write(denoise, "jpg", new File("D:\\captcha\\temp_2.jpg"));
 			
+			BufferedImage denoise = ImageIO.read(new File(INPUT));
 			String txt = captcha.crackImage(denoise);
 			
 			System.out.println(txt);
