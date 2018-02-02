@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile="D:\Repository\git\deployer\deployer\kyschkpay\lib\opencv-340.jar" -DgroupId=opencv  -DartifactId=opencv -Dversion=3.4.0 -Dpackaging=jar

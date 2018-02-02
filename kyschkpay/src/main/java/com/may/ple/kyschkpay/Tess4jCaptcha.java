@@ -6,6 +6,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Calendar;
 
 import javax.imageio.ImageIO;
 
@@ -16,28 +19,33 @@ import net.sourceforge.tess4j.util.LoadLibs;
 import org.apache.commons.lang3.StringUtils;
 
 public class Tess4jCaptcha {
+	public enum DENOISE {JAVA, CV};
 	private final int WHITE = 0x00FFFFF5, BLACK = 0x0000000;
 	private ITesseract tess;
+	private DENOISE denoise;
 	
 	public static void main(String[] args) {
 		try {
-			String INPUT = "D:\\captcha\\temp.jpg";
+			System.out.println("Start " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 			
-			Tess4jCaptcha captcha = new Tess4jCaptcha();
+			String INPUT = "D:\\captcha\\Captcha.jpg";
+			Tess4jCaptcha captcha = new Tess4jCaptcha(DENOISE.CV);
+			
 //			BufferedImage denoise = captcha.denoise(Files.readAllBytes(Paths.get(INPUT)));
 //			ImageIO.write(denoise, "jpg", new File("D:\\captcha\\temp_2.jpg"));
+//			BufferedImage denoise = ImageIO.read(new File(INPUT));
+//			String txt = captcha.crackImage(denoise);
 			
-			BufferedImage denoise = ImageIO.read(new File(INPUT));
-			String txt = captcha.crackImage(denoise);
-			
+			String txt = captcha.solve(Files.readAllBytes(Paths.get(INPUT)));
 			System.out.println(txt);
-			System.out.println("finished");
+			System.out.println("End " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public Tess4jCaptcha(){
+	public Tess4jCaptcha(DENOISE denoise){
+		this.denoise = denoise;
 		tess = new Tesseract();  
 		tess.setTessVariable("tessedit_char_whitelist", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 		
@@ -47,8 +55,7 @@ public class Tess4jCaptcha {
 	
 	public String solve(byte[] in) throws Exception {	    
 		try {
-			BufferedImage image = denoise(in);
-			return crackImage(image);
+			return crackImage(this.denoise == DENOISE.CV ? DenoiseCV.denoise(in) : denoise(in));
 		} catch (Exception e) {
 			throw e;
 		}
