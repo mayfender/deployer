@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Calendar;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
@@ -25,19 +28,29 @@ public class Tess4jCaptcha {
 	private DENOISE denoise;
 	
 	public static void main(String[] args) {
+		System.out.println("Start " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 		try {
-			System.out.println("Start " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
+			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(10);
+			final String INPUT = "D:\\captcha\\Captcha.jpg";
 			
-			String INPUT = "D:\\captcha\\Captcha.jpg";
-			Tess4jCaptcha captcha = new Tess4jCaptcha(DENOISE.CV);
+			for (int i = 0; i < 500; i++) {
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						try {						
+							String txt = new Tess4jCaptcha(DENOISE.CV).solve(Files.readAllBytes(Paths.get(INPUT)));			
+							System.out.println(Thread.currentThread() + " - " + txt);					
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+
+			executor.shutdown();
 			
-//			BufferedImage denoise = captcha.denoise(Files.readAllBytes(Paths.get(INPUT)));
-//			ImageIO.write(denoise, "jpg", new File("D:\\captcha\\temp_2.jpg"));
-//			BufferedImage denoise = ImageIO.read(new File(INPUT));
-//			String txt = captcha.crackImage(denoise);
+			executor.awaitTermination(1, TimeUnit.DAYS);
 			
-			String txt = captcha.solve(Files.readAllBytes(Paths.get(INPUT)));
-			System.out.println(txt);
 			System.out.println("End " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
