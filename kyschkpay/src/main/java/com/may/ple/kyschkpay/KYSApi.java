@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
@@ -196,11 +195,7 @@ public class KYSApi {
 			paymentModel.setLastPayAmount(Double.valueOf(lastPaymentAmountEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setTotalPayInstallment(Double.valueOf(totalPaymentInstallmentStrEl.get(0).val().replace(",", "").trim()));
 			paymentModel.setPreBalance(Double.valueOf(preBalanceEl.get(0).val().replace(",", "").trim()));
-			
-			Date today = Calendar.getInstance().getTime();
-			if(paymentModel.getLastPayDate() != null && DateUtils.isSameDay(paymentModel.getLastPayDate(), today)) {
-				paymentModel.setHtml(doc.html());
-			}
+			paymentModel.setDoc(doc);
 			
 			return paymentModel;
 		} catch (IOException e) {

@@ -23,6 +23,7 @@ public class ChkPayWorker implements Runnable {
 	private String accNo;
 	private Double totalPayInstallmentOld;
 	private Double preBalanceOld;
+	private Date lastPayDateOld;
 	private Double lastPayAmountOld;
 	private String contractNo;
 	private String msgIndex;
@@ -46,19 +47,22 @@ public class ChkPayWorker implements Runnable {
 			this.accNo = data.get("sys_accNo").getAsString();
 			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			
-			JsonElement totalPayInstallment, preBalance, lastPayAmount;
-			if((totalPayInstallment = data.get("sys_totalPayInstallment")) != null) {
-				this.totalPayInstallmentOld = totalPayInstallment.getAsDouble();				
+			JsonElement element;
+			if((element = data.get("sys_totalPayInstallment")) != null) {
+				this.totalPayInstallmentOld = element.getAsDouble();				
 			} else {
 				this.totalPayInstallmentOld = -1d;
 			}
-			if((preBalance = data.get("sys_preBalance")) != null) {
-				this.preBalanceOld = preBalance.getAsDouble();				
+			if((element = data.get("sys_preBalance")) != null) {
+				this.preBalanceOld = element.getAsDouble();				
 			} else {
 				this.preBalanceOld = -1d;				
 			}
-			if((lastPayAmount = data.get("sys_lastPayAmount")) != null) {
-				this.lastPayAmountOld = lastPayAmount.getAsDouble();				
+			if((element = data.get("sys_lastPayDate")) != null) {
+				this.lastPayDateOld = new Date(element.getAsLong());
+			}
+			if((element = data.get("sys_lastPayAmount")) != null) {
+				this.lastPayAmountOld = element.getAsDouble();				
 			} else {
 				this.lastPayAmountOld = -1d;				
 			}
@@ -106,26 +110,35 @@ public class ChkPayWorker implements Runnable {
 				double preBalance = paymentInfo.getPreBalance().doubleValue();
 				double lastPayAmount = paymentInfo.getLastPayAmount().doubleValue();
 				Date today = Calendar.getInstance().getTime();
+				boolean isPaid = Boolean.FALSE;
 				
 				/*Calendar calendar = Calendar.getInstance();
 				calendar.set(2017, 6, 14);
 				Date today = calendar.getTime();*/
 				
 				if(DateUtils.isSameDay(lastPayDate, today)) {
-					if(lastPayAmountOld != lastPayAmount ||
-						totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
-						preBalanceOld.doubleValue() != preBalance) {
+					if(this.lastPayAmountOld != lastPayAmount ||
+							this.totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
+									this.preBalanceOld.doubleValue() != preBalance) {
 						
-						LOG.info("==================: Have Paid :===================");
-						model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
-						model.setLastPayDate(lastPayDate);
-						model.setLastPayAmount(lastPayAmount);
-						model.setTotalPayInstallment(totalPayInstallment);
-						model.setPreBalance(preBalance);
-						model.setContractNo(this.contractNo);
-						model.setHtml(paymentInfo.getHtml());
+						LOG.info("==================: Have Paid with option 1 :===================");
+						isPaid = true;
 					}
-				}		
+				} else if(this.lastPayDateOld == null || this.lastPayDateOld.before(lastPayDate)) {
+					
+					LOG.info("==================: Have Paid with option 2 :===================");
+					isPaid = true;					
+				}
+				
+				if(isPaid) {
+					model.setStatus(StatusConstant.UPDATE_CHKPAY_PAID.getStatus());
+					model.setLastPayDate(lastPayDate);
+					model.setLastPayAmount(lastPayAmount);
+					model.setTotalPayInstallment(totalPayInstallment);
+					model.setPreBalance(preBalance);
+					model.setContractNo(this.contractNo);
+					model.setHtml(paymentInfo.getDoc().html());
+				}
 			}
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());

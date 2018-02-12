@@ -2,6 +2,8 @@ package com.may.ple.kyschkpay;
 
 import java.util.Date;
 
+import org.jsoup.nodes.Document;
+
 public class PaymentModel {
 	private Date lastPayDate;
 	private Double lastPayAmount;
@@ -9,7 +11,7 @@ public class PaymentModel {
 	private Double preBalance;
 	private boolean isRefresh;
 	private boolean isError;
-	private String html;
+	private Document doc;
 	
 	public Date getLastPayDate() {
 		return lastPayDate;
@@ -47,11 +49,11 @@ public class PaymentModel {
 	public void setError(boolean isError) {
 		this.isError = isError;
 	}
-	public String getHtml() {
-		return html;
+	public Document getDoc() {
+		return doc;
 	}
-	public void setHtml(String html) {
-		this.html = html;
+	public void setDoc(Document doc) {
+		this.doc = doc;
 	}
 	
 }
