@@ -1,6 +1,8 @@
 package com.may.ple.kyschkpay;
 
 import java.net.Proxy;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -124,10 +126,17 @@ public class ChkPayWorker implements Runnable {
 						LOG.info("==================: Have Paid with option 1 :===================");
 						isPaid = true;
 					}
-				} else if(this.lastPayDateOld == null || this.lastPayDateOld.before(lastPayDate)) {
-					
+				} else if(this.lastPayDateOld == null) {
 					LOG.info("==================: Have Paid with option 2 :===================");
 					isPaid = true;					
+				} else if(this.lastPayDateOld != null) {
+					LocalDate lastPayDateOldLocalDate = this.lastPayDateOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+					LocalDate lastPayDateLocalDate = lastPayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+					
+					if(lastPayDateOldLocalDate.isBefore(lastPayDateLocalDate)) {
+						LOG.info("==================: Have Paid with option 3 :===================");
+						isPaid = true;
+					}
 				}
 				
 				if(isPaid) {
