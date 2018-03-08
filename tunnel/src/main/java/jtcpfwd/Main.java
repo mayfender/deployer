@@ -43,9 +43,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.may.ple.tunnel.util.NetworkInfoUtil;
+
 import jtcpfwd.destination.Destination;
 import jtcpfwd.forwarder.Forwarder;
 import jtcpfwd.listener.Listener;
+import jtcpfwd.listener.ReverseListener;
 import jtcpfwd.util.StreamForwarder;
 
 /**
@@ -184,7 +189,7 @@ public class Main {
 		//--------------------: Open port to prepare shutdown :----------------
 		
 		//--------------------: Checking ipaddress changes :----------------
-		/*new Thread() {
+		new Thread() {
 			public void run() {
 				String myPubIp = null;
 				String nowPubIp = null;
@@ -202,7 +207,8 @@ public class Main {
 							for (ForwarderThread forwarderThread : result) {
 								if(forwarderThread.listener instanceof ReverseListener) {
 									System.out.println("Shutdown socket inputstream");
-									forwarderThread.listener.getCurrentSocket().shutdownInput();
+									forwarderThread.listener.dispose();
+									forwarderThread.start();
 								}
 							}
 						}
@@ -212,7 +218,7 @@ public class Main {
 					}
 				}
 			}
-		}.start();*/
+		}.start();
 		//--------------------: Checking ipaddress changes :----------------
 				
 		System.out.println("All forwarders started.");

@@ -36,8 +36,4 @@ public abstract class Listener extends Module {
 	protected abstract Socket tryAccept() throws IOException, NoMoreSocketsException;
 
 	protected abstract void tryDispose() throws IOException;
-	
-	public Socket getCurrentSocket() {
-		return null;
-	}
 }
