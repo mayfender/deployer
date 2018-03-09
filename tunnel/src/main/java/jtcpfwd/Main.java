@@ -208,6 +208,7 @@ public class Main {
 								if(forwarderThread.listener instanceof ReverseListener) {
 									System.out.println("Shutdown socket inputstream");
 									forwarderThread.listener.dispose();
+									Thread.sleep(1000);
 									forwarderThread.start();
 								}
 							}
