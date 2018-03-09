@@ -43,20 +43,20 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.may.ple.tunnel.util.NetworkInfoUtil;
-
 import jtcpfwd.destination.Destination;
 import jtcpfwd.forwarder.Forwarder;
 import jtcpfwd.listener.Listener;
-import jtcpfwd.listener.ReverseListener;
 import jtcpfwd.util.StreamForwarder;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.may.ple.tunnel.util.NetworkInfoUtil;
 
 /**
  * Main class, parsing arguments and config files.
  */
 public class Main {
+	private static String[] args;
 	
 	public static final String[] SUPPORTED_DESTINATIONS = new String[] {
 			"Simple", "RoundRobin", "AddressStream"
@@ -98,6 +98,7 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("JTCPfwd " + VERSION);
 		start(args);
+		Main.args = args;
 	}
 
 	public static ForwarderThread[] start(String[] args) throws Exception {
@@ -191,8 +192,8 @@ public class Main {
 		//--------------------: Checking ipaddress changes :----------------
 		new Thread() {
 			public void run() {
-				String myPubIp = null;
-				String nowPubIp = null;
+				String myPubIp = "";
+				String nowPubIp = "";
 				
 				while(true) {
 					try {
@@ -201,18 +202,16 @@ public class Main {
 						
 						nowPubIp = NetworkInfoUtil.getPublicIp("http://api.ipify.org");
 						
-						if(StringUtils.isNoneBlank(nowPubIp) && !nowPubIp.equals(myPubIp)) {
-							System.out.println("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
-							
-							for (ForwarderThread forwarderThread : result) {
-								if(forwarderThread.listener instanceof ReverseListener) {
-									System.out.println("Shutdown socket inputstream");
-									forwarderThread.listener.dispose();
-									Thread.sleep(1000);
-									forwarderThread.start();
-								}
-							}
+						if(StringUtils.isBlank(nowPubIp) || nowPubIp.equals(myPubIp)) continue;
+						
+						System.out.println("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
+						
+						for (ForwarderThread forwarderThread : result) {
+							System.out.println("Shutdown socket inputstream");
+							forwarderThread.listener.dispose();
 						}
+						
+						Main.start(Main.args);
 						myPubIp = nowPubIp;
 					} catch (Exception e) {
 						System.err.println(e.toString());
