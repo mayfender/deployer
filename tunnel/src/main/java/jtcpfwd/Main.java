@@ -202,9 +202,8 @@ public class Main {
 						
 						nowPubIp = NetworkInfoUtil.getPublicIp("http://api.ipify.org");
 						
-						if(StringUtils.isBlank(nowPubIp) || nowPubIp.equals(myPubIp)) continue;
-						
 						System.out.println("Old IP: " + myPubIp + ", New IP : " + nowPubIp);
+						if(StringUtils.isBlank(nowPubIp) || nowPubIp.equals(myPubIp)) continue;
 						
 						for (ForwarderThread forwarderThread : result) {
 							System.out.println("Shutdown socket inputstream");
