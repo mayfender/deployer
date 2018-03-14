@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -106,7 +107,7 @@ public class KYSApi {
 		}
 	}
 	
-	public List<String> getParam(Proxy proxy, String sessionId, String cif) throws Exception {
+	public List<List<String>> getParam(Proxy proxy, String sessionId, String cif) throws Exception {
 		try {
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLINQ008.do")
 					.proxy(proxy)
@@ -131,22 +132,31 @@ public class KYSApi {
 			
 			if(tr.size() == 0) throw new Exception("Not found [table #td0]");
 			
-			String onclick = tr.get(0).attr("onclick");
-			LOG.debug("Get parameter from onclick : " + onclick);
+			List<List<String>> argsList = new ArrayList<>();
+			String onclick;
+			List<String> args;
+			int index = 1;
+			while(tr.size() > 0) {
+				onclick = tr.get(0).attr("onclick");
+				LOG.debug("Get parameter from onclick : " + onclick);
+				
+				args = submitDataByGFDecode(onclick);
+				LOG.debug(args);
+				
+				/*
+				String loanType = args.get(0).trim();
+				String loanName = args.get(1).trim();
+				String accNo = args.get(2).trim();
+				String accName = args.get(3).trim();
+				String loanAccStatus = args.get(4).trim();
+				String flag = args.get(5).trim();
+				*/
+				
+				argsList.add(args);
+				tr = doc.select("table #td" + (index++));
+			}
 			
-			List<String> args = submitDataByGFDecode(onclick);
-			LOG.debug(args);
-			
-			/*
-			String loanType = args.get(0).trim();
-			String loanName = args.get(1).trim();
-			String accNo = args.get(2).trim();
-			String accName = args.get(3).trim();
-			String loanAccStatus = args.get(4).trim();
-			String flag = args.get(5).trim();
-			*/
-			
-			return args;
+			return argsList;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;

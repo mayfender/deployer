@@ -44,19 +44,21 @@ public class LoginWorker implements Runnable {
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == this.loginStatus) {
-				List<String> params = KYSApi.getInstance().getParam(this.proxy, this.sessionId, this.cif);
-				chkResp = new CheckRespModel();
-				chkResp.setLoanType(params.get(0).trim());
-				chkResp.setFlag(params.get(5).trim());
-				chkResp.setAccNo(params.get(2).trim());
-			
-				if(chkResp.getFlag().equals("1")) {
-					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
-				} else {
-					chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI003.do");
-				}
+				List<List<String>> argsList = KYSApi.getInstance().getParam(this.proxy, this.sessionId, this.cif);
 				
-				addToUpdateList(chkResp);
+				for (List<String> params : argsList) {
+					chkResp = new CheckRespModel();
+					chkResp.setLoanType(params.get(0).trim());
+					chkResp.setFlag(params.get(5).trim());
+					chkResp.setAccNo(params.get(2).trim());
+					
+					if(chkResp.getFlag().equals("1")) {
+						chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
+					} else {
+						chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI003.do");
+					}					
+					addToUpdateList(chkResp);
+				}				
 			} else {
 				addToUpdateList(null);
 			}

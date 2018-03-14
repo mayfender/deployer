@@ -97,6 +97,7 @@ public class ChkPayProxyWorker implements Runnable {
 				obj.addProperty("createdDateTime", modelLst.getCreatedDateTime().getTime());
 				obj.addProperty("html", modelLst.getHtml());
 				obj.addProperty("contractNo", modelLst.getContractNo());
+				obj.addProperty("loanTypePay", modelLst.getLoanTypePay());
 				
 				array.add(obj);
 			}

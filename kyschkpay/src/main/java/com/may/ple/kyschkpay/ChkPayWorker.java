@@ -23,10 +23,17 @@ public class ChkPayWorker implements Runnable {
 	private String url;
 	private String loanType;
 	private String accNo;
+	private String urlKro;
+	private String loanTypeKro;
+	private String accNoKro;	
 	private Double totalPayInstallmentOld;
 	private Double preBalanceOld;
 	private Date lastPayDateOld;
 	private Double lastPayAmountOld;
+	private Double totalPayInstallmentKroOld;
+	private Double preBalanceKroOld;
+	private Date lastPayDateKroOld;
+	private Double lastPayAmountKroOld;
 	private String contractNo;
 	private String msgIndex;
 	
@@ -41,35 +48,69 @@ public class ChkPayWorker implements Runnable {
 	public void run() {
 		try {
 			JsonObject data = this.chkPayModel.getJsonElement().getAsJsonObject();
+			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			this.id = data.get("_id").getAsString();
 			this.sessionId = data.get("sys_sessionId").getAsString();
 			this.cif = data.get("sys_cif").getAsString();
-			this.url = data.get("sys_uri").getAsString();
-			this.loanType = data.get("sys_loanType").getAsString();
-			this.accNo = data.get("sys_accNo").getAsString();
-			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
-			
 			JsonElement element;
-			if((element = data.get("sys_totalPayInstallment")) != null) {
+			
+			if((element = data.get("sys_loanType")) != null && !element.isJsonNull()) {
+				this.loanType = element.getAsString();
+				this.accNo = data.get("sys_accNo").getAsString();
+				this.url = data.get("sys_uri").getAsString();
+			}
+			
+			if((element = data.get("sys_loanType_kro")) != null && !element.isJsonNull()) {
+				this.loanTypeKro = element.getAsString();
+				this.accNoKro = data.get("sys_accNo_kro").getAsString();
+				this.urlKro = data.get("sys_uri_kro").getAsString();
+			}
+			
+			if((element = data.get("sys_totalPayInstallment")) != null && !element.isJsonNull()) {
 				this.totalPayInstallmentOld = element.getAsDouble();				
 			} else {
 				this.totalPayInstallmentOld = -1d;
 			}
-			if((element = data.get("sys_preBalance")) != null) {
+			if((element = data.get("sys_preBalance")) != null && !element.isJsonNull()) {
 				this.preBalanceOld = element.getAsDouble();				
 			} else {
 				this.preBalanceOld = -1d;				
 			}
-			if((element = data.get("sys_lastPayDate")) != null) {
+			if((element = data.get("sys_lastPayDate")) != null && !element.isJsonNull()) {
 				this.lastPayDateOld = new Date(element.getAsLong());
 			}
-			if((element = data.get("sys_lastPayAmount")) != null) {
+			if((element = data.get("sys_lastPayAmount")) != null && !element.isJsonNull()) {
 				this.lastPayAmountOld = element.getAsDouble();				
 			} else {
 				this.lastPayAmountOld = -1d;				
 			}
 			
-			chkPay();
+			//----------------------------: KRO :-----------------------------------
+			if((element = data.get("sys_totalPayInstallment_kro")) != null && !element.isJsonNull()) {
+				this.totalPayInstallmentKroOld = element.getAsDouble();				
+			} else {
+				this.totalPayInstallmentKroOld = -1d;
+			}
+			if((element = data.get("sys_preBalance_kro")) != null && !element.isJsonNull()) {
+				this.preBalanceKroOld = element.getAsDouble();				
+			} else {
+				this.preBalanceKroOld = -1d;				
+			}
+			if((element = data.get("sys_lastPayDate_kro")) != null && !element.isJsonNull()) {
+				this.lastPayDateKroOld = new Date(element.getAsLong());
+			}
+			if((element = data.get("sys_lastPayAmount_kro")) != null && !element.isJsonNull()) {
+				this.lastPayAmountKroOld = element.getAsDouble();				
+			} else {
+				this.lastPayAmountKroOld = -1d;				
+			}
+			
+			if(this.loanType != null) {
+				chkPay(this.loanType);				
+			}
+			if(this.loanTypeKro != null) {
+				chkPay(this.loanTypeKro);				
+			}
 			
 			LOG.debug("Worker end : ");
 		} catch (Exception e) {
@@ -77,14 +118,14 @@ public class ChkPayWorker implements Runnable {
 		}
 	}
 	
-	private void chkPay() throws Exception {
+	private void chkPay(String loanType) throws Exception {
 		UpdateChkLstModel model = new UpdateChkLstModel();
 		model.setStatus(StatusConstant.UPDATE_CHKPAY.getStatus());
 		model.setId(this.id);
 		model.setProductId(this.chkPayModel.getProductId());
 		
 		try {
-			PaymentModel paymentInfo;
+			PaymentModel paymentInfo = null;
 			int count = 0;
 			
 			while(true) {
@@ -93,7 +134,12 @@ public class ChkPayWorker implements Runnable {
 					throw new CustomException(1, "Cann't get paymentInfo");
 				}
 				
-				paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);
+				if(loanType.equals("F101")) {
+					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);					
+				} else if(loanType.equals("F201")) {
+					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.urlKro, this.loanTypeKro, this.accNoKro);
+				}
+				
 				if(!paymentInfo.isError()) break;
 				
 				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
@@ -118,24 +164,51 @@ public class ChkPayWorker implements Runnable {
 				calendar.set(2017, 6, 14);
 				Date today = calendar.getTime();*/
 				
-				if(DateUtils.isSameDay(lastPayDate, today)) {
-					if(this.lastPayAmountOld != lastPayAmount ||
-							this.totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
-									this.preBalanceOld.doubleValue() != preBalance) {
-						
-						LOG.info("==================: Have Paid with option 1 :===================");
-						isPaid = true;
-					}
-				} else if(this.lastPayDateOld == null) {
-					LOG.info("==================: Have Paid with option 2 :===================");
-					isPaid = true;					
-				} else if(this.lastPayDateOld != null) {
-					LocalDate lastPayDateOldLocalDate = this.lastPayDateOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-					LocalDate lastPayDateLocalDate = lastPayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				if(loanType.equals("F101")) {
+					model.setLoanTypePay(loanType);
 					
-					if(lastPayDateOldLocalDate.isBefore(lastPayDateLocalDate)) {
-						LOG.info("==================: Have Paid with option 3 :===================");
-						isPaid = true;
+					if(DateUtils.isSameDay(lastPayDate, today)) {
+						if(this.lastPayAmountOld != lastPayAmount ||
+								this.totalPayInstallmentOld.doubleValue() != totalPayInstallment ||
+										this.preBalanceOld.doubleValue() != preBalance) {
+							
+							LOG.info("==================: Have Paid with option 1 :===================");
+							isPaid = true;
+						}
+					} else if(this.lastPayDateOld == null) {
+						LOG.info("==================: Have Paid with option 2 :===================");
+						isPaid = true;					
+					} else if(this.lastPayDateOld != null) {
+						LocalDate lastPayDateOldLocalDate = this.lastPayDateOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+						LocalDate lastPayDateLocalDate = lastPayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+						
+						if(lastPayDateOldLocalDate.isBefore(lastPayDateLocalDate)) {
+							LOG.info("==================: Have Paid with option 3 :===================");
+							isPaid = true;
+						}
+					}
+				} else if(loanType.equals("F201")) {
+					model.setLoanTypePay(loanType);
+					
+					if(DateUtils.isSameDay(lastPayDate, today)) {
+						if(this.lastPayAmountKroOld != lastPayAmount ||
+								this.totalPayInstallmentKroOld.doubleValue() != totalPayInstallment ||
+										this.preBalanceKroOld.doubleValue() != preBalance) {
+							
+							LOG.info("==================: Have Paid with option 1 :===================");
+							isPaid = true;
+						}
+					} else if(this.lastPayDateKroOld == null) {
+						LOG.info("==================: Have Paid with option 2 :===================");
+						isPaid = true;					
+					} else if(this.lastPayDateKroOld != null) {
+						LocalDate lastPayDateOldLocalDate = this.lastPayDateKroOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+						LocalDate lastPayDateLocalDate = lastPayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+						
+						if(lastPayDateOldLocalDate.isBefore(lastPayDateLocalDate)) {
+							LOG.info("==================: Have Paid with option 3 :===================");
+							isPaid = true;
+						}
 					}
 				}
 				
@@ -160,7 +233,7 @@ public class ChkPayWorker implements Runnable {
 		
 		model.setCreatedDateTime(new Date());
 		proxyWorker.addToChkPayList(model);
-		LOG.info(msgIndex + " End checkpay");
+		LOG.info(msgIndex + " End checkpay " + loanType);
 	}
 	
 }

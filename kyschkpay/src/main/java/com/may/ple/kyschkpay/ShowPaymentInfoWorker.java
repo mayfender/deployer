@@ -94,24 +94,39 @@ public class ShowPaymentInfoWorker implements Runnable {
 					} else {
 						sessionId = loginResp.getSessionId();
 						
-						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
+//						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
+						List<List<String>> argsList = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
 						
-						loanType = params.get(0).trim();
-						accNo = params.get(2).trim();
 						cif = loginResp.getCif();
-					
-						if(params.get(5).trim().equals("1")) {
-							uri = KYSApi.LINK + "/STUDENT/ESLMTI001.do";
-						} else {
-							uri = KYSApi.LINK + "/STUDENT/ESLMTI003.do";
+						jsonWrite.addProperty("cif", cif);
+						jsonWrite.addProperty("sessionId", sessionId);
+						
+						for (List<String> params : argsList) {
+							loanType = params.get(0).trim();
+							accNo = params.get(2).trim();
+							
+							if(params.get(5).trim().equals("1")) {
+								uri = KYSApi.LINK + "/STUDENT/ESLMTI001.do";
+							} else {
+								uri = KYSApi.LINK + "/STUDENT/ESLMTI003.do";
+							}
+							
+							if(loanType.equals("F101")) {	
+								jsonWrite.addProperty("loanType", loanType);
+								jsonWrite.addProperty("flag", params.get(5).trim());
+								jsonWrite.addProperty("accNo", accNo);
+								jsonWrite.addProperty("uri", uri);
+							} else if(loanType.equals("F201")) {
+								jsonWrite.addProperty("sys_loanType_kro", loanType);
+								jsonWrite.addProperty("flag_kro", params.get(5).trim());
+								jsonWrite.addProperty("accNo_kro", accNo);
+								jsonWrite.addProperty("uri_kro", uri);
+							}
 						}
 						
-						jsonWrite.addProperty("sessionId", sessionId);
-						jsonWrite.addProperty("loanType", loanType);
-						jsonWrite.addProperty("flag", params.get(5).trim());
-						jsonWrite.addProperty("accNo", accNo);
-						jsonWrite.addProperty("cif", cif);
-						jsonWrite.addProperty("uri", uri);
+						loanType = jsonWrite.get("loanType").getAsString();
+						accNo = jsonWrite.get("accNo").getAsString();
+						uri = jsonWrite.get("uri").getAsString();
 						
 						round++;
 						continue;

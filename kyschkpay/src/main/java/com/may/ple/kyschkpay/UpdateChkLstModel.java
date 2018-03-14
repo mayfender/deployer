@@ -21,6 +21,7 @@ public class UpdateChkLstModel {
 	private String contractNo;
 	private String html;
 	private String proxy;
+	private String loanTypePay;
 	
 	public String getProductId() {
 		return productId;
@@ -129,6 +130,12 @@ public class UpdateChkLstModel {
 	}
 	public void setProxy(String proxy) {
 		this.proxy = proxy;
+	}
+	public String getLoanTypePay() {
+		return loanTypePay;
+	}
+	public void setLoanTypePay(String loanTypePay) {
+		this.loanTypePay = loanTypePay;
 	}
 	
 }
