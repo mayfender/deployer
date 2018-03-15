@@ -117,16 +117,22 @@ public class ShowPaymentInfoWorker implements Runnable {
 								jsonWrite.addProperty("accNo", accNo);
 								jsonWrite.addProperty("uri", uri);
 							} else if(loanType.equals("F201")) {
-								jsonWrite.addProperty("sys_loanType_kro", loanType);
+								jsonWrite.addProperty("loanType_kro", loanType);
 								jsonWrite.addProperty("flag_kro", params.get(5).trim());
 								jsonWrite.addProperty("accNo_kro", accNo);
 								jsonWrite.addProperty("uri_kro", uri);
 							}
 						}
 						
-						loanType = jsonWrite.get("loanType").getAsString();
-						accNo = jsonWrite.get("accNo").getAsString();
-						uri = jsonWrite.get("uri").getAsString();
+						if(jsonWrite.get("loanType") != null) {							
+							loanType = jsonWrite.get("loanType").getAsString();
+							accNo = jsonWrite.get("accNo").getAsString();
+							uri = jsonWrite.get("uri").getAsString();
+						} else if(jsonWrite.get("loanType_kro") != null) {
+							loanType = jsonWrite.get("loanType_kro").getAsString();
+							accNo = jsonWrite.get("accNo_kro").getAsString();
+							uri = jsonWrite.get("uri_kro").getAsString();
+						}
 						
 						round++;
 						continue;
