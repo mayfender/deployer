@@ -17,8 +17,8 @@ public class GenerateLicense {
         Calendar ca = Calendar.getInstance();
         
         License license = new License.Builder().
-                withProductKey("BKK-0005-00005").
-                withHolder("PT Siam Group").
+                withProductKey("SNI-0001-00008").
+                withHolder("").
                 withIssueDate(ca.getTimeInMillis()).
                 build();
         
