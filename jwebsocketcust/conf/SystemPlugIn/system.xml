@@ -201,7 +201,7 @@
 	<bean id="storageProviderMongoDB" class="org.jwebsocket.storage.mongodb.MongoDBStorageProvider"
 		  init-method="initialize" destroy-method="shutdown">
 		<property name="connection" ref="mongodbConnection0" />
-		<property name="databaseName" value="storages" />
+		<property name="databaseName" value="jwebsocket_storages" />
 		<property name="collectionName" value="__storages_collection__" />
 	</bean>
 	
