@@ -53,31 +53,31 @@
 			<description>SQLLite JDBC driver to access SQLLite databases from jWebSocket and its plug-ins</description>
 		</library>
 		-->
-		<library>
+		<!-- <library>
 			<id>MySQLJDBCDriver</id>
 			<url>${JWEBSOCKET_HOME}libs/mysql-connector-java-5.1.16.jar</url>
 			<description>MySQL JDBC driver to access MySQL databases from jWebSocket and its plug-ins</description>
-		</library>
-		<library>
+		</library> -->
+		<!-- <library>
 			<id>DerbyDriver</id>
 			<url>${JWEBSOCKET_HOME}libs/derby-10.10.1.1.jar</url>
 			<description>Derby JDBC driver to access Derby databases from jWebSocket and its plug-ins</description>
-		</library>
-		<library>
+		</library> -->
+		<!-- <library>
 			<id>xbean-spring-common</id>
 			<url>${JWEBSOCKET_HOME}libs/xbean-spring-common-2.8.jar</url>
 			<description>xbean-spring-common-2.8.jar</description>
-		</library>
-		<library>
+		</library> -->
+		<!-- <library>
 			<id>xbean-spring-v2</id>
 			<url>${JWEBSOCKET_HOME}libs/xbean-spring-v2-2.8.jar</url>
 			<description>xbean-spring-v2-2.8.jar</description>
-		</library>
-		<library>
+		</library> -->
+		<!-- <library>
 			<id>xbean-spring-v2c</id>
 			<url>${JWEBSOCKET_HOME}libs/xbean-spring-v2c-2.8.jar</url>
 			<description>xbean-spring-v2c-2.8.jar</description>
-		</library>
+		</library> -->
 	</libraries>
 
 	<!-- jWebSocket logging configuration -->

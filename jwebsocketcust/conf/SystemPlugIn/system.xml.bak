@@ -182,15 +182,42 @@
 	<bean id="sessionManager" class="org.jwebsocket.session.SessionManager" 
 		  init-method="initialize" destroy-method="shutdown">
 		<!-- storage provider for client sessions-->
-		<property name="storageProvider" ref="storageProviderMongoDB"/>
+		<property name="storageProvider" ref="storageProviderJDBC"/>
 		<property name="reconnectionManager">
 			<bean class="org.jwebsocket.session.SessionReconnectionManager" 
 				  init-method="initialize" destroy-method="shutdown">
 				<!-- session expiration time in seconds -->
 				<property name="sessionExpirationTime" value="60" />
-				<property name="storageProvider" ref="storageProviderMongoDB" />
+				<property name="storageProvider" ref="storageProviderJDBC" />
 			</bean>
 		</property>
+	</bean>
+	
+	<!--  EhCache Storage provider -->
+	<bean id="storageProviderEhCache" class="org.jwebsocket.storage.ehcache.EhCacheStorageProvider">
+	</bean>
+	
+	<!-- JDBC Storage provider -->
+	<bean id="storageProviderJDBC" class="org.jwebsocket.storage.ormlite.OrmLiteStorageProvider" init-method="initialize">
+		<constructor-arg index="0">
+			<bean class="com.j256.ormlite.spring.DaoFactory"
+				  factory-method="createDao">
+				<constructor-arg index="0" >
+					<bean class="com.j256.ormlite.jdbc.JdbcConnectionSource" init-method="initialize">
+						<property name="url">
+							<bean class="org.jwebsocket.config.JWebSocketConfig"
+								  factory-method="expandEnvAndJWebSocketVars">
+								<constructor-arg index="0" value="jdbc:derby:${JWEBSOCKET_HOME}database/sessions;create=true" />
+							</bean>
+						</property>
+						<property name="databaseType">
+							<bean class="com.j256.ormlite.db.DerbyEmbeddedDatabaseType" />
+						</property>
+					</bean>
+				</constructor-arg>
+				<constructor-arg index="1" value="org.jwebsocket.storage.ormlite.EntryEntity" />
+			</bean>
+		</constructor-arg>
 	</bean>
 	
 	<!--  Memory Storage provider -->
@@ -205,4 +232,22 @@
 		<property name="collectionName" value="__storages_collection__" />
 	</bean>
 	
+	<!-- JMS Manager for internal/external JMS based messaging -->
+	<bean id="jmsManager" class="org.jwebsocket.util.JMSManager" destroy-method="shutdown">
+		<constructor-arg index="0" value="false"/>
+		<constructor-arg index="1" ref="jmsConnection0"/>
+		<constructor-arg index="2" value="topic://jwebsocket_messagehub"/>
+	</bean>
+	
+	<!-- Setting the server EventBus for internal/external Token messaging -->
+	<bean id="eventBus" class="org.jwebsocket.eventbus.JMSEventBus" 
+		  init-method="initialize" destroy-method="shutdown">
+		<constructor-arg index="0" ref="jmsConnection0"/>
+		<constructor-arg index="1" value="event_bus"/>
+	</bean>
+	
+	<!-- Annotation Manager for ActionPlugIn annotations support -->
+	<!-- Default implementation supports annotations from package org.jwebsocket.plugins.annotations -->
+	<bean id="annotationManager" class="org.jwebsocket.plugins.annotations.DefaultAnnotationManager">
+	</bean>
 </beans>
