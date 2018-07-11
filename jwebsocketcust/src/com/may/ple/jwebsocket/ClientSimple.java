@@ -16,6 +16,9 @@ public class ClientSimple implements WebSocketClientTokenListener {
 			client2.addTokenClientListener(new ClientSimple());
 			
 			client2.open("ws://localhost:8787/jWebSocket/jWebSocket");
+			client2.login("user", "user");
+			client2.broadcastText("Hello All");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
