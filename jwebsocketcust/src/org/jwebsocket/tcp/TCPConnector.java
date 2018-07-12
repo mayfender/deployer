@@ -18,7 +18,11 @@
 //	---------------------------------------------------------------------------
 package org.jwebsocket.tcp;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -26,7 +30,9 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+
 import javax.net.ssl.SSLSocket;
+
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.WebSocketConnector;
 import org.jwebsocket.api.WebSocketConnectorStatus;
@@ -35,7 +41,12 @@ import org.jwebsocket.api.WebSocketPacket;
 import org.jwebsocket.async.IOFuture;
 import org.jwebsocket.connectors.BaseConnector;
 import org.jwebsocket.engines.BaseEngine;
-import org.jwebsocket.kit.*;
+import org.jwebsocket.kit.CloseReason;
+import org.jwebsocket.kit.RawPacket;
+import org.jwebsocket.kit.RequestHeader;
+import org.jwebsocket.kit.WebSocketFrameType;
+import org.jwebsocket.kit.WebSocketHandshake;
+import org.jwebsocket.kit.WebSocketProtocolAbstraction;
 import org.jwebsocket.logging.Logging;
 import org.jwebsocket.plugins.flashbridge.FlashBridgePlugIn;
 import org.jwebsocket.util.JWSTimerTask;
@@ -496,6 +507,10 @@ public class TCPConnector extends BaseConnector {
 		if (null == lHeader) {
 			return null;
 		}
+		
+		if(lReqMap.containsKey("username")) {
+			lHeader.put("username", (String) lReqMap.get("username"));
+		}
 
 		// generate the websocket handshake
 		byte[] lBA = WebSocketHandshake.generateS2CResponse(lReqMap, lHeader);
@@ -613,6 +628,10 @@ public class TCPConnector extends BaseConnector {
 				RequestHeader lHeader = processHandshake(mClientSocket);
 				if (null != lHeader) {
 					String lSubProt = lHeader.getSubProtocol();
+					if(lHeader.get("username") != null) {						
+						mConnector.setId(mConnector.getId() + "_" + lHeader.get("username"));
+					}
+					
 					if (null != lSubProt && lSubProt.contains(FLASH_POLICY_REQUEST)) {
 						if (mLog.isDebugEnabled()) {
 							mLog.debug("WebSocket connection rejected, but flash policy file sent to '"
@@ -672,7 +691,7 @@ public class TCPConnector extends BaseConnector {
 			if (mLog.isDebugEnabled()) {
 				mLog.debug("Starting " + lLogInfo + " connector...");
 			}
-
+			
 			//Setting the session identifier in the connector's WebSocketSession instance
 			mConnector.getSession().setSessionId(mConnector.getHeader().
 					getCookies().get(mConnector.getHeader().getSessionCookieName()).toString());

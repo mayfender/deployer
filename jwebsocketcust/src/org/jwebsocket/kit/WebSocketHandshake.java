@@ -28,7 +28,12 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.jwebsocket.config.JWebSocketCommonConstants;
 import org.jwebsocket.util.HttpCookie;
 import org.jwebsocket.util.Tools;
@@ -141,6 +146,7 @@ public final class WebSocketHandshake {
 		String lOrigin;
 		String lLocation;
 		String lPath;
+		String lUsername = null;
 		String lSubProt = null;
 		String lDraft = null;
 		Integer lVersion = null;
@@ -212,6 +218,16 @@ public final class WebSocketHandshake {
 			return null;
 		}
 		lOrigin = lOrigin.substring(0, lPos);
+		// get username....
+		lPos = lRequest.indexOf("username:");
+		if (lPos > 0) {			
+			lPos += 10;
+			lUsername = lRequest.substring(lPos);
+			lPos = lUsername.indexOf("\r\n");
+			if (lPos > 0) {
+				lUsername = lUsername.substring(0, lPos);
+			}
+		}
 		// get path....
 		lPos = lRequest.indexOf("GET");
 		if (lPos < 0) {
@@ -393,6 +409,9 @@ public final class WebSocketHandshake {
 		}
 		lRes.put(RequestHeader.WS_HOST, lHost);
 		lRes.put(RequestHeader.WS_ORIGIN, lOrigin);
+		if(lUsername != null) {			
+			lRes.put("username", lUsername);
+		}
 		lRes.put(RequestHeader.WS_LOCATION, lLocation);
 		lRes.put(RequestHeader.WS_PROTOCOL, lSubProt);
 		if (lSecKey != null) {
@@ -596,6 +615,7 @@ public final class WebSocketHandshake {
 				+ "Host: " + lHost + "\r\n"
 				+ "Upgrade: WebSocket\r\n"
 				+ "Connection: Upgrade\r\n"
+				+ "username: Mayfender\r\n"
 				+ "Origin: " + mOrigin + "\r\n";
 		if (mProtocol != null) {
 			lHandshake += "Sec-WebSocket-Protocol: " + mProtocol + "\r\n";
@@ -635,6 +655,8 @@ public final class WebSocketHandshake {
 				lHandshakeBytes = lHandshake.getBytes();
 			}
 		}
+		
+		System.out.println(lHandshake);
 
 		return lHandshakeBytes;
 	}

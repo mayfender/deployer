@@ -22,7 +22,9 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
 import javolution.util.FastMap;
+
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.IPacketDeliveryListener;
 import org.jwebsocket.api.WebSocketConnector;
@@ -32,7 +34,11 @@ import org.jwebsocket.api.WebSocketPacket;
 import org.jwebsocket.async.IOFuture;
 import org.jwebsocket.config.JWebSocketCommonConstants;
 import org.jwebsocket.config.JWebSocketConfig;
-import org.jwebsocket.kit.*;
+import org.jwebsocket.kit.CloseReason;
+import org.jwebsocket.kit.RequestHeader;
+import org.jwebsocket.kit.WebSocketFrameType;
+import org.jwebsocket.kit.WebSocketProtocolAbstraction;
+import org.jwebsocket.kit.WebSocketSession;
 import org.jwebsocket.logging.Logging;
 import org.jwebsocket.packetProcessors.JSONProcessor;
 import org.jwebsocket.token.Token;
@@ -543,6 +549,10 @@ public class BaseConnector implements WebSocketConnector {
 					+ "." + mCounter.incrementAndGet();
 		}
 		return mUniqueId;
+	}
+	
+	public void setId(String id) {
+		this.mUniqueId = id;
 	}
 
 	@Override

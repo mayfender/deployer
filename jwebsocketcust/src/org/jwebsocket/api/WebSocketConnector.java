@@ -19,6 +19,7 @@
 package org.jwebsocket.api;
 
 import java.net.InetAddress;
+
 import org.jwebsocket.async.IOFuture;
 import org.jwebsocket.kit.CloseReason;
 import org.jwebsocket.kit.RequestHeader;
@@ -285,6 +286,14 @@ public interface WebSocketConnector {
 	 */
 	String getId();
 
+	/**
+	 * This method is added by Mayfender to support pass username to be apart of client id.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	void setId(String id);
+	
 	/*
 	 * Returns the session for the websocket connection.
 	 */
