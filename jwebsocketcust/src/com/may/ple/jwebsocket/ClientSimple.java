@@ -4,6 +4,8 @@ import org.jwebsocket.api.WebSocketClientEvent;
 import org.jwebsocket.api.WebSocketClientTokenListener;
 import org.jwebsocket.api.WebSocketPacket;
 import org.jwebsocket.client.token.JWebSocketTokenClient;
+import org.jwebsocket.config.JWebSocketServerConstants;
+import org.jwebsocket.token.MapToken;
 import org.jwebsocket.token.Token;
 
 public class ClientSimple implements WebSocketClientTokenListener {
@@ -12,6 +14,7 @@ public class ClientSimple implements WebSocketClientTokenListener {
 		try {
 			System.out.println("Start");
 			
+//			new websockete
 			JWebSocketTokenClient client2 = new JWebSocketTokenClient();
 			client2.addTokenClientListener(new ClientSimple());
 			
@@ -21,7 +24,11 @@ public class ClientSimple implements WebSocketClientTokenListener {
 			client2.login("user", "user");
 			
 			Thread.sleep(3000);
-			client2.broadcastText("Hello All");
+			MapToken token = new MapToken(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert", "registerUser");
+			token.setString("username", "Mayfender");
+			
+			client2.sendToken(token);
+//			client2.broadcastText("Hello All");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

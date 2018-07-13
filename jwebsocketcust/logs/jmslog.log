@@ -1,0 +1,4 @@
+2018-07-13 14:17:50,517: Creating a new instance of CacheManager using the diskStorePath "D:\Mayfender\Repository\git\deploy\jwebsocketcust\cache" which is already used by an existing CacheManager.
+The source of the configuration was net.sf.ehcache.config.generator.ConfigurationSource$InputStreamConfigurationSource@7c1e2a2d.
+The diskStore path for this CacheManager will be set to D:\Mayfender\Repository\git\deploy\jwebsocketcust\cache\ehcache_auto_created_1531466270517.
+To avoid this warning consider using the CacheManager factory methods to create a singleton CacheManager or specifying a separate ehcache configuration (ehcache.xml) for each CacheManager instance.
