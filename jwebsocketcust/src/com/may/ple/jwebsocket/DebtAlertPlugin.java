@@ -1,28 +1,35 @@
 package com.may.ple.jwebsocket;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javolution.util.FastMap;
 
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.PluginConfiguration;
 import org.jwebsocket.api.WebSocketConnector;
-import org.jwebsocket.api.WebSocketPacket;
 import org.jwebsocket.config.JWebSocketServerConstants;
 import org.jwebsocket.kit.CloseReason;
 import org.jwebsocket.kit.PlugInResponse;
 import org.jwebsocket.logging.Logging;
 import org.jwebsocket.plugins.TokenPlugIn;
 import org.jwebsocket.token.Token;
+import org.jwebsocket.token.TokenFactory;
+
+import javolution.util.FastMap;
 
 public class DebtAlertPlugin extends TokenPlugIn {
-	public static final String NS_CHAT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
+	public static final String NS_DEBTALERT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
 	private static final Logger mLog = Logging.getLogger();
 	private final static String TT_REGISTER = "registerUser";
-	private final static String TT_SEND = "sent";
+	private final static String TT_ALERT = "alert";
+	private final static String TT_GET_USERS = "getUsers";
+	private final static String TT_GET_USERS_RESP = "getUsersResp";
 	private final static String CTT_USERNAME = "username";
-	private final FastMap<String, String> mConnectUsers = new FastMap<String, String>().shared();
+	private final static String CTT_USERS = "users";
+	private final static String CTT_ALERT_NUM = "alertNum";
+	private final FastMap<String, String> mConntU = new FastMap<String, String>().shared();
 	
 	public DebtAlertPlugin(PluginConfiguration aConfiguration) {
 		super(aConfiguration);
@@ -30,7 +37,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 			mLog.debug("Instantiating DebtCommon plug-in...");
 		}
 		
-		this.setNamespace(NS_CHAT);
+		this.setNamespace(NS_DEBTALERT);
 		
 		if(mLog.isInfoEnabled()) {
 			mLog.info("DebtCommon plug-in successfully instantiated.");
@@ -40,7 +47,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	@Override
 	public void processToken(PlugInResponse aResponse, WebSocketConnector aConnector, Token aToken) {
 		try {
-			if (NS_CHAT.equals(aToken.getNS())) {
+			if (NS_DEBTALERT.equals(aToken.getNS())) {
 				mLog.debug(aToken.getType());
 				
 				if (TT_REGISTER.equals(aToken.getType())) {
@@ -48,25 +55,43 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					String usernameDummy = username;
 					int startCount = 2;
 					while(true) {
-						if(mConnectUsers.containsKey(usernameDummy)) {
-							usernameDummy = username + "_" + startCount++;
+						if(mConntU.containsKey(usernameDummy)) {
+							usernameDummy = username + "_" + (startCount++) + "@#&";
 						} else {
 							mLog.debug("Add connection " + usernameDummy + ":" + aConnector.getId());
-							mConnectUsers.put(usernameDummy, aConnector.getId());							
+							mConntU.put(usernameDummy, aConnector.getId());							
 							break;
 						}
 					}
-				} else if (TT_SEND.equals(aToken.getType())) {
-					String username = aToken.getString(CTT_USERNAME);
-					Set<Entry<String, String>> entrySet = mConnectUsers.entrySet();
-					WebSocketConnector connector;
-					WebSocketPacket packet;
+				} else if (TT_GET_USERS.equals(aToken.getType())) {
+					List<String> lUname = new ArrayList<>();
+					Set<Entry<String, String>> conntUSet = mConntU.entrySet();
 					
-					for (Entry<String, String> entry : entrySet) {
-						if(entry.getKey().contains(username)) {
-							connector = getConnector(entry.getValue());
-							packet = getServer().tokenToPacket(aConnector, aToken);
-							connector.sendPacket(packet);
+					for (Entry<String, String> conntEntry : conntUSet) {
+						if(conntEntry.getKey().contains("@#&") || conntEntry.getKey().contains("JWebsocketServer")) continue;
+						lUname.add(conntEntry.getKey());
+					}
+					
+					Token lToken = TokenFactory.createToken(getNamespace(), TT_GET_USERS_RESP);
+					lToken.setList(CTT_USERS, lUname);
+					getServer().sendToken(aConnector, lToken);
+				} else if (TT_ALERT.equals(aToken.getType())) {
+					Map<String, Integer> mUser = aToken.getMap(CTT_USERS);
+					Set<Entry<String, Integer>> uSet = mUser.entrySet();
+					Set<Entry<String, String>> conntUSet;
+					WebSocketConnector connt;
+					Token lToken;
+					
+					for (Entry<String, Integer> uEntry : uSet) {
+						lToken = TokenFactory.createToken(getNamespace(), TT_ALERT);
+						lToken.setInteger(CTT_ALERT_NUM, uEntry.getValue());
+						conntUSet = mConntU.entrySet();
+						
+						for (Entry<String, String> conntEntry : conntUSet) {
+							if(conntEntry.getKey().contains(uEntry.getKey())) {
+								connt = getConnector(conntEntry.getValue());
+								getServer().sendToken(connt, lToken);
+							}
 						}
 					}
 				}
@@ -80,11 +105,11 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	public void connectorStopped(WebSocketConnector aConnector, CloseReason aCloseReason) {
 		super.connectorStopped(aConnector, aCloseReason);
 		try {
-			if(mConnectUsers.containsValue(aConnector.getId())) {
-				Set<Entry<String, String>> entrySet = mConnectUsers.entrySet();
+			if(mConntU.containsValue(aConnector.getId())) {
+				Set<Entry<String, String>> entrySet = mConntU.entrySet();
 				for (Entry<String, String> entry : entrySet) {
 					if(entry.getValue().equals(aConnector.getId())) {
-						mConnectUsers.remove(entry.getKey());
+						mConntU.remove(entry.getKey());
 						mLog.debug("Remove connection " + entry.getKey() + ":" + entry.getValue());
 						break;
 					}

@@ -1,5 +1,9 @@
 package com.may.ple.jwebsocket;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jwebsocket.api.WebSocketClientEvent;
 import org.jwebsocket.api.WebSocketClientTokenListener;
 import org.jwebsocket.api.WebSocketPacket;
@@ -7,28 +11,34 @@ import org.jwebsocket.client.token.JWebSocketTokenClient;
 import org.jwebsocket.config.JWebSocketServerConstants;
 import org.jwebsocket.token.MapToken;
 import org.jwebsocket.token.Token;
+import org.jwebsocket.token.TokenFactory;
+
+import javolution.util.FastMap;
 
 public class ClientSimple implements WebSocketClientTokenListener {
+	static JWebSocketTokenClient client;
 	
 	public static void main(String[] args) {
 		try {
 			System.out.println("Start");
 			
 //			new websockete
-			JWebSocketTokenClient client2 = new JWebSocketTokenClient();
-			client2.addTokenClientListener(new ClientSimple());
+			client = new JWebSocketTokenClient();
+			client.addTokenClientListener(new ClientSimple());
 			
-			client2.open("ws://localhost:8787/jWebSocket/jWebSocket");
+			client.open("ws://localhost:8787/jWebSocket/jWebSocket");
 			
 			Thread.sleep(3000);
-			client2.login("user", "user");
+			client.login("user", "user");
 			
 			Thread.sleep(3000);
 			MapToken token = new MapToken(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert", "registerUser");
-			token.setString("username", "Mayfender");
+			token.setString("username", "JWebsocketServer");			
+			client.sendToken(token);
 			
-			client2.sendToken(token);
-//			client2.broadcastText("Hello All");
+			Thread.sleep(3000);
+			token = new MapToken(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert", "getUsers");
+			client.sendToken(token);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -47,7 +57,34 @@ public class ClientSimple implements WebSocketClientTokenListener {
 
 	@Override
 	public void processPacket(WebSocketClientEvent aEvent, WebSocketPacket aPacket) {
-		System.out.println("processPacket");
+		try {
+			System.out.println("processPacket");
+			Token aToken = TokenFactory.packetToToken("json", aPacket);
+			
+			if(aToken.getNS().equals(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert") && aToken.getType().equals("getUsersResp")) {
+				List<String> users = aToken.getList("users");
+				for (String u : users) {
+					System.out.println(u);
+				}
+				
+				if(users.size() > 0) {
+					Thread.sleep(3000);
+					Map<String, Integer> mUser = new HashMap<>();
+					mUser.put("sadmin", 1);
+					
+					FastMap<String, Object> map = new FastMap<String, Object>().shared();
+					MapToken token = new MapToken(map);
+					token.setMap("users", mUser);
+					token.setNS(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert");
+					token.setType("alert");
+					
+					token.setMap(map);
+					client.sendToken(token);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
