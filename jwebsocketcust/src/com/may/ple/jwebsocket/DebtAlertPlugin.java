@@ -6,22 +6,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javolution.util.FastMap;
+
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.PluginConfiguration;
 import org.jwebsocket.api.WebSocketConnector;
 import org.jwebsocket.config.JWebSocketServerConstants;
 import org.jwebsocket.kit.CloseReason;
 import org.jwebsocket.kit.PlugInResponse;
-import org.jwebsocket.logging.Logging;
 import org.jwebsocket.plugins.TokenPlugIn;
 import org.jwebsocket.token.Token;
 import org.jwebsocket.token.TokenFactory;
 
-import javolution.util.FastMap;
-
 public class DebtAlertPlugin extends TokenPlugIn {
+	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
 	public static final String NS_DEBTALERT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
-	private static final Logger mLog = Logging.getLogger();
 	private final static String TT_REGISTER = "registerUser";
 	private final static String TT_ALERT = "alert";
 	private final static String TT_GET_USERS = "getUsers";

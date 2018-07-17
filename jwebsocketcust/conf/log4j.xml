@@ -51,6 +51,23 @@
 		</layout>
 	</appender>
 	
+	<appender name="mayfenderLog" class="org.apache.log4j.DailyRollingFileAppender">
+		<!-- Attention, currently only ${JWEBSOCKET_HOME} is supported as env var -->
+		<param name="file" value="${JWEBSOCKET_HOME}logs/mayfender.log" />
+		<!-- specify whether to use write cache (buffer) or not, not recommended for debug -->
+		<param name="bufferedIO" value="false" />
+		<!-- size of IO buffer, when writing to file, not recommended for debug -->
+		<param name="bufferSize" value="16384" />
+		<!-- date pattern controls the roll-over not the date format -->
+		<param name="datePattern" value="'.'yyyy-MM-dd"/>
+		<!-- trace, debug, info, warn, error or fatal --> 
+		<!-- <param name="threshold" value="debug"/> -->
+		<param name="append" value="true" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p - %C{1}: %m%n" />
+		</layout>
+	</appender>
+	
 	<!-- this log setting is used for the automated tests -->
 	<appender name="testLog" class="org.apache.log4j.FileAppender">
 		<!-- Attention, currently only ${JWEBSOCKET_HOME} is supported as env var -->
@@ -160,6 +177,11 @@
 	<logger name="org.jwebsocket.plugins.jms.gateway.JMSLogger" additivity="false">
 		<level value="DEBUG"/>
 		<appender-ref ref="jmsLog"/>
+	</logger>
+	
+	<logger name="com.may.ple.jwebsocket" additivity="false">
+		<level value="DEBUG"/>
+		<appender-ref ref="mayfenderLog"/>
 	</logger>
 	
 	<root>
