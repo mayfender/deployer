@@ -174,27 +174,29 @@
 	</logger>
 	
 	<!-- special treatment for all logging activities on the JMS gateway -->
-	<logger name="org.jwebsocket.plugins.jms.gateway.JMSLogger" additivity="false">
+	<!-- <logger name="org.jwebsocket.plugins.jms.gateway.JMSLogger" additivity="false">
 		<level value="DEBUG"/>
 		<appender-ref ref="jmsLog"/>
-	</logger>
+	</logger> -->
 	
-	<logger name="com.may.ple.jwebsocket" additivity="false">
+	<!-- <logger name="com.may.ple.jwebsocket" additivity="false">
 		<level value="DEBUG"/>
 		<appender-ref ref="mayfenderLog"/>
-	</logger>
+	</logger> -->
 	
 	<root>
 		<!-- default level: TRACE, DEBUG, INFO, WARN, ERROR or FATAL --> 
-		<priority value="WARN" />
+		<priority value="DEBUG" />
 		<!-- select one of the above declared appenders -->
 
+		<appender-ref ref="mayfenderLog" />
+		
 		<!-- for automated tests: -->
 		<!-- <appender-ref ref="testLog" /> -->
 
 		<!-- during the development -->
-		<appender-ref ref="developmentLog"/>
-		<appender-ref ref="jmsLog"/>
+		<!-- <appender-ref ref="developmentLog"/>
+		<appender-ref ref="jmsLog"/> -->
 		<!-- <appender-ref ref="jWebSocketAppender"/> -->
 
 		<!-- during debug cycles  -->
