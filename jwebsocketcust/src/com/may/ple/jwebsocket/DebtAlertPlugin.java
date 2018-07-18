@@ -67,7 +67,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					Set<Entry<String, String>> conntUSet = mConntU.entrySet();
 					
 					for (Entry<String, String> conntEntry : conntUSet) {
-						if(conntEntry.getKey().contains("@#&") || conntEntry.getKey().contains("JWebsocketServer")) continue;
+						if(conntEntry.getKey().contains("@#&") || conntEntry.getKey().contains("DMSServer")) continue;
 						lUname.add(conntEntry.getKey());
 					}
 					

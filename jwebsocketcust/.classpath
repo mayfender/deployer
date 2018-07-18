@@ -5,6 +5,7 @@
 	<classpathentry kind="lib" path="libs/jWebSocketServer-1.0.jar" sourcepath="C:/Users/sarawuti/Desktop/jwebsocket/jWebSocketFullSources-1.0.zip"/>
 	<classpathentry kind="lib" path="libs/jWebSocketClientAPI-1.0.jar" sourcepath="C:/Users/sarawuti/Desktop/jwebsocket/jWebSocketFullSources-1.0.zip"/>
 	<classpathentry kind="lib" path="libs/jWebSocketCommon-1.0.jar"/>
-	<classpathentry kind="lib" path="libs/jWebSocketJavaSEClient-1.0.jar" sourcepath="C:/Users/LENOVO/Desktop/jwebsocket/jWebSocketFullSources-1.0.zip"/>
+	<classpathentry kind="lib" path="libs/jWebSocketJavaSEClient-1.0.jar" sourcepath="C:/Users/sarawuti/Desktop/jwebsocket/jWebSocketFullSources-1.0.zip"/>
+	<classpathentry kind="lib" path="libs/jWebSocketSwingGUI-1.0.jar" sourcepath="C:/Users/sarawuti/Desktop/jwebsocket/jWebSocketFullSources-1.0.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1642,6 +1642,24 @@
 			</server-assignments>
 		</plugin>
 		
+		<!-- plug-in to remotely control the server -->
+		<plugin>
+			<name>org.jwebsocket.plugins.admin.AdminPlugIn</name>
+			<id>jws.admin</id>
+			<ns>org.jwebsocket.plugins.admin</ns>
+			<jar>jWebSocketAdminPlugIn-1.0.jar</jar>
+			<server-assignments>
+				<server-assignment>ts0</server-assignment>
+			</server-assignments>
+			<settings>
+				<!-- shall shutting down be allowed from the outside? -->
+				<!-- if set to true it will still depend on the right
+				     org.jwebsocket.plugins.admin.shutdown -->
+				<setting key="allowShutdown">true</setting>
+				<!-- Number of days. Show the logs that are in the range of n last days. -->
+				<setting key="numberOfDays">30</setting>
+			</settings>
+		</plugin>
 	</plugins>
     
 	<!-- filters to be instantiated for jWebSocket -->

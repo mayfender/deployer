@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javolution.util.FastMap;
+
 import org.jwebsocket.api.WebSocketClientEvent;
 import org.jwebsocket.api.WebSocketClientTokenListener;
 import org.jwebsocket.api.WebSocketPacket;
@@ -12,8 +14,6 @@ import org.jwebsocket.config.JWebSocketServerConstants;
 import org.jwebsocket.token.MapToken;
 import org.jwebsocket.token.Token;
 import org.jwebsocket.token.TokenFactory;
-
-import javolution.util.FastMap;
 
 public class ClientSimple implements WebSocketClientTokenListener {
 	static JWebSocketTokenClient client;
@@ -39,6 +39,10 @@ public class ClientSimple implements WebSocketClientTokenListener {
 			Thread.sleep(3000);
 			token = new MapToken(JWebSocketServerConstants.NS_BASE + ".plugins.debtalert", "getUsers");
 			client.sendToken(token);
+			
+			System.out.println("Start to shutdown");
+			Thread.sleep(3000);
+			client.shutdown();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
