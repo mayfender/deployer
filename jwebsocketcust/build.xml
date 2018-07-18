@@ -1,0 +1,32 @@
+<?xml version="1.0" ?> 
+<project name="Ant Example" default="execute">
+
+	<target name="init" depends="clean">
+		<mkdir dir="build/classes" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="src" destdir="build/classes" classpathref="build-classpath" />
+	</target>
+	
+	<target name="execute" depends="compile">
+		<java classname="com.may.ple.jwebsocket.Mayfender" classpath="build/classes" />
+	</target>
+
+	<target name="clean">
+		<delete dir="build" />
+	</target>
+	
+	<path id="build-classpath">
+	    <fileset dir="libs">
+	        <include name="*.jar"/>
+	    </fileset>
+	</path>
+	
+	<pathconvert property="mf.classpath" pathsep=" ">
+	    <path refid="build-classpath" />
+	    <flattenmapper />
+	</pathconvert>
+	
+	
+</project>
