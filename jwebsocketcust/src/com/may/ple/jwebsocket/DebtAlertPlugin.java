@@ -33,13 +33,13 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	public DebtAlertPlugin(PluginConfiguration aConfiguration) {
 		super(aConfiguration);
 		if(mLog.isDebugEnabled()) {
-			mLog.debug("Instantiating DebtCommon plug-in...");
+			mLog.debug("Instantiating DebtAlertPlugin plug-in...");
 		}
 		
 		this.setNamespace(NS_DEBTALERT);
 		
 		if(mLog.isInfoEnabled()) {
-			mLog.info("DebtCommon plug-in successfully instantiated.");
+			mLog.info("DebtAlertPlugin plug-in successfully instantiated.");
 		}
 	}
 	
