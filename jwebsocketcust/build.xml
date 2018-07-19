@@ -6,7 +6,8 @@
 	<property name="classes.dir" value="${build.dir}/classes"/>
 	<property name="lib.dir" value="libs"/>
 	<property name="dist.dir" value="dist"/>
-	<property name="dist.filename" value="jWebSocketServer.zip"/>
+	<property name="dist.plugin.dir" value="${dist.dir}/plugin"/>
+	<property name="package.name" value="jWebSocketServer.zip"/>
 	<property name="main.jar" value="jWebSocketServer-1.0.jar"/>
 	
 	<target name="clean">
@@ -24,15 +25,14 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<jar destfile="${dist.dir}/${ant.project.name}.jar" basedir="${classes.dir}" />
+		<jar destfile="${dist.plugin.dir}/${ant.project.name}.jar" basedir="${classes.dir}" />
 	</target>
 	
 	<target name="build" depends="jar">
-		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**" excludes="${lib.dir}/${main.jar}">
+		<zip basedir="." destfile="${dist.dir}/${package.name}" includes="conf/**, libs/**" excludes="${lib.dir}/${main.jar}">
 			<zipfileset dir="." file="${lib.dir}/${main.jar}" fullpath="JWS.jar" />
-			<zipfileset prefix="libs" file="${dist.dir}/${ant.project.name}.jar" />
+			<zipfileset prefix="libs" file="${dist.plugin.dir}/${ant.project.name}.jar" />
 		</zip>
-		<delete file="${dist.dir}/${ant.project.name}.jar" />
 	</target>
 
 	<path id="build-classpath">
