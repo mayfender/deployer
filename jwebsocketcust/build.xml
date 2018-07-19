@@ -30,7 +30,7 @@
 	
 	<target name="build" depends="jar">
 		<zip basedir="." destfile="${dist.dir}/${package.name}" includes="conf/**, libs/**" excludes="${lib.dir}/${main.jar}">
-			<zipfileset dir="." file="${lib.dir}/${main.jar}" fullpath="JWS.jar" />
+			<zipfileset file="${lib.dir}/${main.jar}" fullpath="JWS.jar" />
 			<zipfileset prefix="libs" file="${dist.plugin.dir}/${ant.project.name}.jar" />
 		</zip>
 	</target>
