@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <project name="debtAlertPlugin-1.0" default="build">
 
-	<property name="src.dir"     value="src"/>
-	<property name="build.dir"   value="build"/>
+	<property name="src.dir" value="src"/>
+	<property name="build.dir" value="build"/>
 	<property name="classes.dir" value="${build.dir}/classes"/>
-	<property name="jar.dir"     value="libs"/>
-	<property name="dist.dir"     value="dist"/>
-	<property name="dist.filename"     value="jWebSocketServer.zip"/>
+	<property name="lib.dir" value="libs"/>
+	<property name="dist.dir" value="dist"/>
+	<property name="dist.filename" value="jWebSocketServer.zip"/>
+	<property name="main.jar" value="jWebSocketServer-1.0.jar"/>
 	
 	<target name="clean">
 		<delete dir="${build.dir}" />
 		<delete dir="${dist.dir}" />
-		<delete file="${dist.dir}/${ant.project.name}.jar" />
 	</target>
 
 	<target name="init" depends="clean">
@@ -28,12 +28,12 @@
 	</target>
 	
 	<target name="build" depends="jar">
-		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**" excludes="libs/jWebSocketServer-1.0.jar">
-			<zipfileset prefix="" file="${jar.dir}/jWebSocketServer-1.0.jar" />
+		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**" excludes="${lib.dir}/${main.jar}">
+			<zipfileset dir="." file="${lib.dir}/${main.jar}" fullpath="JWS.jar" />
 			<zipfileset prefix="libs" file="${dist.dir}/${ant.project.name}.jar" />
 		</zip>
+		<delete file="${dist.dir}/${ant.project.name}.jar" />
 	</target>
-	
 
 	<path id="build-classpath">
 		<fileset dir="libs">
