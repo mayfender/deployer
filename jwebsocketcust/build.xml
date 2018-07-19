@@ -1,32 +1,48 @@
-<?xml version="1.0" ?> 
-<project name="Ant Example" default="execute">
+<?xml version="1.0" ?>
+<project name="debtAlertPlugin-1.0" default="build">
+
+	<property name="src.dir"     value="src"/>
+	<property name="build.dir"   value="build"/>
+	<property name="classes.dir" value="${build.dir}/classes"/>
+	<property name="jar.dir"     value="libs"/>
+	<property name="dist.dir"     value="dist"/>
+	<property name="dist.filename"     value="jWebSocketServer.zip"/>
+	
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete file="${jar.dir}/${ant.project.name}.jar" />
+	</target>
 
 	<target name="init" depends="clean">
-		<mkdir dir="build/classes" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${dist.dir}" />
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="src" destdir="build/classes" classpathref="build-classpath" />
-	</target>
-	
-	<target name="execute" depends="compile">
-		<java classname="com.may.ple.jwebsocket.Mayfender" classpath="build/classes" />
+		<javac srcdir="src" destdir="${classes.dir}" classpathref="build-classpath" />
 	</target>
 
-	<target name="clean">
-		<delete dir="build" />
+	<target name="jar" depends="compile">
+		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}" />
 	</target>
 	
+	<target name="build" depends="jar">
+		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**, ">
+			<zipfileset prefix="" file="${jar.dir}/jWebSocketServer-1.0.jar" />
+		</zip>
+	</target>
+	
+
 	<path id="build-classpath">
-	    <fileset dir="libs">
-	        <include name="*.jar"/>
-	    </fileset>
+		<fileset dir="libs">
+			<!--<include name="*.jar"/>-->
+			<include name="jWebSocketServer-1.0.jar"/>
+			<include name="jWebSocketClientAPI-1.0.jar"/>
+			<include name="jWebSocketCommon-1.0.jar"/>
+			<include name="jWebSocketJavaSEClient-1.0.jar"/>
+			<include name="jWebSocketSwingGUI-1.0.jar"/>
+		</fileset>
 	</path>
-	
-	<pathconvert property="mf.classpath" pathsep=" ">
-	    <path refid="build-classpath" />
-	    <flattenmapper />
-	</pathconvert>
-	
-	
+
 </project>
