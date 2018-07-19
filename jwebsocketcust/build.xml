@@ -28,7 +28,7 @@
 	</target>
 	
 	<target name="build" depends="jar">
-		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**, ">
+		<zip basedir="." destfile="${dist.dir}/${dist.filename}" includes="conf/**, libs/**" excludes="libs/jWebSocketServer-1.0.jar">
 			<zipfileset prefix="" file="${jar.dir}/jWebSocketServer-1.0.jar" />
 		</zip>
 	</target>
