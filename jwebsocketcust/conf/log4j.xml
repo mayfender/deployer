@@ -53,7 +53,7 @@
 	
 	<appender name="mayfenderLog" class="org.apache.log4j.DailyRollingFileAppender">
 		<!-- Attention, currently only ${JWEBSOCKET_HOME} is supported as env var -->
-		<param name="file" value="${JWEBSOCKET_HOME}logs/mayfender.log" />
+		<param name="file" value="${JWEBSOCKET_HOME}logs/jws_custom.log" />
 		<!-- specify whether to use write cache (buffer) or not, not recommended for debug -->
 		<param name="bufferedIO" value="false" />
 		<!-- size of IO buffer, when writing to file, not recommended for debug -->
