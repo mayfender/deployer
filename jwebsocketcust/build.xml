@@ -1,14 +1,16 @@
 <?xml version="1.0" ?>
 <project name="debtAlertPlugin-1.0" default="build">
 
-	<property name="src.dir" value="src"/>
-	<property name="build.dir" value="build"/>
-	<property name="classes.dir" value="${build.dir}/classes"/>
-	<property name="lib.dir" value="libs"/>
-	<property name="dist.dir" value="dist"/>
-	<property name="dist.plugin.dir" value="${dist.dir}/plugin"/>
-	<property name="package.name" value="jWebSocketServer.zip"/>
-	<property name="main.jar" value="jWebSocketServer-1.0.jar"/>
+	<property name="ant.build.javac.source" value="1.7" />
+	<property name="ant.build.javac.target" value="1.7" />
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="lib.dir" value="libs" />
+	<property name="dist.dir" value="dist" />
+	<property name="dist.plugin.dir" value="${dist.dir}/plugin" />
+	<property name="package.name" value="jWebSocketServer.zip" />
+	<property name="main.jar" value="jWebSocketServer-1.0.jar" />
 
 	<presetdef name="javac">
 		<javac includeantruntime="false" />
@@ -43,12 +45,12 @@
 
 	<path id="build-classpath">
 		<fileset dir="libs">
-			<!--<include name="*.jar"/>-->
-			<include name="jWebSocketServer-1.0.jar"/>
-			<include name="jWebSocketClientAPI-1.0.jar"/>
-			<include name="jWebSocketCommon-1.0.jar"/>
-			<include name="jWebSocketJavaSEClient-1.0.jar"/>
-			<include name="jWebSocketSwingGUI-1.0.jar"/>
+			<!--<include name="*.jar"/> -->
+			<include name="jWebSocketServer-1.0.jar" />
+			<include name="jWebSocketClientAPI-1.0.jar" />
+			<include name="jWebSocketCommon-1.0.jar" />
+			<include name="jWebSocketJavaSEClient-1.0.jar" />
+			<include name="jWebSocketSwingGUI-1.0.jar" />
 		</fileset>
 	</path>
 
