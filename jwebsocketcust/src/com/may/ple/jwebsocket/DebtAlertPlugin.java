@@ -21,13 +21,17 @@ import org.jwebsocket.token.TokenFactory;
 public class DebtAlertPlugin extends TokenPlugIn {
 	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
 	public static final String NS_DEBTALERT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
+	public static final String NS_CHATTING = JWebSocketServerConstants.NS_BASE + ".plugins.chatting";
 	private final static String TT_REGISTER = "registerUser";
 	private final static String TT_ALERT = "alert";
 	private final static String TT_GET_USERS = "getUsers";
 	private final static String TT_GET_USERS_RESP = "getUsersResp";
+	private final static String TT_CHECK_STATUS = "checkStatus";
+	private final static String TT_SEND_MSG = "sendMsg";
 	private final static String CTT_USERNAME = "username";
 	private final static String CTT_USERS = "users";
 	private final static String CTT_ALERT_NUM = "alertNum";
+	private final static String CTT_FRIENDS = "friends";
 	private final FastMap<String, String> mConntU = new FastMap<String, String>().shared();
 	
 	public DebtAlertPlugin(PluginConfiguration aConfiguration) {
@@ -93,6 +97,26 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							}
 						}
 					}
+				} else if(TT_CHECK_STATUS.equals(aToken.getType())) {
+					List<String> friends = aToken.getList(CTT_FRIENDS);
+					String sendTo = aToken.getString("sendTo");
+					List<String> resp = new ArrayList<>();
+					
+					for (String username : friends) {
+						if(mConntU.containsKey(username)) {
+							resp.add(username);
+						}
+					}
+					Token lToken = TokenFactory.createToken(NS_CHATTING, "checkStatusResp");
+					lToken.setList("friendActive", resp);
+					getServer().sendToken(getConnector(mConntU.get(sendTo)), lToken);
+				} else if(TT_SEND_MSG.equals(aToken.getType())) {
+					Token lToken = TokenFactory.createToken(NS_CHATTING, "sendMsgResp");
+					lToken.setString("msg", aToken.getString("msg"));
+					lToken.setLong("createdDateTime", aToken.getLong("createdDateTime"));
+					lToken.setMap("mapImg", aToken.getMap("mapImg"));
+					
+					getServer().sendToken(getConnector(mConntU.get(aToken.getString("sendTo"))), lToken);
 				}
 			}
 		} catch (Exception e) {
