@@ -114,7 +114,12 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "sendMsgResp");
 					lToken.setString("msg", aToken.getString("msg"));
 					lToken.setLong("createdDateTime", aToken.getLong("createdDateTime"));
-					lToken.setMap("mapImg", aToken.getMap("mapImg"));
+					lToken.setString("author", aToken.getString("author"));
+					lToken.setString("chattingId", aToken.getString("chattingId"));
+					
+					if(aToken.getString("thumnnail") != null) {						
+						lToken.setString("thumnnail", aToken.getString("thumnnail"));
+					}
 					
 					getServer().sendToken(getConnector(mConntU.get(aToken.getString("sendTo"))), lToken);
 				}
