@@ -117,10 +117,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					lToken.setString("author", aToken.getString("author"));
 					lToken.setString("chattingId", aToken.getString("chattingId"));
 					
-					if(aToken.getString("thumnnail") != null) {						
-						lToken.setString("thumnnail", aToken.getString("thumnnail"));
-					}
-					
 					getServer().sendToken(getConnector(mConntU.get(aToken.getString("sendTo"))), lToken);
 				}
 			}
