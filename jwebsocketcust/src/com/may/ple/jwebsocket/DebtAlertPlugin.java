@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javolution.util.FastMap;
-
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.PluginConfiguration;
 import org.jwebsocket.api.WebSocketConnector;
@@ -17,6 +15,8 @@ import org.jwebsocket.kit.PlugInResponse;
 import org.jwebsocket.plugins.TokenPlugIn;
 import org.jwebsocket.token.Token;
 import org.jwebsocket.token.TokenFactory;
+
+import javolution.util.FastMap;
 
 public class DebtAlertPlugin extends TokenPlugIn {
 	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
@@ -58,12 +58,15 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					String username = aToken.getString(CTT_USERNAME);
 					String usernameDummy = username;
 					int startCount = 2;
+					
 					while(true) {
 						if(mConntU.containsKey(usernameDummy)) {
 							usernameDummy = username + "_" + (startCount++) + "@#&";
 						} else {
+							activeOrInactive(usernameDummy, true);
+							
 							mLog.debug("Add connection " + usernameDummy + ":" + aConnector.getId());
-							mConntU.put(usernameDummy, aConnector.getId());							
+							mConntU.put(usernameDummy, aConnector.getId());
 							break;
 						}
 					}
@@ -152,10 +155,37 @@ public class DebtAlertPlugin extends TokenPlugIn {
 				for (Entry<String, String> entry : entrySet) {
 					if(entry.getValue().equals(aConnector.getId())) {
 						mConntU.remove(entry.getKey());
+						
+						activeOrInactive(entry.getKey(), false);
+						
 						mLog.debug("Remove connection " + entry.getKey() + ":" + entry.getValue());
 						break;
 					}
 				}				
+			}
+		} catch (Exception e) {
+			mLog.error(e.toString(), e);
+		}
+	}
+	
+	private void activeOrInactive(String username, boolean isActive) {
+		try {
+			Token lToken;
+			
+			if(isActive) {
+				lToken = TokenFactory.createToken(NS_CHATTING, "activeUser");
+			} else {
+				lToken = TokenFactory.createToken(NS_CHATTING, "inActiveUser");				
+			}
+			
+			Set<Entry<String, String>> conntUSet = mConntU.entrySet();
+			WebSocketConnector connt;
+			
+			for (Entry<String, String> conntEntry : conntUSet) {
+				if(conntEntry.getKey().contains("@#&") || conntEntry.getKey().contains("DMSServer")) continue;
+				connt = getConnector(conntEntry.getValue());
+				lToken.setString("username", username);
+				getServer().sendToken(connt, lToken);
 			}
 		} catch (Exception e) {
 			mLog.error(e.toString(), e);
