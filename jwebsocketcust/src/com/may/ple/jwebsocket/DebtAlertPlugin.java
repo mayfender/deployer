@@ -28,6 +28,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private final static String TT_GET_USERS_RESP = "getUsersResp";
 	private final static String TT_CHECK_STATUS = "checkStatus";
 	private final static String TT_SEND_MSG = "sendMsg";
+	private final static String TT_READ = "read";
 	private final static String CTT_USERNAME = "username";
 	private final static String CTT_USERS = "users";
 	private final static String CTT_ALERT_NUM = "alertNum";
@@ -97,7 +98,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							}
 						}
 					}
-				} else if(TT_CHECK_STATUS.equals(aToken.getType())) {
+				} else if(TT_CHECK_STATUS.equals(aToken.getType())) { //-- Chatting
 					List<String> friends = aToken.getList(CTT_FRIENDS);
 					String sendTo = aToken.getString("sendTo");
 					List<String> resp = new ArrayList<>();
@@ -112,11 +113,29 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					getServer().sendToken(getConnector(mConntU.get(sendTo)), lToken);
 				} else if(TT_SEND_MSG.equals(aToken.getType())) {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "sendMsgResp");
+					lToken.setString("msgId", aToken.getString("msgId"));
 					lToken.setString("msg", aToken.getString("msg"));
 					lToken.setLong("createdDateTime", aToken.getLong("createdDateTime"));
 					lToken.setString("author", aToken.getString("author"));
 					lToken.setString("chattingId", aToken.getString("chattingId"));
-					getServer().sendToken(getConnector(mConntU.get(aToken.getString("sendTo"))), lToken);
+					
+					String aId = mConntU.get(aToken.getString("sendTo"));
+					if(aId != null) {
+						getServer().sendToken(getConnector(aId), lToken);
+					}
+				} else if(TT_READ.equals(aToken.getType())) {
+					Token lToken = TokenFactory.createToken(NS_CHATTING, "readResp");
+					lToken.setString("chattingId", aToken.getString("chattingId"));
+					lToken.setList("chatMsgId", aToken.getList("chatMsgId"));
+					List<String> sendToLst = aToken.getList("sendTo");
+					String aId;
+					
+					for (String sendTo : sendToLst) {
+						aId = mConntU.get(sendTo);
+						if(aId != null) {							
+							getServer().sendToken(getConnector(aId), lToken);						
+						}
+					}
 				}
 			}
 		} catch (Exception e) {
