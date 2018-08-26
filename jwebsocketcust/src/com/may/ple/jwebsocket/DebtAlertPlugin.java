@@ -122,9 +122,29 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					lToken.setString("author", aToken.getString("author"));
 					lToken.setString("chattingId", aToken.getString("chattingId"));
 					
-					String aId = mConntU.get(aToken.getString("sendTo"));
-					if(aId != null) {
-						getServer().sendToken(getConnector(aId), lToken);
+					List<String> sendTos = aToken.getList("sendTo");
+					
+					if(sendTos.size() == 1 && sendTos.get(0).equals("companygroup@#&all")) {
+						Set<Entry<String, String>> conntUSet = mConntU.entrySet();
+						WebSocketConnector connt;
+						String authorName = aToken.getString("authorName");
+						
+						for (Entry<String, String> conntEntry : conntUSet) {
+							if(conntEntry.getKey().contains("@#&") 
+									|| conntEntry.getKey().contains("DMSServer") 
+									|| conntEntry.getKey().equals(authorName)) continue;
+							
+							connt = getConnector(conntEntry.getValue());
+							getServer().sendToken(connt, lToken);
+						}
+					} else {
+						String aId;
+						for (String username : sendTos) {						
+							aId = mConntU.get(username);
+							if(aId != null) {
+								getServer().sendToken(getConnector(aId), lToken);
+							}
+						}
 					}
 				} else if(TT_READ.equals(aToken.getType())) {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "readResp");
