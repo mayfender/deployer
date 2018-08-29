@@ -1,5 +1,7 @@
 package com.may.ple.kyschkpay;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +11,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.jsoup.Connection.Response;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class ManageLoginWorkerThread extends Thread {
+	public static Map<String, Response> firstLoginMap = new HashMap<>();
 	private static final Logger LOG = Logger.getLogger(ManageLoginWorkerThread.class.getName());
 	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
@@ -83,6 +87,37 @@ public class ManageLoginWorkerThread extends Thread {
 					LOG.warn("May be server is down.");
 					Thread.sleep(30000);
 					continue;
+				}
+				
+				// Predefined first login.
+				Response secondLoginPage = null;
+				Proxy proxy = null;
+				String[] proxyStr;
+				JsonArray acctArr;
+				JsonObject auth;
+				for (String prodId : prodIds) {
+					auth = App.auth.get(prodId);
+					acctArr = auth.getAsJsonArray("kys");
+					
+					for (String prxIndex : proxiesIndex) {
+						if(!prxIndex.equals("NOPROXY")) {
+							proxyStr = prxIndex.split(":");
+							proxy = new Proxy(
+									Proxy.Type.HTTP,
+									InetSocketAddress.createUnresolved(proxyStr[0], Integer.parseInt(proxyStr[1]))
+									);
+						}
+						
+						while(secondLoginPage == null) {
+							LOG.info("Call firstLogin");
+							secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acctArr.get(0).getAsString(), acctArr.get(1).getAsString());
+							Thread.sleep(10000);
+						}
+						
+						// key format: productId:proxy:[loanType]
+						firstLoginMap.put(prodId+":"+prxIndex, secondLoginPage);
+						secondLoginPage = null;
+					}
 				}
 				
 				for (String prodId : prodIds) {

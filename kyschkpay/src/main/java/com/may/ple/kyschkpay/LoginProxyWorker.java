@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
+import org.jsoup.Connection.Response;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -39,8 +40,10 @@ public class LoginProxyWorker implements Runnable {
 	@Override
 	public void run() {
 		try {
+			Response secondLogin;
 			for (LoginWorkerModel loginWorkerModel : worker) {
-				executor.execute(new LoginWorker(this, proxy, loginWorkerModel));
+				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(loginWorkerModel.getProductId()+":"+proxy);
+				executor.execute(new LoginWorker(this, proxy, loginWorkerModel, secondLogin));
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
