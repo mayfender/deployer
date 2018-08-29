@@ -1,0 +1,1 @@
+Copy lib\opencv_java340.dll to jdk1.8.0_151\bin

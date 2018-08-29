@@ -1,16 +1,14 @@
 package com.may.ple.kyschkpay;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection.Method;
@@ -26,7 +24,7 @@ public class KYSApi {
 	private static final int CONN_TIMEOUT = 30000;
 	
 	private KYSApi(){
-		String proxyAuth = App.prop.getProperty("proxy_auth");
+		/*String proxyAuth = App.prop.getProperty("proxy_auth");
 		if(StringUtils.isNotBlank(proxyAuth)) {
 			final String[] proxyAuthArr = proxyAuth.split(":");
 			
@@ -39,36 +37,94 @@ public class KYSApi {
 			      }
 			   }
 			);
-		}
+		}*/
 	}
 	
 	public static KYSApi getInstance(){
         return instance;
     }
 	
-	public LoginRespModel login(Proxy proxy, String cid, String birthdate, int round) throws Exception {		
+	public Response firstLogin(Proxy proxy, String email, String password) throws Exception {		
 		try {
-			LOG.debug("Start login");
+			LOG.debug("Start FirstLogin");
 			
-			//[1]
-			LoginRespModel loginResp = getLoginPage(proxy);
-			
-			if(loginResp == null) {
-				loginResp = new LoginRespModel();
-				loginResp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
-				return loginResp;
-			}
+			//[1]	
+			String sessionId = getESLLandPage(proxy);
+			LOG.debug("sessionId: " + sessionId);
+			if(sessionId == null) return null;
 			
 			//[2]
-			String text = new Tess4jCaptcha(Tess4jCaptcha.DENOISE.CV).solve(loginResp.getImageContent());
-//			String text = CaptchaResolve.tesseract(Base64.encodeBase64String(loginResp.getImageContent()));
-//			String text = CaptchaResolve.captchatronix(loginResp.getImageContent());
+			LOG.debug("getFristLoginPage");
+			String captchaUrl = getFristLoginPage(proxy, sessionId);
+			if(captchaUrl == null) return null;
 			
 			//[3]
-			doLogin(proxy, loginResp, text, cid, birthdate);
-			LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + loginResp.getStatus() + " for " + text + " round: " + round);
+			Response resp = null;
+			String captcha;
+			int x = 0;
+			while(resp == null) {
+				if(x == 5) return null;
+				
+				//[3.1]
+				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
+				if(StringUtils.isBlank(captcha)) return null;
+				
+				LOG.info("doFirstLogin round: " + x);
+				
+				//[3.2]
+				resp = doFirstLogin(proxy, sessionId, captcha, email, password);
+				x++;
+			}
 			
-			return loginResp;
+			LOG.info("First Login is SUCCESS.");
+			return resp;
+		} catch (Exception e) {
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
+			throw e;
+		}
+	}
+	
+	public LoginRespModel secondLogin(Proxy proxy, String cid, String birthdate, Response secondLoginPage) throws Exception {		
+		try {
+			
+			//[1]
+			LOG.debug("Start SecondLogin");
+			Document doc = secondLoginPage.parse();
+			Elements captchaEl;
+			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
+				LoginRespModel resp = new LoginRespModel();
+				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
+				return resp;
+			}
+			String captchaUrl = LINK + captchaEl.get(0).attr("src");
+			String sessionId = secondLoginPage.cookies().get("JSESSIONID");
+			
+			//[2]
+			LoginRespModel resp = null;
+			String captcha;
+			int x = 0;
+			while(resp == null || resp.getStatus() == StatusConstant.LOGIN_FAIL) {
+				if(x == 3) return resp;
+				
+				//[2.1]
+				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
+				if(StringUtils.isBlank(captcha)) {
+					resp = new LoginRespModel();
+					resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
+					return resp;
+				}
+				
+				LOG.info("doSecondLogin round: " + x);
+				
+				//[2.2]
+				resp = doSecondLogin(proxy, sessionId, captcha, cid, birthdate);
+				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
+				
+				x++;
+			}
+			
+			LOG.info("Second Login is SUCCESS.");
+			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
@@ -240,18 +296,10 @@ public class KYSApi {
 			throw e;
 		}
 	}
-
-	public LoginRespModel getLoginPage(Proxy proxy) throws Exception {
+	
+	public byte[] getLoginPage(Proxy proxy, Response resp) throws Exception {
 		try {
-			LOG.debug("Start getLoginPage");
-			
-			Response res = Jsoup
-					.connect(LINK + "/STUDENT/ESLLogin.do")
-					.proxy(proxy)
-					.timeout(CONN_TIMEOUT)
-					.method(Method.GET).execute();
-			Map<String, String> cookie = res.cookies();
-			Document doc = res.parse();
+			Document doc = resp.parse();
 			Elements captchaEl;
 			
 			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
@@ -259,49 +307,159 @@ public class KYSApi {
 			}
 			
 			String captchaImgUrl = LINK + captchaEl.get(0).attr("src");
-						
-			LoginRespModel resp = new LoginRespModel();
-			resp.setSessionId(cookie.get("JSESSIONID"));
-			resp.setImageContent(getCaptchaImg(proxy, cookie, captchaImgUrl));
-						
-			return resp;
+			
+			return getCaptchaImg(proxy, resp.cookies().get("JSESSIONID"), captchaImgUrl, null);
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
 
-	private byte[] getCaptchaImg(Proxy proxy, Map<String, String> cookie, String captchaImgUrl) throws Exception {
+	public byte[] getCaptchaImg(Proxy proxy, String sessionId, String captchaImgUrl, String cmd) throws Exception {
 		try {
 			LOG.debug("Start getCaptchaImg");
+			Response res;
+			byte image[];
 			
-			// Fetch the captcha image
-			Response res = Jsoup
-					.connect(captchaImgUrl) 	// Extract image absolute URL
-					.proxy(proxy)
-					.timeout(CONN_TIMEOUT)
-					.cookies(cookie) 			// Grab cookies
-					.ignoreContentType(true) 	// Needed for fetching image
-					.execute();
+			if(!StringUtils.isBlank(cmd)) {
+				res = Jsoup
+						.connect(captchaImgUrl) 	// Extract image absolute URL
+						.proxy(proxy)
+						.timeout(CONN_TIMEOUT)
+						.data("cmd", cmd)
+						.cookie("JSESSIONID", sessionId) 			// Grab cookies
+						.ignoreContentType(true) 	// Needed for fetching image
+						.method(Method.POST).execute();
+				
+				image = Base64.decodeBase64(res.bodyAsBytes());
+			} else {
+				// Fetch the captcha image
+				res = Jsoup
+						.connect(captchaImgUrl) 	// Extract image absolute URL
+						.proxy(proxy)
+						.timeout(CONN_TIMEOUT)
+						.cookie("JSESSIONID", sessionId) 			// Grab cookies
+						.ignoreContentType(true) 	// Needed for fetching image
+						.execute();
+				
+				image = res.bodyAsBytes();
+			}
 	
 //			UUID uuid = Generators.timeBasedGenerator().generate();
 //			String captchaFullPath = captchaPath + uuid + ".jpg";
 			
 			// Load image from Jsoup response
-//			ImageIO.write(ImageIO.read(new ByteArrayInputStream(res.bodyAsBytes())), "jpg", new File(captchaFullPath));
 			
-			return res.bodyAsBytes();
+			//ImageIO.write(ImageIO.read(new ByteArrayInputStream(image)), "jpg", new File("D:/captcha.jpg"));
+			
+			return image;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
 		}
 	}
 	
-	private void doLogin(Proxy proxy, LoginRespModel loginResp, String captcha, String cid, String birthdate) throws Exception {
+	public String getESLLandPage(Proxy proxy) throws Exception {
+		try {
+			LOG.debug("Start getLoginPage");
+			
+			Response res = Jsoup
+					.connect(LINK + "/STUDENT/jsp/ESLLand.jsp")
+					.proxy(proxy)
+					.timeout(CONN_TIMEOUT)
+					.method(Method.GET).execute();
+			Map<String, String> cookie = res.cookies();
+			Document doc = res.parse();
+			Elements eslloginEl;
+			
+			if((eslloginEl = doc.select("input[id='esllogin']")) == null || eslloginEl.size() == 0) {
+				return null;
+			}
+			
+			return cookie.get("JSESSIONID");
+		} catch (Exception e) {
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
+			throw e;
+		}
+	}
+	
+	private String getFristLoginPage(Proxy proxy, String sessionId) throws Exception {
+		try {
+			LOG.debug("Start getLoginPage");
+			
+			Response res = Jsoup
+					.connect(LINK + "/STUDENT/ESLLand.do")
+					.proxy(proxy)
+					.data("actionType", "1")
+					.cookie("JSESSIONID", sessionId)
+					.timeout(CONN_TIMEOUT)
+					.method(Method.POST).execute();
+			
+			Document doc = res.parse();
+			Elements captchaEl;
+			
+			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
+				LOG.warn("Not found #capId on html");
+				return null;
+			}
+			
+			return LINK + captchaEl.get(0).attr("src");
+		} catch (Exception e) {
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
+			throw e;
+		}
+	}
+	
+	private Response doFirstLogin(Proxy proxy, String sessionId, String captcha, String email, String password) throws Exception {
 		try {
 			LOG.debug("Start doLogin");
 			
 			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLogin.do")
+					.timeout(CONN_TIMEOUT)
+					.proxy(proxy)
+					.method(Method.POST)
+					.data("email", email)
+					.data("password", password)
+					.data("captchar", captcha)
+					.data("flag", "S")
+					.header("Content-Type", "application/x-www-form-urlencoded")
+					.cookie("JSESSIONID", sessionId)
+					.postDataCharset("UTF-8")
+					.execute();
+			
+			Map<String, String> cookies = res.cookies();
+			cookies.put("JSESSIONID", sessionId);
+			
+			Document doc = res.parse();
+			Elements captchaEl, cidEl, emailEl;
+			
+			if((cidEl = doc.select("input[name='cid']")) != null && cidEl.size() > 0) {
+				if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
+					LOG.error("Not found #capId on html");
+					res = null;
+				}
+			} else if((emailEl = doc.select("input[name='email']")) != null && emailEl.size() > 0) {
+				// re first login.
+				LOG.warn("Go to re do first login");
+				res = null;
+			} else {
+				// others error.
+				LOG.warn("Not found even email tag");
+				res = null;
+			}
+			
+			return res;
+		} catch (Exception e) {
+			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
+			throw e;
+		}
+	}
+	
+	private LoginRespModel doSecondLogin(Proxy proxy, String sessionId, String captcha, String cid, String birthdate) throws Exception {
+		try {
+			LOG.debug("Start doLogin");
+			
+			Response res = Jsoup.connect(LINK + "/STUDENT/ESLLoginSp.do")
 					.timeout(CONN_TIMEOUT)
 					.proxy(proxy)
 					.method(Method.POST)
@@ -310,12 +468,12 @@ public class KYSApi {
 					.data("captchar", captcha)
 					.data("flag", "S")
 					.header("Content-Type", "application/x-www-form-urlencoded")
-					.cookie("JSESSIONID", loginResp.getSessionId())
+					.cookie("JSESSIONID", sessionId)
 					.postDataCharset("UTF-8")
 					.execute();
 			
 			Document doc = res.parse();
-			Elements cifEl = doc.select("td input[name='cif']");
+			Elements cifEl = doc.select("td input[name='cif']"), capIdEl;
 //			Elements cidEl = doc.select("td input[name='cid']");
 //			Elements cusName = doc.select("td input[name='stuFullName']");
 			StatusConstant status;
@@ -323,14 +481,17 @@ public class KYSApi {
 			
 			if(cifEl != null && StringUtils.isNoneBlank((cif = cifEl.val()))) {				
 				status = StatusConstant.LOGIN_SUCCESS;
-			} else if(doc.select("#capId") != null) {
+			} else if((capIdEl = doc.select("#capId")) != null && capIdEl.size() > 0) {
 				status = StatusConstant.LOGIN_FAIL;
 			} else {
 				status = StatusConstant.SERVICE_UNAVAILABLE;
 			}
 			
-			loginResp.setStatus(status);
-			loginResp.setCif(cif);
+			LoginRespModel resp = new LoginRespModel();
+			resp.setStatus(status);
+			resp.setCif(cif);
+			
+			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;
@@ -342,8 +503,14 @@ public class KYSApi {
 			int firstBracket = str.indexOf("(") + 1;
 			int lastBracket = str.lastIndexOf(")");
 			String rest = str.substring(firstBracket, lastBracket).replace("'", "");
+			String[] paramsStr = rest.split(",");
+			List<String> params = new ArrayList<>();
 			
-			return Arrays.asList(rest.split(","));
+			for (String param : paramsStr) {
+				params.add(param.trim());
+			}
+			
+			return params;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -364,6 +531,32 @@ public class KYSApi {
 			in.set(yyyy, mm, dd);
 			
 			return in.getTime();
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private String parseCaptcha(Proxy proxy, String sessionId, String captchaUrl) throws Exception {
+		try {
+			String captcha = "";
+			byte[] captchaImg;
+			int x = 0;
+			
+			while(StringUtils.isBlank(captcha)) {
+				if(x == 10) break;
+				
+				if(x != 0) {
+					Thread.sleep(1000);
+					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, "rf");					
+				} else {
+					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, null);
+				}
+				captcha = new Tess4jCaptcha(Tess4jCaptcha.DENOISE.CV).solve(captchaImg);
+				LOG.info("Captcha: [" + captcha + "] of round: " + x);
+				x++;
+			}
+			return captcha;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

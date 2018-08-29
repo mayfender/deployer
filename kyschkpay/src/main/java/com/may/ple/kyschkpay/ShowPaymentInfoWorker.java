@@ -102,10 +102,10 @@ public class ShowPaymentInfoWorker implements Runnable {
 						jsonWrite.addProperty("sessionId", sessionId);
 						
 						for (List<String> params : argsList) {
-							loanType = params.get(0).trim();
-							accNo = params.get(2).trim();
+							loanType = params.get(0);
+							accNo = params.get(2);
 							
-							if(params.get(5).trim().equals("1")) {
+							if(params.get(5).equals("1")) {
 								uri = KYSApi.LINK + "/STUDENT/ESLMTI001.do";
 							} else {
 								uri = KYSApi.LINK + "/STUDENT/ESLMTI003.do";
@@ -113,12 +113,12 @@ public class ShowPaymentInfoWorker implements Runnable {
 							
 							if(loanType.equals("F101")) {	
 								jsonWrite.addProperty("loanType", loanType);
-								jsonWrite.addProperty("flag", params.get(5).trim());
+								jsonWrite.addProperty("flag", params.get(5));
 								jsonWrite.addProperty("accNo", accNo);
 								jsonWrite.addProperty("uri", uri);
 							} else if(loanType.equals("F201")) {
 								jsonWrite.addProperty("loanType_kro", loanType);
-								jsonWrite.addProperty("flag_kro", params.get(5).trim());
+								jsonWrite.addProperty("flag_kro", params.get(5));
 								jsonWrite.addProperty("accNo_kro", accNo);
 								jsonWrite.addProperty("uri_kro", uri);
 							}

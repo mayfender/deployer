@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.jsoup.Connection.Response;
 
 import com.google.gson.JsonObject;
 
@@ -20,12 +21,54 @@ public class LoginWorker implements Runnable {
 	private String idCard;
 	private String birthDate;
 	private String msgIndex;
+	private Response secondLoginPage;
 	
-	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel) {
+	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel, Response secondLoginPage) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
 		this.loginModel = loginModel;
+		this.secondLoginPage = secondLoginPage;
 		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
+	}
+	
+	public static void main(String[] args) {
+		try {
+			Response secondLoginPage = KYSApi.getInstance().firstLogin(null, "SLF8533448", "XLnoi4237*");
+			
+			if(secondLoginPage != null) {					
+				String sessionId = secondLoginPage.cookies().get("JSESSIONID");
+				
+				LoginRespModel secondLoginResp = KYSApi.getInstance().secondLogin(null, "1801300030411", "19/04/2528", secondLoginPage);
+				if(StatusConstant.LOGIN_SUCCESS == secondLoginResp.getStatus()) {					
+					List<List<String>> argsList = KYSApi.getInstance().getParam(null, sessionId, secondLoginResp.getCif());
+					System.out.println();
+				}
+				
+				
+				/*PaymentModel info;
+				int round = 0;
+				
+				while(true) {					
+					if(round == 10) break;
+					
+					LOG.info("Round: " + round);
+					
+					info = KYSApi.getInstance().getPaymentInfo(null, sessionId, "", "https://www.e-studentloan.ktb.co.th/STUDENT/ESLMTI001.do", "F101", "1006277854");
+					LOG.info(info);
+					
+					info = KYSApi.getInstance().getPaymentInfo(null, sessionId, "", "https://www.e-studentloan.ktb.co.th/STUDENT/ESLMTI001.do", "F101", "1006941428");
+					LOG.info(info);
+					
+					round++;
+				}*/
+			} else {
+				System.err.println("First login fail.");
+			}
+			
+			System.out.println("finished");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -36,21 +79,22 @@ public class LoginWorker implements Runnable {
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
 			this.birthDate = DateUtil.birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
 			
-			LoginRespModel resp = login(this.idCard, birthDate);				
-			CheckRespModel chkResp;
+			LOG.debug("Call second login.");
+			LoginRespModel resp = KYSApi.getInstance().secondLogin(proxy, idCard, birthDate, secondLoginPage);
 			
 			this.loginStatus = resp.getStatus();
-			this.sessionId = resp.getSessionId();
+			this.sessionId = secondLoginPage.cookies().get("JSESSIONID");
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == this.loginStatus) {
 				List<List<String>> argsList = KYSApi.getInstance().getParam(this.proxy, this.sessionId, this.cif);
+				CheckRespModel chkResp;
 				
 				for (List<String> params : argsList) {
 					chkResp = new CheckRespModel();
-					chkResp.setLoanType(params.get(0).trim());
-					chkResp.setFlag(params.get(5).trim());
-					chkResp.setAccNo(params.get(2).trim());
+					chkResp.setLoanType(params.get(0));
+					chkResp.setFlag(params.get(5));
+					chkResp.setAccNo(params.get(2));
 					
 					if(chkResp.getFlag().equals("1")) {
 						chkResp.setUri(KYSApi.LINK + "/STUDENT/ESLMTI001.do");
@@ -74,38 +118,6 @@ public class LoginWorker implements Runnable {
 			
 			proxyWorker.addToLoginList(model);
 			LOG.error(e.toString());
-		}
-	}
-	
-	private LoginRespModel login(String idCard, String birthDate) throws Exception {
-		try {
-			LOG.debug(msgIndex + " Start login");
-			StatusConstant loginStatus = StatusConstant.LOGIN_FAIL;
-			LoginRespModel resp = null;
-			int errCount = 0;
-			
-			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
-				
-				if(errCount == 3) break;
-				
-				resp = KYSApi.getInstance().login(proxy, idCard, birthDate, errCount);
-				loginStatus = resp.getStatus();
-				
-				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
-					LOG.warn(msgIndex + " Service Unavailable");
-					break;
-				} else if(StatusConstant.LOGIN_FAIL  == loginStatus) {
-					errCount++;
-					Thread.sleep(1000);
-				} else {
-					LOG.debug(msgIndex + " Login Success");					
-				}
-			}
-			
-			return resp;
-		} catch (Exception e) {
-			LOG.error(e.toString());
-			throw e;
 		}
 	}
 	

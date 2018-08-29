@@ -2,6 +2,7 @@ package com.may.ple.kyschkpay;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.jsoup.nodes.Document;
 
 public class PaymentModel {
@@ -12,6 +13,11 @@ public class PaymentModel {
 	private boolean isRefresh;
 	private boolean isError;
 	private Document doc;
+	
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toStringExclude(this, "doc");
+	}
 	
 	public Date getLastPayDate() {
 		return lastPayDate;

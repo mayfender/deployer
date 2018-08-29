@@ -71,7 +71,7 @@ public class ManageLoginWorkerThread extends Thread {
 					continue;
 				}
 				
-				if(isClosed && KYSApi.getInstance().getLoginPage(null) == null) {
+				if(isClosed && KYSApi.getInstance().getESLLandPage(null) == null) {
 					LOG.info("Not open now and sleep 10 min");
 					Thread.sleep(600000);
 					continue;
