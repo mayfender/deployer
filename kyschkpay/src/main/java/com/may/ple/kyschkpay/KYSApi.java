@@ -238,7 +238,7 @@ public class KYSApi {
 					throw new CustomException(1, "Session Timeout");
 				}
 				
-				throw new Exception("Unknown Error");
+				throw new Exception("Unknown Error accNo: " + accNo);
 			}
 
 			Elements preBalanceEl = tab1El.select("input[name='preBalance']");			
