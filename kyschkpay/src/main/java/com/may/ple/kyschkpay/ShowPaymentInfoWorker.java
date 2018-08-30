@@ -9,6 +9,8 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -21,6 +23,7 @@ import com.google.gson.JsonParser;
 public class ShowPaymentInfoWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(ShowPaymentInfoWorker.class.getName());
 	private Socket socket;
+	private Entry<String, Map<String, String>> dummy;
 	
 	public ShowPaymentInfoWorker(Socket socket) {
 		this.socket = socket;
@@ -33,6 +36,10 @@ public class ShowPaymentInfoWorker implements Runnable {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			) {
 			
+			//--: TODO: Should be fixed to get by key format: productId:proxy:loanType
+			dummy = ManageLoginWorkerThread.firstLoginMap.entrySet().iterator().next();
+			//--
+			
 			LOG.info("Start ShowPaymentInfo");
 			JsonElement jsonElement =  new JsonParser().parse(reader.readLine());
 			JsonObject jsonRead = jsonElement.getAsJsonObject();
@@ -41,7 +48,8 @@ public class ShowPaymentInfoWorker implements Runnable {
 			String loanType = jsonRead.get("loanType").getAsString();
 			String cif = jsonRead.get("cif").getAsString();
 			String uri = jsonRead.get("uri").getAsString();
-			String sessionId = jsonRead.get("sessionId").getAsString();
+			String sessionId = dummy.getValue().get("sessionId");
+//			String sessionId = jsonRead.get("sessionId").getAsString();
 			String proxySet = jsonRead.get("proxy").getAsString();
 			String idCard = jsonRead.get("ID_CARD").getAsString();
 			String birthDate = jsonRead.get("BIRTH_DATE").getAsString();
@@ -92,7 +100,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 						isErr = true;
 						break;
 					} else {
-						sessionId = loginResp.getSessionId();
+						sessionId = dummy.getValue().get("sessionId");
 						
 //						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
 						List<List<String>> argsList = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
@@ -196,9 +204,9 @@ public class ShowPaymentInfoWorker implements Runnable {
 			int errCount = 0;
 			
 			while(StatusConstant.LOGIN_FAIL == loginStatus || StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {
-				if(errCount == 10) break;
+				if(errCount == 3) break;
 				
-				loginResp = KYSApi.getInstance().login(proxy, idCard, birthDate, errCount);
+				loginResp = KYSApi.getInstance().secondLogin(proxy, idCard, birthDate, dummy.getValue());
 				loginStatus = loginResp.getStatus();
 				
 				if(StatusConstant.SERVICE_UNAVAILABLE == loginStatus) {

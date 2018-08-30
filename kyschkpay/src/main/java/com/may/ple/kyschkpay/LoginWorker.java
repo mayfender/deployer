@@ -3,14 +3,15 @@ package com.may.ple.kyschkpay;
 import java.net.Proxy;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.jsoup.Connection.Response;
 
 import com.google.gson.JsonObject;
 
 public class LoginWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(LoginWorker.class.getName());
+	private Map<String, String> secondLoginPage;
 	private LoginProxyWorker proxyWorker;
 	private LoginWorkerModel loginModel;
 	private StatusConstant loginStatus;
@@ -21,9 +22,8 @@ public class LoginWorker implements Runnable {
 	private String idCard;
 	private String birthDate;
 	private String msgIndex;
-	private Response secondLoginPage;
 	
-	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel, Response secondLoginPage) {
+	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel, Map<String, String> secondLoginPage) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
 		this.loginModel = loginModel;
@@ -31,36 +31,18 @@ public class LoginWorker implements Runnable {
 		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
 	
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		try {
-			Response secondLoginPage = KYSApi.getInstance().firstLogin(null, "SLF8533448", "XLnoi4237*");
+			Map<String, String> secondLoginPage = KYSApi.getInstance().firstLogin(null, "SLF8533448", "XLnoi4237*");
 			
 			if(secondLoginPage != null) {					
-				String sessionId = secondLoginPage.cookies().get("JSESSIONID");
+				String sessionId = secondLoginPage.get("sessionId");
 				
 				LoginRespModel secondLoginResp = KYSApi.getInstance().secondLogin(null, "1801300030411", "19/04/2528", secondLoginPage);
 				if(StatusConstant.LOGIN_SUCCESS == secondLoginResp.getStatus()) {					
 					List<List<String>> argsList = KYSApi.getInstance().getParam(null, sessionId, secondLoginResp.getCif());
 					System.out.println();
 				}
-				
-				
-				/*PaymentModel info;
-				int round = 0;
-				
-				while(true) {					
-					if(round == 10) break;
-					
-					LOG.info("Round: " + round);
-					
-					info = KYSApi.getInstance().getPaymentInfo(null, sessionId, "", "https://www.e-studentloan.ktb.co.th/STUDENT/ESLMTI001.do", "F101", "1006277854");
-					LOG.info(info);
-					
-					info = KYSApi.getInstance().getPaymentInfo(null, sessionId, "", "https://www.e-studentloan.ktb.co.th/STUDENT/ESLMTI001.do", "F101", "1006941428");
-					LOG.info(info);
-					
-					round++;
-				}*/
 			} else {
 				System.err.println("First login fail.");
 			}
@@ -69,7 +51,7 @@ public class LoginWorker implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	@Override
 	public void run() {
@@ -83,7 +65,7 @@ public class LoginWorker implements Runnable {
 			LoginRespModel resp = KYSApi.getInstance().secondLogin(proxy, idCard, birthDate, secondLoginPage);
 			
 			this.loginStatus = resp.getStatus();
-			this.sessionId = secondLoginPage.cookies().get("JSESSIONID");
+			this.sessionId = secondLoginPage.get("sessionId");
 			this.cif = resp.getCif();
 			
 			if(StatusConstant.LOGIN_SUCCESS == this.loginStatus) {

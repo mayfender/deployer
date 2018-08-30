@@ -37,9 +37,10 @@ public class ChkPayWorker implements Runnable {
 	private String contractNo;
 	private String msgIndex;
 	
-	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel) {
+	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel, String sessionId) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
+		this.sessionId = sessionId;
 		this.chkPayModel = chkPayWorkerModel;
 		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
@@ -50,7 +51,7 @@ public class ChkPayWorker implements Runnable {
 			JsonObject data = this.chkPayModel.getJsonElement().getAsJsonObject();
 			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			this.id = data.get("_id").getAsString();
-			this.sessionId = data.get("sys_sessionId").getAsString();
+//			this.sessionId = data.get("sys_sessionId").getAsString();
 			this.cif = data.get("sys_cif").getAsString();
 			JsonElement element;
 			

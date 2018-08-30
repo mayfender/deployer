@@ -57,14 +57,14 @@ public class AppTest extends TestCase {
 						InetSocketAddress.createUnresolved("103.86.49.81", 8080)
 						);
 				
-				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
+//				LoginRespModel loginPage = KYSApi.getInstance().getLoginPage(proxy);
 				
 				/*Response res = Jsoup
 						.connect("https://www.google.co.th")
 						.proxy(proxy)
 						.method(Method.GET).execute();*/
 				
-				System.out.println(loginPage.getSessionId());
+//				System.out.println(loginPage.getSessionId());
 				i++;
 			}
 		} catch (Exception e) {

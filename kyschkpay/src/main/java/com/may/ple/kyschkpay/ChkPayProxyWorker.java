@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
@@ -18,29 +19,43 @@ public class ChkPayProxyWorker implements Runnable {
 	private List<ChkPayWorkerModel> worker;
 	private ThreadPoolExecutor executor;
 	private Proxy proxy;
+	private String proxyStr;
 	private String msgIndex;
 	private String token;
 	
-	public ChkPayProxyWorker(ThreadPoolExecutor executor, String token, String proxy, List<ChkPayWorkerModel> worker) {
+	public ChkPayProxyWorker(ThreadPoolExecutor executor, String token, String proxyStr, List<ChkPayWorkerModel> worker) {
 		this.executor = executor;
 		this.worker = worker;
 		this.token = token;
+		this.proxyStr = proxyStr;
 		
-		if(!proxy.equals("NOPROXY")) {			
-			String[] proxyStr = proxy.split(":");
+		if(!proxyStr.equals("NOPROXY")) {			
+			String[] proxyArr = proxyStr.split(":");
 			this.proxy = new Proxy(
 					Proxy.Type.HTTP,
-					InetSocketAddress.createUnresolved(proxyStr[0], Integer.parseInt(proxyStr[1]))
+					InetSocketAddress.createUnresolved(proxyArr[0], Integer.parseInt(proxyArr[1]))
 					);
 		}
-		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
+		this.msgIndex = (proxyStr != null ? proxyStr.toString() : "No Proxy");
 	}
 	
 	@Override
 	public void run() {
 		try {
+			Map<String, String> secondLogin;
+			String loanType = "kys"; //TODO: loadType should be got from loginWorkerModel object.
+			String key;
+			
 			for (ChkPayWorkerModel chkPayWorkerModel : worker) {
-				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel));
+				key = chkPayWorkerModel.getProductId()+":"+proxyStr+":"+loanType;
+				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
+				
+				if(secondLogin == null) {
+					LOG.warn(key + " Skip to ChkPayWorker worker.");
+					continue;
+				}
+				
+				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel, secondLogin.get("sessionId")));
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");

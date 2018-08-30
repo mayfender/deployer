@@ -1,10 +1,13 @@
 package com.may.ple.kyschkpay;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +27,7 @@ public class KYSApi {
 	private static final int CONN_TIMEOUT = 30000;
 	
 	private KYSApi(){
-		/*String proxyAuth = App.prop.getProperty("proxy_auth");
+		String proxyAuth = App.prop.getProperty("proxy_auth");
 		if(StringUtils.isNotBlank(proxyAuth)) {
 			final String[] proxyAuthArr = proxyAuth.split(":");
 			
@@ -37,14 +40,14 @@ public class KYSApi {
 			      }
 			   }
 			);
-		}*/
+		}
 	}
 	
 	public static KYSApi getInstance(){
         return instance;
     }
 	
-	public Response firstLogin(Proxy proxy, String email, String password) throws Exception {		
+	public Map<String, String> firstLogin(Proxy proxy, String email, String password) throws Exception {		
 		try {
 			LOG.debug("Start FirstLogin");
 			
@@ -59,7 +62,7 @@ public class KYSApi {
 			if(captchaUrl == null) return null;
 			
 			//[3]
-			Response resp = null;
+			Map<String, String> resp = null;
 			String captcha;
 			int x = 0;
 			while(resp == null) {
@@ -69,14 +72,14 @@ public class KYSApi {
 				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
 				if(StringUtils.isBlank(captcha)) return null;
 				
-				LOG.info("doFirstLogin round: " + x);
+				LOG.info("Do firstLogin round: " + x);
 				
 				//[3.2]
 				resp = doFirstLogin(proxy, sessionId, captcha, email, password);
 				x++;
 			}
 			
-			LOG.info("First Login is SUCCESS.");
+			LOG.info("Do firstLogin is SUCCESS.");
 			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
@@ -84,29 +87,19 @@ public class KYSApi {
 		}
 	}
 	
-	public LoginRespModel secondLogin(Proxy proxy, String cid, String birthdate, Response secondLoginPage) throws Exception {		
+	public LoginRespModel secondLogin(Proxy proxy, String cid, String birthdate, Map<String, String> secondLoginPage) throws Exception {		
 		try {
 			
-			//[1]
 			LOG.debug("Start SecondLogin");
-			Document doc = secondLoginPage.parse();
-			Elements captchaEl;
-			if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
-				LoginRespModel resp = new LoginRespModel();
-				resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
-				return resp;
-			}
-			String captchaUrl = LINK + captchaEl.get(0).attr("src");
-			String sessionId = secondLoginPage.cookies().get("JSESSIONID");
-			
-			//[2]
+			String captchaUrl = secondLoginPage.get("captchaUrl");
+			String sessionId = secondLoginPage.get("sessionId");
 			LoginRespModel resp = null;
 			String captcha;
 			int x = 0;
 			while(resp == null || resp.getStatus() == StatusConstant.LOGIN_FAIL) {
 				if(x == 3) return resp;
 				
-				//[2.1]
+				//[1]
 				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
 				if(StringUtils.isBlank(captcha)) {
 					resp = new LoginRespModel();
@@ -114,16 +107,16 @@ public class KYSApi {
 					return resp;
 				}
 				
-				LOG.info("doSecondLogin round: " + x);
+				LOG.info("Do secondLogin round: " + x);
 				
-				//[2.2]
+				//[2]
 				resp = doSecondLogin(proxy, sessionId, captcha, cid, birthdate);
 				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
 				
 				x++;
 			}
 			
-			LOG.info("Second Login is SUCCESS.");
+			LOG.info("Do secondLogin is SUCCESS.");
 			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
@@ -410,7 +403,7 @@ public class KYSApi {
 		}
 	}
 	
-	private Response doFirstLogin(Proxy proxy, String sessionId, String captcha, String email, String password) throws Exception {
+	private Map<String, String> doFirstLogin(Proxy proxy, String sessionId, String captcha, String email, String password) throws Exception {
 		try {
 			LOG.debug("Start doLogin");
 			
@@ -435,20 +428,26 @@ public class KYSApi {
 			
 			if((cidEl = doc.select("input[name='cid']")) != null && cidEl.size() > 0) {
 				if((captchaEl = doc.select("#capId")) == null || captchaEl.size() == 0) {
-					LOG.error("Not found #capId on html");
-					res = null;
+					LOG.error("Do firstLogin NOT found #capId on html.");
+					return null;
 				}
 			} else if((emailEl = doc.select("input[name='email']")) != null && emailEl.size() > 0) {
 				// re first login.
-				LOG.warn("Go to re do first login");
-				res = null;
+				LOG.warn("Do firstLogin fail.");
+				return null;
 			} else {
 				// others error.
-				LOG.warn("Not found even email tag");
-				res = null;
+				LOG.warn("Do firstLogin NOT found even email tag.");
+				return null;
 			}
 			
-			return res;
+			String captchaUrl = LINK + captchaEl.get(0).attr("src");
+			
+			Map<String, String> resp = new HashMap<>();
+			resp.put("captchaUrl", captchaUrl);
+			resp.put("sessionId", sessionId);
+			
+			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
 			throw e;

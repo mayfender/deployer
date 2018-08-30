@@ -53,14 +53,14 @@ public class App {
 				auth.put(prodId, jsObj);
 			}
 			
-			/*LOG.info("Start ManageLoginWorkerThread");
+			LOG.info("Start ManageLoginWorkerThread");
 			new ManageLoginWorkerThread(prodIds).start();
 			
 			LOG.info("Start ManageCheckPayWorkerThread");
 			new ManageCheckPayWorkerThread(prodIds).start();
 			
 			LOG.info("Start ManageExtWorkerThread");
-			new ManageExtWorkerThread().start();*/
+			new ManageExtWorkerThread().start();
 		} catch (Exception e) {
 			LOG.error(e.toString());
 		} finally {

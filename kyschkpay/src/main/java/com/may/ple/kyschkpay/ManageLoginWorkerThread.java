@@ -11,14 +11,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.jsoup.Connection.Response;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class ManageLoginWorkerThread extends Thread {
-	public static Map<String, Response> firstLoginMap = new HashMap<>();
+	public static Map<String, Map<String, String>> firstLoginMap = new HashMap<>();
 	private static final Logger LOG = Logger.getLogger(ManageLoginWorkerThread.class.getName());
 	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
@@ -44,7 +43,7 @@ public class ManageLoginWorkerThread extends Thread {
 			}
 		}
 	}
-
+	
 	@Override
 	public void run() {
 		DMSApi dmsApi = DMSApi.getInstance();
@@ -89,36 +88,8 @@ public class ManageLoginWorkerThread extends Thread {
 					continue;
 				}
 				
-				// Predefined first login.
-				Response secondLoginPage = null;
-				Proxy proxy = null;
-				String[] proxyStr;
-				JsonArray acctArr;
-				JsonObject auth;
-				for (String prodId : prodIds) {
-					auth = App.auth.get(prodId);
-					acctArr = auth.getAsJsonArray("kys");
-					
-					for (String prxIndex : proxiesIndex) {
-						if(!prxIndex.equals("NOPROXY")) {
-							proxyStr = prxIndex.split(":");
-							proxy = new Proxy(
-									Proxy.Type.HTTP,
-									InetSocketAddress.createUnresolved(proxyStr[0], Integer.parseInt(proxyStr[1]))
-									);
-						}
-						
-						while(secondLoginPage == null) {
-							LOG.info("Call firstLogin");
-							secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acctArr.get(0).getAsString(), acctArr.get(1).getAsString());
-							Thread.sleep(10000);
-						}
-						
-						// key format: productId:proxy:[loanType]
-						firstLoginMap.put(prodId+":"+prxIndex, secondLoginPage);
-						secondLoginPage = null;
-					}
-				}
+				//-- Do first login.
+				prepareFirstLogin();
 				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
@@ -213,6 +184,86 @@ public class ManageLoginWorkerThread extends Thread {
 					Thread.sleep(60000);
 				} catch (Exception e2) {}
 			}
+		}
+	}
+	
+	private void doFirstLogin(JsonArray acc, String prxIndex, Proxy proxy, String prodId, String loanType) throws Exception {
+		try {
+			Map<String, String> secondLoginPage = null;
+			if(acc != null) {
+				// key format: productId:proxy:loanType
+				String key = prodId+":"+prxIndex+":"+loanType;
+				
+				if(firstLoginMap.containsKey(key)) {
+					LOG.info("key: " + key + " already had.");
+					return;
+				}
+				
+				int round = 0;
+				while(secondLoginPage == null) {
+					if(round == 3) break;
+					
+					LOG.info("Call firstLogin");
+					secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acc.get(0).getAsString(), acc.get(1).getAsString());
+					if(secondLoginPage == null) {
+						LOG.warn("First Login fail.");
+						Thread.sleep(1000);									
+					}
+					round++;
+				}
+				
+				if(secondLoginPage == null) {
+					LOG.warn(key + " Do first login fail.");
+				}
+				
+				firstLoginMap.put(key, secondLoginPage);
+				LOG.info("Do first login with : " + key);
+			}
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	private void prepareFirstLogin() throws Exception {
+		try {
+			LOG.info("Start do first login.");
+			String kys = "kys", kro = "kro", kysNormal = "kys_normal";
+			JsonArray kysAcc, kroAcc, kysNormalAcc;
+			Proxy proxy = null;
+			String[] proxyStr;
+			JsonObject auth;
+			
+			for (String prodId : prodIds) {
+				auth = App.auth.get(prodId);
+				kysAcc = auth.getAsJsonArray(kys);
+				kroAcc = auth.getAsJsonArray(kro);
+				kysNormalAcc = auth.getAsJsonArray(kysNormal);
+				
+				for (String prxIndex : proxiesIndex) {
+					if(!prxIndex.equals("NOPROXY")) {
+						proxyStr = prxIndex.split(":");
+						proxy = new Proxy(
+								Proxy.Type.HTTP,
+								InetSocketAddress.createUnresolved(proxyStr[0], Integer.parseInt(proxyStr[1]))
+								);
+					}
+					
+					if(kysAcc.size() > 0) {
+						doFirstLogin(kysAcc, prxIndex, proxy, prodId, kys);
+					}
+					if(kroAcc.size() > 0) {
+						doFirstLogin(kroAcc, prxIndex, proxy, prodId, kro);
+					}
+					if(kysNormalAcc.size() > 0) {
+						doFirstLogin(kysNormalAcc, prxIndex, proxy, prodId, kysNormal);
+					}
+				}
+			}
+			LOG.info("End do first login.");
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
 		}
 	}
 	

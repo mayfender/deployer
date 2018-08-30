@@ -53,12 +53,13 @@ public class ManageCheckPayWorkerThread extends Thread {
 			try {
 				if(!App.checkWorkingHour()) {
 					if(!isClear) {
-						LOG.info("Clear status to login");
-						token = dmsApi.login(USERNAME, PASSWORD);
+//						LOG.info("Clear status to login");
+//						token = dmsApi.login(USERNAME, PASSWORD);
 						
-						for (String prodId : prodIds) {
+						/*for (String prodId : prodIds) {
 							dmsApi.clearStatusChkLst(token, prodId, USERNAME, PASSWORD);
-						}
+						}*/
+						ManageLoginWorkerThread.firstLoginMap.clear();
 						isClear = Boolean.TRUE;
 					}
 					
@@ -70,6 +71,12 @@ public class ManageCheckPayWorkerThread extends Thread {
 				isClear = Boolean.FALSE;
 				if(StringUtils.isBlank(token = dmsApi.login(USERNAME, PASSWORD))) {
 					LOG.warn("May be server is down.");
+					Thread.sleep(30000);
+					continue;
+				}
+				
+				if(ManageLoginWorkerThread.firstLoginMap.size() == 0) {
+					LOG.warn("First Login NOT ready.");
 					Thread.sleep(30000);
 					continue;
 				}
