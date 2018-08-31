@@ -201,7 +201,7 @@ public class ManageLoginWorkerThread extends Thread {
 				
 				int round = 0;
 				while(secondLoginPage == null) {
-					if(round == 3) break;
+					LOG.info("Do first login key: " + key + " round: " + round);
 					
 					LOG.info("Call firstLogin");
 					secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acc.get(0).getAsString(), acc.get(1).getAsString());
@@ -215,12 +215,8 @@ public class ManageLoginWorkerThread extends Thread {
 					round++;
 				}
 				
-				if(secondLoginPage == null) {
-					LOG.warn(key + " Do first login fail.");
-				}
-				
 				firstLoginMap.put(key, secondLoginPage);
-				LOG.info("Do first login with : " + key);
+				LOG.info("Do first login SUCCESS key : " + key);
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString());
