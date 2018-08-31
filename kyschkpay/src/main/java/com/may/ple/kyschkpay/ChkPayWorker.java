@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
@@ -224,8 +227,26 @@ public class ChkPayWorker implements Runnable {
 				}
 			}
 		} catch(CustomException e) {
-			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
-			model.setErrMsg("Check Pay Session Timeout");
+			if(e.errCode == 1) {				
+				model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
+				model.setErrMsg("Check Pay Session Timeout");				
+			} else {
+				/*Iterator<Entry<String, Map<String, String>>> iterator = ManageLoginWorkerThread.firstLoginMap.entrySet().iterator();
+				Entry<String, Map<String, String>> next;
+				
+				while(iterator.hasNext()) {
+					next = iterator.next();
+					if(next.getValue().get("sessionId").equals(sessionId)) {
+						String key = next.getKey();
+						LOG.warn("Clear value of key: " + key);
+						ManageLoginWorkerThread.firstLoginMap.put(key, null);
+						break;
+					}
+				}
+				
+				ManageLoginWorkerThread.prepareFirstLogin();
+				Thread.sleep(10000);*/
+			}
 			LOG.error(msgIndex + " [sessionId " + sessionId + "] ############## " + e.toString());
 		} catch (Exception e) {
 			LOG.error(e.toString());

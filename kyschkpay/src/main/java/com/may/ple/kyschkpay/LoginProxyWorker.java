@@ -47,11 +47,12 @@ public class LoginProxyWorker implements Runnable {
 			String key;
 			
 			for (LoginWorkerModel loginWorkerModel : worker) {
-				key = loginWorkerModel.getProductId()+":"+proxyStr+":"+loanType;
+				key = loginWorkerModel.getProductId()+"#"+proxyStr+"#"+loanType;
 				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
 				
 				if(secondLogin == null) {
 					LOG.warn(key + " Skip to LoginWorker worker.");
+					Thread.sleep(20000);
 					continue;
 				}
 				

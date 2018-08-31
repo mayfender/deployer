@@ -38,6 +38,11 @@ public class ShowPaymentInfoWorker implements Runnable {
 			
 			//--: TODO: Should be fixed to get by key format: productId:proxy:loanType
 			dummy = ManageLoginWorkerThread.firstLoginMap.entrySet().iterator().next();
+			String[] keyArr = dummy.getKey().split("#");
+			String proxySet = keyArr[1];
+			if(proxySet.equals("NOPROXY")) {
+				proxySet = null;
+			}
 			//--
 			
 			LOG.info("Start ShowPaymentInfo");
@@ -50,7 +55,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 			String uri = jsonRead.get("uri").getAsString();
 			String sessionId = dummy.getValue().get("sessionId");
 //			String sessionId = jsonRead.get("sessionId").getAsString();
-			String proxySet = jsonRead.get("proxy").getAsString();
+//			String proxySet = jsonRead.get("proxy").getAsString();
 			String idCard = jsonRead.get("ID_CARD").getAsString();
 			String birthDate = jsonRead.get("BIRTH_DATE").getAsString();
 			Proxy proxy = null;

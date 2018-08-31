@@ -235,7 +235,11 @@ public class KYSApi {
 				Elements body = doc.select("body");
 				String onload = body.get(0).attr("onload");
 				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("login")) {
-					throw new CustomException(1, "Session Timeout");
+					throw new CustomException(1, "Session Timeout.");
+				}
+				
+				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("eslland.jsp")) {
+					throw new CustomException(2, "Session have problem.");
 				}
 				
 				throw new Exception("Unknown Error accNo: " + accNo);

@@ -47,7 +47,7 @@ public class ChkPayProxyWorker implements Runnable {
 			String key;
 			
 			for (ChkPayWorkerModel chkPayWorkerModel : worker) {
-				key = chkPayWorkerModel.getProductId()+":"+proxyStr+":"+loanType;
+				key = chkPayWorkerModel.getProductId()+"#"+proxyStr+"#"+loanType;
 				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
 				
 				if(secondLogin == null) {

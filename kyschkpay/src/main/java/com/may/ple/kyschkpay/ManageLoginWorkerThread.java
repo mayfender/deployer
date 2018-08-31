@@ -191,10 +191,10 @@ public class ManageLoginWorkerThread extends Thread {
 		try {
 			Map<String, String> secondLoginPage = null;
 			if(acc != null) {
-				// key format: productId:proxy:loanType
-				String key = prodId+":"+prxIndex+":"+loanType;
+				// key format: productId#proxy#loanType
+				String key = prodId+"#"+prxIndex+"#"+loanType;
 				
-				if(firstLoginMap.containsKey(key)) {
+				if(firstLoginMap.containsKey(key) && firstLoginMap.get(key) != null) {
 					LOG.info("key: " + key + " already had.");
 					return;
 				}
