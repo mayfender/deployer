@@ -76,6 +76,10 @@ public class KYSApi {
 				
 				//[3.2]
 				resp = doFirstLogin(proxy, sessionId, captcha, email, password);
+				if(resp == null) {
+					LOG.warn("Wait to re doFirstLogin.");
+					Thread.sleep(2000);
+				}
 				x++;
 			}
 			
@@ -554,7 +558,7 @@ public class KYSApi {
 				if(x == 10) break;
 				
 				if(x != 0) {
-					Thread.sleep(1000);
+					Thread.sleep(2000);
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, "rf");					
 				} else {
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, null);
