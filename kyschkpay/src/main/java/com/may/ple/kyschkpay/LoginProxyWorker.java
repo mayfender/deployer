@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -51,8 +52,7 @@ public class LoginProxyWorker implements Runnable {
 				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
 				
 				if(secondLogin == null) {
-					LOG.warn(key + " Skip to LoginWorker worker.");
-					Thread.sleep(20000);
+					LOG.error(key + " Not found.");
 					continue;
 				}
 				
@@ -61,10 +61,11 @@ public class LoginProxyWorker implements Runnable {
 			
 			LOG.info(msgIndex + " Assign Worker finished");
 			
+			executor.shutdown();
 			Thread.sleep(10000);
-			while(executor.getActiveCount() != 0){
+			while(executor.getActiveCount() != 0 || !executor.awaitTermination(1, TimeUnit.HOURS)){
 				LOG.debug(msgIndex + " =============: Proxy Worker active count : " + executor.getActiveCount());
-				Thread.sleep(1000);
+				Thread.sleep(5000);
 			}
 			
 			updateLoginStatus();
@@ -90,7 +91,10 @@ public class LoginProxyWorker implements Runnable {
 	
 	private void updateLoginStatus() throws Exception {
 		try {
-			if(loginList.size() == 0) return;
+			if(loginList.size() == 0) {
+				LOG.warn("###### Nothing to update #######.");
+				return;
+			}
 			
 			LOG.info(msgIndex + " Update login success size: " + loginList.size());
 			JsonArray array = new JsonArray();
