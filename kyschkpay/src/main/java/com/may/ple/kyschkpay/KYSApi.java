@@ -239,7 +239,11 @@ public class KYSApi {
 				}
 				
 				if(StringUtils.isNoneBlank(onload) && onload.toLowerCase().contains("eslland.jsp")) {
-					throw new CustomException(2, "Session have problem.");
+					LOG.error("Session have problem.");
+					paymentModel.setError(true);
+					paymentModel.setReFirstLogin(true);
+					paymentModel.setSessionId(sessionId);
+					return paymentModel;
 				}
 				
 				throw new Exception("Unknown Error accNo: " + accNo);

@@ -55,7 +55,7 @@ public class ChkPayProxyWorker implements Runnable {
 					continue;
 				}
 				
-				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel, secondLogin.get("sessionId")));
+				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel, secondLogin));
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");

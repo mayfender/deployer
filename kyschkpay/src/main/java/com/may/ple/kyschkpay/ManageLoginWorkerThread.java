@@ -208,6 +208,9 @@ public class ManageLoginWorkerThread extends Thread {
 					if(secondLoginPage == null) {
 						LOG.warn("First Login fail.");
 						Thread.sleep(1000);									
+					} else {
+						secondLoginPage.put("username", acc.get(0).getAsString());
+						secondLoginPage.put("password", acc.get(1).getAsString());
 					}
 					round++;
 				}
@@ -218,6 +221,22 @@ public class ManageLoginWorkerThread extends Thread {
 				
 				firstLoginMap.put(key, secondLoginPage);
 				LOG.info("Do first login with : " + key);
+			}
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
+		}
+	}
+	
+	public static synchronized Map<String, String> firstLoginGate(Proxy proxy, String username, String password, String oldSessionId, Map<String, String> currentSessionId) throws Exception {
+		try {
+			LOG.info("Check before first login with oldSessionId: " + oldSessionId);
+			if(oldSessionId.equals(currentSessionId.get("sessionId"))) {
+				LOG.info("## relogin");
+				return KYSApi.getInstance().firstLogin(proxy, username, password);
+			} else {
+				LOG.info("## Curent sesson is WORK.");
+				return currentSessionId;
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString());

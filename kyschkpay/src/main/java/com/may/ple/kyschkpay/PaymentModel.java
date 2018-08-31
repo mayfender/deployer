@@ -13,6 +13,8 @@ public class PaymentModel {
 	private boolean isRefresh;
 	private boolean isError;
 	private Document doc;
+	private boolean isReFirstLogin;
+	private String sessionId;
 	
 	@Override
 	public String toString() {
@@ -60,6 +62,22 @@ public class PaymentModel {
 	}
 	public void setDoc(Document doc) {
 		this.doc = doc;
+	}
+
+	public boolean isReFirstLogin() {
+		return isReFirstLogin;
+	}
+
+	public void setReFirstLogin(boolean isReFirstLogin) {
+		this.isReFirstLogin = isReFirstLogin;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 	
 }
