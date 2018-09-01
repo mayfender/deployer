@@ -117,6 +117,11 @@ public class KYSApi {
 				resp = doSecondLogin(proxy, sessionId, captcha, cid, birthdate);
 				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
 				
+				if(resp.getStatus() == StatusConstant.SERVICE_UNAVAILABLE) {
+					LOG.warn("Wait to re doSecondLogin. " + sessionId);
+					Thread.sleep(2000);
+				}
+				
 				x++;
 			}
 			
