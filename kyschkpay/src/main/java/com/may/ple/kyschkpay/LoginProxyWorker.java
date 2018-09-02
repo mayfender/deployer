@@ -48,16 +48,12 @@ public class LoginProxyWorker implements Runnable {
 			
 			for (LoginWorkerModel loginWorkerModel : worker) {
 				key = loginWorkerModel.getProductId()+"#"+proxyStr+"#"+loanType;
-				LOG.info("key: " + key);
-				
 				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
 				
 				if(secondLogin == null) {
 					LOG.error(key + " Not found.");
 					continue;
 				}
-				
-				LOG.info("sessionId: " + secondLogin.get("sessionId"));
 				
 				executor.execute(new LoginWorker(this, proxy, loginWorkerModel, secondLogin));
 			}

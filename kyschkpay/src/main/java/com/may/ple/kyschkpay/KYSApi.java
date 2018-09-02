@@ -96,7 +96,6 @@ public class KYSApi {
 			
 			LOG.debug("Start SecondLogin");
 			String captchaUrl = secondLoginPage.get("captchaUrl");
-			String sessionId = secondLoginPage.get("sessionId");
 			LoginRespModel resp = null;
 			String captcha;
 			int x = 0;
@@ -104,7 +103,7 @@ public class KYSApi {
 				if(x == 3) return resp;
 				
 				//[1]
-				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
+				captcha = parseCaptcha(proxy, secondLoginPage.get("sessionId"), captchaUrl);
 				if(StringUtils.isBlank(captcha)) {
 					resp = new LoginRespModel();
 					resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
@@ -114,12 +113,22 @@ public class KYSApi {
 				LOG.info("Do secondLogin round: " + x);
 				
 				//[2]
-				resp = doSecondLogin(proxy, sessionId, captcha, cid, birthdate);
+				resp = doSecondLogin(proxy, secondLoginPage.get("sessionId"), captcha, cid, birthdate);
 				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
 				
 				if(resp.getStatus() == StatusConstant.SERVICE_UNAVAILABLE) {
-					LOG.warn("Wait to re doSecondLogin. " + sessionId);
-					Thread.sleep(5000);
+					String sessionId = secondLoginPage.get("sessionId");
+					if(ManageLoginWorkerThread.firstLoginGate(
+							proxy, 
+							secondLoginPage.get("username"), 
+							secondLoginPage.get("password"), 
+							sessionId, 
+							secondLoginPage
+							) == null) {
+						LOG.error("Re 1st login FAIL.");
+					} else {
+						LOG.info("Re 1st login SUCCESS.");
+					}
 				}
 				
 				x++;
