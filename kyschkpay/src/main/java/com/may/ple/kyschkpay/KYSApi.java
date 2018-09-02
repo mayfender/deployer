@@ -78,7 +78,7 @@ public class KYSApi {
 				resp = doFirstLogin(proxy, sessionId, captcha, email, password);
 				if(resp == null) {
 					LOG.warn("Wait to re doFirstLogin.");
-					Thread.sleep(2000);
+					Thread.sleep(500);
 				}
 				x++;
 			}
@@ -119,13 +119,13 @@ public class KYSApi {
 				
 				if(resp.getStatus() == StatusConstant.SERVICE_UNAVAILABLE) {
 					LOG.warn("Wait to re doSecondLogin. " + sessionId);
-					Thread.sleep(2000);
+					Thread.sleep(5000);
 				}
 				
 				x++;
 			}
 			
-			LOG.info("Do secondLogin is SUCCESS.");
+			LOG.info("End secondLogin : " + resp.getStatus());
 			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
@@ -563,7 +563,7 @@ public class KYSApi {
 				if(x == 10) break;
 				
 				if(x != 0) {
-					Thread.sleep(2000);
+					Thread.sleep(500);
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, "rf");					
 				} else {
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, null);
