@@ -29,11 +29,14 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private final static String TT_CHECK_STATUS = "checkStatus";
 	private final static String TT_SEND_MSG = "sendMsg";
 	private final static String TT_READ = "read";
+	private final static String TT_REGIS_CHTCONSOLE = "registerChatConsole";
+	private final static String TT_UNREGIS_CHTCONSOLE = "unRegisterChatConsole";
 	private final static String CTT_USER = "user";
 	private final static String CTT_USERS = "users";
 	private final static String CTT_ALERT_NUM = "alertNum";
 	private final static String CTT_FRIENDS = "friends";
 	private final FastMap<String, String> mConntU = new FastMap<String, String>().shared();
+	private final List<String> chatConsole = new ArrayList<>();
 	
 	public DebtAlertPlugin(PluginConfiguration aConfiguration) {
 		super(aConfiguration);
@@ -148,6 +151,10 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							}
 						}
 					}
+					
+					for (String id : chatConsole) {
+						getServer().sendToken(getConnector(id), lToken);
+					}
 				} else if(TT_READ.equals(aToken.getType())) {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "readResp");
 					lToken.setString("chattingId", aToken.getString("chattingId"));
@@ -162,6 +169,10 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							getServer().sendToken(getConnector(aId), lToken);
 						}
 					}
+				} else if(TT_REGIS_CHTCONSOLE.equals(aToken.getType())) {
+					chatConsole.add(aConnector.getId());
+				} else if(TT_UNREGIS_CHTCONSOLE.equals(aToken.getType())) {
+					chatConsole.remove(aConnector.getId());
 				}
 			}
 		} catch (Exception e) {
