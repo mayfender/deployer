@@ -76,6 +76,10 @@ public class KYSApi {
 				
 				//[3.2]
 				resp = doFirstLogin(proxy, sessionId, captcha, email, password);
+				if(resp == null) {
+					LOG.warn("Wait to re doFirstLogin.");
+					Thread.sleep(500);
+				}
 				x++;
 			}
 			
@@ -92,7 +96,6 @@ public class KYSApi {
 			
 			LOG.debug("Start SecondLogin");
 			String captchaUrl = secondLoginPage.get("captchaUrl");
-			String sessionId = secondLoginPage.get("sessionId");
 			LoginRespModel resp = null;
 			String captcha;
 			int x = 0;
@@ -100,7 +103,7 @@ public class KYSApi {
 				if(x == 3) return resp;
 				
 				//[1]
-				captcha = parseCaptcha(proxy, sessionId, captchaUrl);
+				captcha = parseCaptcha(proxy, secondLoginPage.get("sessionId"), captchaUrl);
 				if(StringUtils.isBlank(captcha)) {
 					resp = new LoginRespModel();
 					resp.setStatus(StatusConstant.SERVICE_UNAVAILABLE);
@@ -110,13 +113,28 @@ public class KYSApi {
 				LOG.info("Do secondLogin round: " + x);
 				
 				//[2]
-				resp = doSecondLogin(proxy, sessionId, captcha, cid, birthdate);
+				resp = doSecondLogin(proxy, secondLoginPage.get("sessionId"), captcha, cid, birthdate);
 				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
+				
+				if(resp.getStatus() == StatusConstant.SERVICE_UNAVAILABLE) {
+					String sessionId = secondLoginPage.get("sessionId");
+					if(ManageLoginWorkerThread.firstLoginGate(
+							proxy, 
+							secondLoginPage.get("username"), 
+							secondLoginPage.get("password"), 
+							sessionId, 
+							secondLoginPage
+							) == null) {
+						LOG.error("Re 1st login FAIL.");
+					} else {
+						LOG.info("Re 1st login SUCCESS.");
+					}
+				}
 				
 				x++;
 			}
 			
-			LOG.info("Do secondLogin is SUCCESS.");
+			LOG.info("End secondLogin : " + resp.getStatus());
 			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
@@ -554,7 +572,7 @@ public class KYSApi {
 				if(x == 10) break;
 				
 				if(x != 0) {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, "rf");					
 				} else {
 					captchaImg = getCaptchaImg(proxy, sessionId, captchaUrl, null);

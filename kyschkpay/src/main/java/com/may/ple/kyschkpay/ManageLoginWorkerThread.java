@@ -22,7 +22,7 @@ public class ManageLoginWorkerThread extends Thread {
 	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int LOGIN_POOL_SIZE = 3;
+	private static final int LOGIN_POOL_SIZE = 1;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> proxiesIndex = new ArrayList<>();
 	private List<String> prodIds;
@@ -90,7 +90,7 @@ public class ManageLoginWorkerThread extends Thread {
 				
 				//-- Do first login.
 				prepareFirstLogin();
-				LOG.info("## Do all first login SUCCESSFUL.");
+				LOG.info("+++++++++++++++++ all 1st login SUCCESSFUL. ++++++++++++++++");
 				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);
@@ -202,12 +202,12 @@ public class ManageLoginWorkerThread extends Thread {
 				
 				int round = 0;
 				while(secondLoginPage == null) {
-					LOG.info("Do first login key: " + key + " round: " + round);
+					LOG.info("Do 1st login key: " + key + " round: " + round);
 					
 					LOG.info("Call firstLogin");
 					secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acc.get(0).getAsString(), acc.get(1).getAsString());
 					if(secondLoginPage == null) {
-						LOG.warn("First Login fail.");
+						LOG.warn("1st login fail.");
 						Thread.sleep(1000);									
 					} else {
 						secondLoginPage.put("username", acc.get(0).getAsString());
@@ -217,7 +217,7 @@ public class ManageLoginWorkerThread extends Thread {
 				}
 				
 				firstLoginMap.put(key, secondLoginPage);
-				LOG.info("Do first login SUCCESS key : " + key);
+				LOG.info("1st login SUCCESS [" + firstLoginMap.size() + "] key : " + key + " " + secondLoginPage.get("sessionId"));
 			}
 		} catch (Exception e) {
 			LOG.error(e.toString());
@@ -230,11 +230,15 @@ public class ManageLoginWorkerThread extends Thread {
 			LOG.info("Check before first login with oldSessionId: " + oldSessionId);
 			if(oldSessionId.equals(currentSessionId.get("sessionId"))) {
 				LOG.info("## relogin");
-				return KYSApi.getInstance().firstLogin(proxy, username, password);
+				Map<String, String> result = KYSApi.getInstance().firstLogin(proxy, username, password);
+				
+				if(result == null) return null;
+				
+				currentSessionId.put("sessionId", result.get("sessionId"));
 			} else {
 				LOG.info("## Curent sesson is WORK.");
-				return currentSessionId;
 			}
+			return currentSessionId;
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;
@@ -243,7 +247,7 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	private void prepareFirstLogin() throws Exception {
 		try {
-			LOG.info("Start do first login.");
+			LOG.info("Start 1st login.");
 			String kys = "kys", kro = "kro", kysNormal = "kys_normal";
 			JsonArray kysAcc, kroAcc, kysNormalAcc;
 			Proxy proxy = null;
@@ -276,7 +280,7 @@ public class ManageLoginWorkerThread extends Thread {
 					}
 				}
 			}
-			LOG.info("End do first login.");
+			LOG.info("End 1st login.");
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

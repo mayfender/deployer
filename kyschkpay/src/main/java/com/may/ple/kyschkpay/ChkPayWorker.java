@@ -127,7 +127,6 @@ public class ChkPayWorker implements Runnable {
 		model.setProductId(this.chkPayModel.getProductId());
 		
 		try {
-			Map<String, String> reRecondLoginPage;
 			PaymentModel paymentInfo = null;
 			int count = 0;
 			while(true) {
@@ -144,18 +143,15 @@ public class ChkPayWorker implements Runnable {
 				
 				if(!paymentInfo.isError()) break;
 				if(paymentInfo.isReFirstLogin()) {
-					reRecondLoginPage = ManageLoginWorkerThread.firstLoginGate(
+					if(ManageLoginWorkerThread.firstLoginGate(
 							proxy, 
 							secondLogin.get("username"), 
 							secondLogin.get("password"), 
 							paymentInfo.getSessionId(), 
 							secondLogin
-							);
-					
-					if(reRecondLoginPage == null) {
+							) == null) {
 						throw new Exception("Re first login FAIL.");
 					}
-					secondLogin.put("sessionId", reRecondLoginPage.get("sessionId"));
 				}
 				
 				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + secondLogin.get("sessionId"));
