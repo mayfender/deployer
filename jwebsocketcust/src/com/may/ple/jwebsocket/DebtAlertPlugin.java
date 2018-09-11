@@ -22,6 +22,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
 	public static final String NS_DEBTALERT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
 	public static final String NS_CHATTING = JWebSocketServerConstants.NS_BASE + ".plugins.chatting";
+	public static final String NS_CHATTING_CONSOLE = JWebSocketServerConstants.NS_BASE + ".plugins.chattingConsole";
 	private final static String TT_REGISTER = "registerUser";
 	private final static String TT_ALERT = "alert";
 	private final static String TT_GET_USERS = "getUsers";
@@ -152,8 +153,15 @@ public class DebtAlertPlugin extends TokenPlugIn {
 						}
 					}
 					
-					for (String id : chatConsole) {
-						getServer().sendToken(getConnector(id), lToken);
+					if(chatConsole.size() > 0) {
+						mLog.info("chat console.");
+						
+						lToken.setNS(NS_CHATTING_CONSOLE);
+						lToken.setType("chatConsole");
+						
+						for (String id : chatConsole) {
+							getServer().sendToken(getConnector(id), lToken);
+						}
 					}
 				} else if(TT_READ.equals(aToken.getType())) {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "readResp");
@@ -197,6 +205,9 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					}
 				}				
 			}
+			
+			//---: 
+			chatConsole.remove(aConnector.getId());
 		} catch (Exception e) {
 			mLog.error(e.toString(), e);
 		}
