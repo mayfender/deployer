@@ -34,7 +34,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private final static String TT_UNREGIS_CHTCONSOLE = "unRegisterChatConsole";
 	private final static String CTT_USER = "user";
 	private final static String CTT_USERS = "users";
-	private final static String CTT_ALERT_NUM = "alertNum";
 	private final static String CTT_FRIENDS = "friends";
 	private final FastMap<String, String> mConntU = new FastMap<String, String>().shared();
 	private final List<String> chatConsole = new ArrayList<>();
@@ -87,15 +86,18 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					lToken.setList(CTT_USERS, lUser);
 					getServer().sendToken(aConnector, lToken);
 				} else if (TT_ALERT.equals(aToken.getType())) {
-					Map<String, Integer> mUser = aToken.getMap(CTT_USERS);
-					Set<Entry<String, Integer>> uSet = mUser.entrySet();
+					Map<String, Map> mUser = aToken.getMap(CTT_USERS);
+					Set<Entry<String, Map>> uSet = mUser.entrySet();
 					Set<Entry<String, String>> conntUSet;
 					WebSocketConnector connt;
 					Token lToken;
 					
-					for (Entry<String, Integer> uEntry : uSet) {
+					for (Entry<String, Map> uEntry : uSet) {
 						lToken = TokenFactory.createToken(getNamespace(), TT_ALERT);
-						lToken.setInteger(CTT_ALERT_NUM, uEntry.getValue());
+						lToken.setInteger("alertNum", (Integer)uEntry.getValue().get("alertNum"));
+						lToken.setInteger("sum_group_1", (Integer)uEntry.getValue().get("sum_group_1"));
+						lToken.setInteger("sum_group_2", (Integer)uEntry.getValue().get("sum_group_2"));
+						lToken.setInteger("sum_group_3", (Integer)uEntry.getValue().get("sum_group_3"));
 						conntUSet = mConntU.entrySet();
 						
 						for (Entry<String, String> conntEntry : conntUSet) {
