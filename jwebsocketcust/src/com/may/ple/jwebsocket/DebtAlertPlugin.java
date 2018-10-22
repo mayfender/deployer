@@ -1,12 +1,11 @@
 package com.may.ple.jwebsocket;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javolution.util.FastMap;
 
 import org.apache.log4j.Logger;
 import org.jwebsocket.api.PluginConfiguration;
@@ -17,6 +16,8 @@ import org.jwebsocket.kit.PlugInResponse;
 import org.jwebsocket.plugins.TokenPlugIn;
 import org.jwebsocket.token.Token;
 import org.jwebsocket.token.TokenFactory;
+
+import javolution.util.FastMap;
 
 public class DebtAlertPlugin extends TokenPlugIn {
 	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
@@ -32,6 +33,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private final static String TT_READ = "read";
 	private final static String TT_REGIS_CHTCONSOLE = "registerChatConsole";
 	private final static String TT_UNREGIS_CHTCONSOLE = "unRegisterChatConsole";
+	private final static String TT_PAID_ALERT = "paidAlert";
 	private final static String CTT_USER = "user";
 	private final static String CTT_USERS = "users";
 	private final static String CTT_FRIENDS = "friends";
@@ -178,6 +180,14 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							lToken.setList("chatMsgId", entry.getValue());
 							getServer().sendToken(getConnector(aId), lToken);
 						}
+					}
+				} else if(TT_PAID_ALERT.equals(aToken.getType())) {
+					Token lToken = TokenFactory.createToken(getNamespace(), "paidAlert");
+					lToken.setString("contractNo", aToken.getString("contractNo"));
+					lToken.setString("time", String.format("%1$tH:%1$tM", Calendar.getInstance().getTime()));
+					String aId = mConntU.get(aToken.getString("uId"));
+					if(aId != null) {						
+						getServer().sendToken(getConnector(aId), lToken);
 					}
 				} else if(TT_REGIS_CHTCONSOLE.equals(aToken.getType())) {
 					chatConsole.add(aConnector.getId());
