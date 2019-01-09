@@ -23,7 +23,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private static final Logger mLog = Logger.getLogger(DebtAlertPlugin.class);
 	public static final String NS_DEBTALERT = JWebSocketServerConstants.NS_BASE + ".plugins.debtalert";
 	public static final String NS_CHATTING = JWebSocketServerConstants.NS_BASE + ".plugins.chatting";
-	public static final String NS_CHATTING_CONSOLE = JWebSocketServerConstants.NS_BASE + ".plugins.chattingConsole";
 	private final static String TT_REGISTER = "registerUser";
 	private final static String TT_ALERT = "alert";
 	private final static String TT_GET_USERS = "getUsers";
@@ -31,14 +30,11 @@ public class DebtAlertPlugin extends TokenPlugIn {
 	private final static String TT_CHECK_STATUS = "checkStatus";
 	private final static String TT_SEND_MSG = "sendMsg";
 	private final static String TT_READ = "read";
-	private final static String TT_REGIS_CHTCONSOLE = "registerChatConsole";
-	private final static String TT_UNREGIS_CHTCONSOLE = "unRegisterChatConsole";
 	private final static String TT_PAID_ALERT = "paidAlert";
 	private final static String CTT_USER = "user";
 	private final static String CTT_USERS = "users";
 	private final static String CTT_FRIENDS = "friends";
 	private final FastMap<String, String> mConntU = new FastMap<String, String>().shared();
-	private final List<String> chatConsole = new ArrayList<>();
 	
 	public DebtAlertPlugin(PluginConfiguration aConfiguration) {
 		super(aConfiguration);
@@ -156,17 +152,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 							}
 						}
 					}
-					
-					if(chatConsole.size() > 0) {
-						mLog.info("chat console.");
-						
-						lToken.setNS(NS_CHATTING_CONSOLE);
-						lToken.setType("chatConsole");
-						
-						for (String id : chatConsole) {
-							getServer().sendToken(getConnector(id), lToken);
-						}
-					}
 				} else if(TT_READ.equals(aToken.getType())) {
 					Token lToken = TokenFactory.createToken(NS_CHATTING, "readResp");
 					lToken.setString("chattingId", aToken.getString("chattingId"));
@@ -189,10 +174,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					if(aId != null) {						
 						getServer().sendToken(getConnector(aId), lToken);
 					}
-				} else if(TT_REGIS_CHTCONSOLE.equals(aToken.getType())) {
-					chatConsole.add(aConnector.getId());
-				} else if(TT_UNREGIS_CHTCONSOLE.equals(aToken.getType())) {
-					chatConsole.remove(aConnector.getId());
 				}
 			}
 		} catch (Exception e) {
@@ -217,9 +198,6 @@ public class DebtAlertPlugin extends TokenPlugIn {
 					}
 				}				
 			}
-			
-			//---: 
-			chatConsole.remove(aConnector.getId());
 		} catch (Exception e) {
 			mLog.error(e.toString(), e);
 		}
