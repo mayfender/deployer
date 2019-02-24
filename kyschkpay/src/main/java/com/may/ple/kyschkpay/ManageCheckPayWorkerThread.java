@@ -22,7 +22,6 @@ public class ManageCheckPayWorkerThread extends Thread {
 	private static final Logger LOG = Logger.getLogger(ManageCheckPayWorkerThread.class.getName());
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int CHK_POOL_SIZE = 2;
 	private static final int ITEMS_PER_PAGE = 1000;
 	private List<String> prodIds;
 	
@@ -32,6 +31,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 
 	@Override
 	public void run() {
+		int chkPoolSize = Integer.parseInt(App.prop.getProperty("pool_size_checkpay"));
 		DMSApi dmsApi = DMSApi.getInstance();
 		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 		Map<String, List<ChkPayWorkerModel>> proxies = new HashMap<>();
@@ -144,7 +144,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
 						if(!chkPayPools.containsKey(proxyEnt.getKey())) {
 							LOG.info("Create pool for " + proxyEnt.getKey());
-							chkPayPools.put(proxyEnt.getKey(), (ThreadPoolExecutor)Executors.newFixedThreadPool(CHK_POOL_SIZE));
+							chkPayPools.put(proxyEnt.getKey(), (ThreadPoolExecutor)Executors.newFixedThreadPool(chkPoolSize));
 						}
 						
 						LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());

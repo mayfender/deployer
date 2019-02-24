@@ -19,11 +19,10 @@ import com.google.gson.JsonObject;
 public class ManageLoginWorkerThread extends Thread {
 	public static Map<String, Map<String, String>> firstLoginMap = new HashMap<>();
 	private static final Logger LOG = Logger.getLogger(ManageLoginWorkerThread.class.getName());
-	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private static final String USERNAME = "system";
 	private static final String PASSWORD = "w,j[vd8iy[";
-	private static final int LOGIN_POOL_SIZE = 1;
 	private static final int ITEMS_PER_PAGE = 1000;
+	private Map<String, ThreadPoolExecutor> loginPools = new HashMap<>();
 	private List<String> proxiesIndex = new ArrayList<>();
 	private List<String> prodIds;
 	
@@ -33,13 +32,14 @@ public class ManageLoginWorkerThread extends Thread {
 	
 	private void initProxy() {
 		String property = App.prop.getProperty("proxies");
+		int loginPoolSize = Integer.parseInt(App.prop.getProperty("pool_size_login"));
 		
 		if(StringUtils.isNotBlank(property)) {
 			String[] proxies = property.split(",");
 			for (String proxy : proxies) {
 				LOG.info("Add to proxy list : " + proxy);
 				proxiesIndex.add(proxy.trim());
-				loginPools.put(proxy.trim(), (ThreadPoolExecutor)Executors.newFixedThreadPool(LOGIN_POOL_SIZE));
+				loginPools.put(proxy.trim(), (ThreadPoolExecutor)Executors.newFixedThreadPool(loginPoolSize));
 			}
 		}
 	}
