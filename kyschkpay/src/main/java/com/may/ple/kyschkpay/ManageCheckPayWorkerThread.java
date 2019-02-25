@@ -1,6 +1,7 @@
 package com.may.ple.kyschkpay;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,14 +54,19 @@ public class ManageCheckPayWorkerThread extends Thread {
 			try {
 				if(!App.checkWorkingHour()) {
 					if(!isClear) {
-						LOG.info("Clear status to login");
-						token = dmsApi.login(USERNAME, PASSWORD);
-						
-						for (String prodId : prodIds) {
-							dmsApi.clearStatusChkLst(token, prodId, USERNAME, PASSWORD);
+						if(Calendar.SATURDAY == Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
+							LOG.info("[SATURDAY] Clear status to login");
+							token = dmsApi.login(USERNAME, PASSWORD);
+							
+							for (String prodId : prodIds) {
+								dmsApi.clearStatusChkLst(token, prodId, USERNAME, PASSWORD);
+							}
+							
+							ManageLoginWorkerThread.firstLoginMap.clear();
+						} else {
+							LOG.info("[NOT SATURDAY] ignore clear status to login");
 						}
 						
-						ManageLoginWorkerThread.firstLoginMap.clear();
 						isClear = Boolean.TRUE;
 					}
 					
