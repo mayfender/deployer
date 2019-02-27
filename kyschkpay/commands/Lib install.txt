@@ -1,1 +1,14 @@
 Copy lib\opencv_java340.dll to jdk1.8.0_151\bin
+
+****************************************************************************
+If java.lang.UnsatisfiedLinkError appear so need to be install "Visual Studio redistributable package"
+
+https://stackoverflow.com/questions/17023419/windows-7-64-bit-dll-problems
+Visual Studio 2015
+Visual Studio 2013
+Visual Studio 2010
+Visual Studio 2008
+
+and restart again.
+*****************************************************************************
+
