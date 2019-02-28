@@ -1,1 +1,1 @@
-"C:\Program Files\Java\jdk1.8.0_151\bin\javaw" -Djdk.http.auth.tunneling.disabledSchemes= -Duser.language=en -Duser.region=UK -Dfile.encoding=UTF-8 -jar kyschkpay.jar
+"C:\Program Files\Java\jdk1.8.0_151\bin\javaw" -Xms1024m -Xmx1024m -Djdk.http.auth.tunneling.disabledSchemes= -Duser.language=en -Duser.region=UK -Dfile.encoding=UTF-8 -jar kyschkpay.jar
