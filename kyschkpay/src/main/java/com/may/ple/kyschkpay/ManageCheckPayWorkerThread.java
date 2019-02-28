@@ -1,7 +1,6 @@
 package com.may.ple.kyschkpay;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 		Map<String, ThreadPoolExecutor> chkPayPools = new HashMap<>();
 		Set<Entry<String, List<ChkPayWorkerModel>>> proxySet;
 		String proxiesIndexStr = "NOPROXY";
-		boolean isClear = Boolean.FALSE;
+//		boolean isClear = Boolean.FALSE;
 		String contractNoColumnName;
 		JsonElement checkList;
 		String token = null;
@@ -53,7 +52,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 		while(true) {
 			try {
 				if(!App.checkWorkingHour()) {
-					if(!isClear) {
+					/*if(!isClear) {
 						if(Calendar.SATURDAY == Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
 							LOG.info("[SATURDAY] Clear status to login");
 							token = dmsApi.login(USERNAME, PASSWORD);
@@ -68,13 +67,13 @@ public class ManageCheckPayWorkerThread extends Thread {
 						}
 						
 						isClear = Boolean.TRUE;
-					}
+					}*/
 					
 					LOG.info("Sleep 30 min");
 					Thread.sleep(1800000);
 					continue;
 				}
-				isClear = Boolean.FALSE;
+//				isClear = Boolean.FALSE;
 				
 				if(ManageLoginWorkerThread.firstLoginMap.size() == 0) {
 					LOG.warn("First Login NOT found.");
