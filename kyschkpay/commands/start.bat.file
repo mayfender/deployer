@@ -1,0 +1,1 @@
+start  "" "C:\Program Files\Java\jdk1.8.0_151\bin\javaw" -Xmx4G -Xms4G -Djdk.http.auth.tunneling.disabledSchemes= -Duser.language=en -Duser.region=UK -Dfile.encoding=UTF-8 -jar kyschkpay.jar
