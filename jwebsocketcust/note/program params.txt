@@ -1,2 +1,5 @@
+Main class to start.
+org.jwebsocket.console.JWebSocketServer
+
 #Program arguments
 -home D:\Repository\deployer\jwebsocketcust
