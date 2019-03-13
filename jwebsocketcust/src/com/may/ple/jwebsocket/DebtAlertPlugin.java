@@ -72,7 +72,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 						}
 					}
 				} else if (TT_GET_USERS.equals(aToken.getType())) {
-					mLog.debug("mayfender type " + aToken.getType());
+					mLog.debug("type " + aToken.getType());
 					List<String> lUser = new ArrayList<>();
 					Set<Entry<String, String>> conntUSet = mConntU.entrySet();
 					
