@@ -72,6 +72,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 						}
 					}
 				} else if (TT_GET_USERS.equals(aToken.getType())) {
+					mLog.debug("type " + aToken.getType());
 					List<String> lUser = new ArrayList<>();
 					Set<Entry<String, String>> conntUSet = mConntU.entrySet();
 					
@@ -80,6 +81,7 @@ public class DebtAlertPlugin extends TokenPlugIn {
 						lUser.add(conntEntry.getKey());
 					}
 					
+					mLog.debug("User size: " + lUser.size());
 					Token lToken = TokenFactory.createToken(getNamespace(), TT_GET_USERS_RESP);
 					lToken.setList(CTT_USERS, lUser);
 					getServer().sendToken(aConnector, lToken);
