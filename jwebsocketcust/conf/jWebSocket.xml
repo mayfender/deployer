@@ -1636,7 +1636,7 @@
 			<name>com.may.ple.jwebsocket.DebtAlertPlugin</name>
 			<ns>org.jwebsocket.plugins.debtalert</ns>
 			<id>jws.debtalert</id>
-			<jar>debtAlertPlugin-1.0.jar</jar>
+			<jar>debtAlertPlugin-1.2.jar</jar>
 			<server-assignments>
 				<server-assignment>ts0</server-assignment>
 			</server-assignments>
