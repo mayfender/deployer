@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class LoginWorker implements Runnable {
@@ -23,11 +24,10 @@ public class LoginWorker implements Runnable {
 	private String birthDate;
 	private String msgIndex;
 	
-	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel, Map<String, String> secondLoginPage) {
+	public LoginWorker(LoginProxyWorker proxyWorker, Proxy proxy, LoginWorkerModel loginModel) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
 		this.loginModel = loginModel;
-		this.secondLoginPage = secondLoginPage;
 		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
 	
@@ -60,6 +60,15 @@ public class LoginWorker implements Runnable {
 			this.id = data.get("_id").getAsString();
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
 			this.birthDate = DateUtil.birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
+			
+			LOG.debug("Call first login.");
+			JsonObject auth = App.auth.get(loginModel.getProductId());
+			JsonArray kysAcc = auth.getAsJsonArray("kys");
+			secondLoginPage = doFirstLogin(kysAcc, proxy);
+			if(secondLoginPage == null) {
+				LOG.error("### 1st login ERROR!.");
+				return;
+			}
 			
 			LOG.debug("Call second login.");
 			LoginRespModel resp = KYSApi.getInstance().secondLogin(proxy, idCard, birthDate, secondLoginPage);
@@ -100,6 +109,35 @@ public class LoginWorker implements Runnable {
 			
 			proxyWorker.addToLoginList(model);
 			LOG.error(e.toString());
+		}
+	}
+	
+	private Map<String, String> doFirstLogin(JsonArray acc, Proxy proxy) throws Exception {
+		try {
+			Map<String, String> secondLoginPage = null;
+			int round = 0;
+			
+			while(secondLoginPage == null) {
+				if(round == 5) break;
+				LOG.info("Do 1st login round: " + round);
+				
+				LOG.info("Call firstLogin");
+				secondLoginPage = KYSApi.getInstance().firstLogin(proxy, acc.get(0).getAsString(), acc.get(1).getAsString());
+				if(secondLoginPage == null) {
+					LOG.warn("1st login fail.");
+					Thread.sleep(1000);									
+				} else {
+					secondLoginPage.put("username", acc.get(0).getAsString());
+					secondLoginPage.put("password", acc.get(1).getAsString());
+				}
+				round++;
+			}
+			
+			LOG.info(secondLoginPage != null ? "1st login SUCCESS" : "1st login FAIL");
+			return secondLoginPage;
+		} catch (Exception e) {
+			LOG.error(e.toString());
+			throw e;
 		}
 	}
 	

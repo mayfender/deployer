@@ -8,9 +8,6 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -23,7 +20,7 @@ import com.google.gson.JsonParser;
 public class ShowPaymentInfoWorker implements Runnable {
 	private static final Logger LOG = Logger.getLogger(ShowPaymentInfoWorker.class.getName());
 	private Socket socket;
-	private Entry<String, Map<String, String>> dummy;
+//	private Entry<String, Map<String, String>> dummy;
 	
 	public ShowPaymentInfoWorker(Socket socket) {
 		this.socket = socket;
@@ -37,12 +34,12 @@ public class ShowPaymentInfoWorker implements Runnable {
 			) {
 			
 			//--: TODO: Should be fixed to get by key format: productId:proxy:loanType
-			dummy = ManageLoginWorkerThread.firstLoginMap.entrySet().iterator().next();
+			/*dummy = ManageLoginWorkerThread.firstLoginMap.entrySet().iterator().next();
 			String[] keyArr = dummy.getKey().split("#");
 			String proxySet = keyArr[1];
 			if(proxySet.equals("NOPROXY")) {
 				proxySet = null;
-			}
+			}*/
 			//--
 			
 			LOG.info("Start ShowPaymentInfo");
@@ -53,9 +50,8 @@ public class ShowPaymentInfoWorker implements Runnable {
 			String loanType = jsonRead.get("loanType").getAsString();
 			String cif = jsonRead.get("cif").getAsString();
 			String uri = jsonRead.get("uri").getAsString();
-			String sessionId = dummy.getValue().get("sessionId");
-//			String sessionId = jsonRead.get("sessionId").getAsString();
-//			String proxySet = jsonRead.get("proxy").getAsString();
+			String sessionId = jsonRead.get("sessionId").getAsString();
+			String proxySet = jsonRead.get("proxy").getAsString();
 			String idCard = jsonRead.get("ID_CARD").getAsString();
 			String birthDate = jsonRead.get("BIRTH_DATE").getAsString();
 			Proxy proxy = null;
@@ -99,15 +95,12 @@ public class ShowPaymentInfoWorker implements Runnable {
 						break;
 					}
 					
-					LOG.info("Call reLogin");
+					/*LOG.info("Call reLogin");
 					loginResp = reLogin(proxy, idCard, DateUtil.birthDateFormat(birthDate));
 					if(StatusConstant.SERVICE_UNAVAILABLE == loginResp.getStatus() || StatusConstant.LOGIN_FAIL == loginResp.getStatus()) {
 						isErr = true;
 						break;
 					} else {
-						sessionId = dummy.getValue().get("sessionId");
-						
-//						List<String> params = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
 						List<List<String>> argsList = KYSApi.getInstance().getParam(proxy, sessionId, loginResp.getCif());
 						
 						cif = loginResp.getCif();
@@ -149,7 +142,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 						
 						round++;
 						continue;
-					}
+					}*/
 				} else {
 					Elements bExit = doc.select("td input[name='bExit']");
 					if(bExit != null && bExit.size() > 0) {
@@ -202,7 +195,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 		}
 	}
 
-	private LoginRespModel reLogin(Proxy proxy, String idCard, String birthDate) throws Exception {
+	/*private LoginRespModel reLogin(Proxy proxy, String idCard, String birthDate) throws Exception {
 		try {
 			StatusConstant loginStatus = StatusConstant.LOGIN_FAIL;
 			LoginRespModel loginResp = null;
@@ -229,6 +222,6 @@ public class ShowPaymentInfoWorker implements Runnable {
 			LOG.error(e.toString());
 			throw e;
 		}
-	}
+	}*/
 
 }

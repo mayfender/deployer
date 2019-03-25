@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
@@ -36,12 +35,11 @@ public class ChkPayWorker implements Runnable {
 	private Double lastPayAmountKroOld;
 	private String contractNo;
 	private String msgIndex;
-	private Map<String, String> secondLogin;
+	private String sessionId;
 	
-	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel, Map<String, String> secondLogin) {
+	public ChkPayWorker(ChkPayProxyWorker proxyWorker, Proxy proxy, ChkPayWorkerModel chkPayWorkerModel) {
 		this.proxyWorker = proxyWorker;
 		this.proxy = proxy;
-		this.secondLogin = secondLogin;
 		this.chkPayModel = chkPayWorkerModel;
 		this.msgIndex = (proxy != null ? proxy.toString() : "No Proxy");
 	}
@@ -52,7 +50,7 @@ public class ChkPayWorker implements Runnable {
 			JsonObject data = this.chkPayModel.getJsonElement().getAsJsonObject();
 			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			this.id = data.get("_id").getAsString();
-//			this.sessionId = data.get("sys_sessionId").getAsString();
+			this.sessionId = data.get("sys_sessionId").getAsString();
 			this.cif = data.get("sys_cif").getAsString();
 			JsonElement element;
 			
@@ -136,25 +134,18 @@ public class ChkPayWorker implements Runnable {
 				}
 				
 				if(loanType.equals("F101")) {
-					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, secondLogin.get("sessionId"), this.cif, this.url, this.loanType, this.accNo);					
+					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.url, this.loanType, this.accNo);					
 				} else if(loanType.equals("F201")) {
-					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, secondLogin.get("sessionId"), this.cif, this.urlKro, this.loanTypeKro, this.accNoKro);
+					paymentInfo = KYSApi.getInstance().getPaymentInfo(this.proxy, this.sessionId, this.cif, this.urlKro, this.loanTypeKro, this.accNoKro);
 				}
 				
 				if(!paymentInfo.isError()) break;
+				
 				if(paymentInfo.isReFirstLogin()) {
-					if(ManageLoginWorkerThread.firstLoginGate(
-							proxy, 
-							secondLogin.get("username"), 
-							secondLogin.get("password"), 
-							paymentInfo.getSessionId(), 
-							secondLogin
-							) == null) {
-						throw new Exception("Re first login FAIL.");
-					}
+					throw new CustomException(1, "Session have problem.");
 				}
 				
-				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + secondLogin.get("sessionId"));
+				LOG.warn(msgIndex + " Round[" + count + "] :=================: KYS Error :=============: sessionId " + this.sessionId);
 				count++;
 				Thread.sleep(5000);
 			}
@@ -237,7 +228,7 @@ public class ChkPayWorker implements Runnable {
 		} catch(CustomException e) {
 			model.setStatus(StatusConstant.LOGIN_FAIL.getStatus());
 			model.setErrMsg("Check Pay Session Timeout");
-			LOG.error(msgIndex + " [sessionId " + secondLogin.get("sessionId") + "] ############## " + e.toString());
+			LOG.error(msgIndex + " [sessionId " + this.sessionId + "] ############## " + e.toString());
 		} catch (Exception e) {
 			LOG.error(e.toString());
 			throw e;

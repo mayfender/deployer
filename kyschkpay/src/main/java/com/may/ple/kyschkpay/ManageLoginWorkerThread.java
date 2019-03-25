@@ -89,8 +89,8 @@ public class ManageLoginWorkerThread extends Thread {
 				}
 				
 				//-- Do first login.
-				prepareFirstLogin();
-				LOG.info("+++++++++++++++++ all 1st login SUCCESSFUL. ++++++++++++++++");
+//				prepareFirstLogin();
+//				LOG.info("+++++++++++++++++ all 1st login SUCCESSFUL. ++++++++++++++++");
 				
 				for (String prodId : prodIds) {
 					LOG.info("Start for product id: " + prodId);

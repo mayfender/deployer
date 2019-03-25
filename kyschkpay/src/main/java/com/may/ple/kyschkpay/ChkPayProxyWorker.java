@@ -4,9 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -20,7 +18,6 @@ public class ChkPayProxyWorker implements Runnable {
 	private List<ChkPayWorkerModel> worker;
 	private ThreadPoolExecutor executor;
 	private Proxy proxy;
-	private String proxyStr;
 	private String msgIndex;
 	private String token;
 	
@@ -28,7 +25,6 @@ public class ChkPayProxyWorker implements Runnable {
 		this.executor = executor;
 		this.worker = worker;
 		this.token = token;
-		this.proxyStr = proxyStr;
 		
 		if(!proxyStr.equals("NOPROXY")) {			
 			String[] proxyArr = proxyStr.split(":");
@@ -43,20 +39,8 @@ public class ChkPayProxyWorker implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Map<String, String> secondLogin;
-			String loanType = "kys"; //TODO: loadType should be got from loginWorkerModel object.
-			String key;
-			
 			for (ChkPayWorkerModel chkPayWorkerModel : worker) {
-				key = chkPayWorkerModel.getProductId()+"#"+proxyStr+"#"+loanType;
-				secondLogin = ManageLoginWorkerThread.firstLoginMap.get(key);
-				
-				if(secondLogin == null) {
-					LOG.warn(key + " Skip to ChkPayWorker worker.");
-					continue;
-				}
-				
-				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel, secondLogin));
+				executor.execute(new ChkPayWorker(this, proxy, chkPayWorkerModel));
 			}
 			
 			LOG.info(msgIndex + " Assign Worker finished");
