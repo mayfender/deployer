@@ -85,10 +85,10 @@ public class ManageCheckPayWorkerThread extends Thread {
 					LOG.info("Start for product id: " + prodId);
 					
 					currentPage = 1;
-					LOG.info("Call getChkList");
+					LOG.debug("Call getChkList");
 					chkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 					if(chkList == null) {
-						LOG.info("Not found loginChkList");
+						LOG.warn("Not found loginChkList");
 						continue;
 					}
 					
@@ -105,7 +105,7 @@ public class ManageCheckPayWorkerThread extends Thread {
 					for (; currentPage <= totalPages; currentPage++) {
 						if(currentPage > 1) {
 							Thread.sleep(500);
-							LOG.info("Call getChkList");
+							LOG.debug("Call getChkList");
 							chkList = dmsApi.getChkList(token, prodId, currentPage, ITEMS_PER_PAGE, "CHKPAY");
 							if(chkList == null) break;
 						}
@@ -137,11 +137,11 @@ public class ManageCheckPayWorkerThread extends Thread {
 					proxySet = proxies.entrySet();
 					for (Entry<String, List<ChkPayWorkerModel>> proxyEnt : proxySet) {
 						if(!chkPayPools.containsKey(proxyEnt.getKey())) {
-							LOG.info("Create pool for " + proxyEnt.getKey());
+							LOG.debug("Create pool for " + proxyEnt.getKey());
 							chkPayPools.put(proxyEnt.getKey(), (ThreadPoolExecutor)Executors.newFixedThreadPool(chkPoolSize));
 						}
 						
-						LOG.info("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
+						LOG.debug("Execute " + proxyEnt.getKey() + " size: " + proxyEnt.getValue().size());
 						executor.execute(new ChkPayProxyWorker(chkPayPools.get(proxyEnt.getKey()), token, proxyEnt.getKey(), proxyEnt.getValue()));
 					}
 					

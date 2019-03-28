@@ -77,7 +77,7 @@ public class ChkPayProxyWorker implements Runnable {
 		try {
 			if(chkPayList.size() == 0) return;
 			
-			LOG.info(msgIndex + " Update check payment");
+			LOG.debug(msgIndex + " Update check payment");
 			JsonArray array = new JsonArray();
 			JsonObject obj;
 			

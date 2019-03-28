@@ -236,7 +236,7 @@ public class ChkPayWorker implements Runnable {
 		
 		model.setCreatedDateTime(new Date());
 		proxyWorker.addToChkPayList(model);
-		LOG.info(msgIndex + " End checkpay " + loanType);
+		LOG.debug(msgIndex + " End checkpay " + loanType);
 	}
 	
 }
