@@ -52,8 +52,8 @@ public class ShowPaymentInfoWorker implements Runnable {
 			String uri = jsonRead.get("uri").getAsString();
 			String sessionId = jsonRead.get("sessionId").getAsString();
 			String proxySet = jsonRead.get("proxy").getAsString();
-			String idCard = jsonRead.get("ID_CARD").getAsString();
-			String birthDate = jsonRead.get("BIRTH_DATE").getAsString();
+			/*String idCard = jsonRead.get("ID_CARD").getAsString();
+			String birthDate = jsonRead.get("BIRTH_DATE").getAsString();*/
 			Proxy proxy = null;
 			
 			if(StringUtils.isNotBlank(proxySet)) {
@@ -66,14 +66,37 @@ public class ShowPaymentInfoWorker implements Runnable {
 			}
 			
 			JsonObject jsonWrite = new JsonObject();
-			LoginRespModel loginResp;
+//			LoginRespModel loginResp;
 			boolean isErr = false;
 			String html = "";
-			int round = 0;
+//			int round = 0;
 			Document doc = null;
-			String onload = "";
 			
-			while(true) {
+			if(StringUtils.isBlank(sessionId)) {
+				throw new Exception("sessionId is blank.");
+			}
+			
+			LOG.info("Call getPaymentInfoPage");
+			doc = getPaymentInfoPage(proxy, uri, loanType, accNo, cif, sessionId);
+			
+			if(doc == null) {
+				throw new Exception("Cannot get getPaymentInfoPage");
+			}
+						
+			Elements bExit = doc.select("td input[name='bExit']");
+			if(bExit != null && bExit.size() > 0) {
+				LOG.debug("Remove button");
+				bExit.get(0).parent().remove();
+			}
+			
+			LOG.info("Get HTML");
+			html = doc.html();
+			LOG.debug("End getHtml");
+			
+			
+			
+			
+			/*while(true) {
 				if(StringUtils.isNotBlank(sessionId)) {
 					LOG.info("Call getPaymentInfoPage");
 					doc = getPaymentInfoPage(proxy, uri, loanType, accNo, cif, sessionId);
@@ -95,7 +118,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 						break;
 					}
 					
-					/*LOG.info("Call reLogin");
+					LOG.info("Call reLogin");
 					loginResp = reLogin(proxy, idCard, DateUtil.birthDateFormat(birthDate));
 					if(StatusConstant.SERVICE_UNAVAILABLE == loginResp.getStatus() || StatusConstant.LOGIN_FAIL == loginResp.getStatus()) {
 						isErr = true;
@@ -142,7 +165,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 						
 						round++;
 						continue;
-					}*/
+					}
 				} else {
 					Elements bExit = doc.select("td input[name='bExit']");
 					if(bExit != null && bExit.size() > 0) {
@@ -155,7 +178,7 @@ public class ShowPaymentInfoWorker implements Runnable {
 					LOG.debug("End getHtml");
 					break;
 				}
-			}
+			}*/
 			
 			jsonWrite.addProperty("html", html);
 			jsonWrite.addProperty("isErr", isErr);
