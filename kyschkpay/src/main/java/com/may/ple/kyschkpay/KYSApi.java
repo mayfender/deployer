@@ -83,7 +83,6 @@ public class KYSApi {
 				x++;
 			}
 			
-			LOG.info("Do firstLogin is SUCCESS.");
 			return resp;
 		} catch (Exception e) {
 			LOG.error((proxy != null ? proxy.toString() : "No Proxy") + " " + e.toString());
@@ -439,7 +438,7 @@ public class KYSApi {
 					.method(Method.POST)
 					.data("email", email)
 					.data("password", password)
-					.data("captchar", captcha)
+					.data("captcharL", captcha)
 					.data("flag", "S")
 					.header("Content-Type", "application/x-www-form-urlencoded")
 					.cookie("JSESSIONID", sessionId)
@@ -490,7 +489,7 @@ public class KYSApi {
 					.method(Method.POST)
 					.data("cid", cid)
 					.data("stuBirthdate", birthdate)
-					.data("captchar", captcha)
+					.data("captcha", captcha)
 					.data("flag", "S")
 					.header("Content-Type", "application/x-www-form-urlencoded")
 					.cookie("JSESSIONID", sessionId)
