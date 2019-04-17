@@ -116,6 +116,7 @@ public class KYSApi {
 				LOG.info((proxy != null ? proxy.toString() : "No Proxy") + " " + resp.getStatus() + " round: " + x);
 				
 				if(resp.getStatus() == StatusConstant.SERVICE_UNAVAILABLE) {
+					Thread.sleep(1000);
 					String sessionId = secondLoginPage.get("sessionId");
 					if(ManageLoginWorkerThread.firstLoginGate(
 							proxy, 
