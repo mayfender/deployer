@@ -459,10 +459,12 @@ public class KYSApi {
 			} else if((emailEl = doc.select("input[name='email']")) != null && emailEl.size() > 0) {
 				// re first login.
 				LOG.warn("Do firstLogin fail.");
+				Thread.sleep(1000);
 				return null;
 			} else {
 				// others error.
 				LOG.warn("Do firstLogin NOT found even email tag.");
+				Thread.sleep(1000);
 				return null;
 			}
 			
