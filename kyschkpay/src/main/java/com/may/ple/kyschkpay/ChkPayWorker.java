@@ -46,7 +46,8 @@ public class ChkPayWorker implements Runnable {
 	
 	@Override
 	public void run() {
-		try {			
+		try {
+			Thread.sleep(1000);
 			JsonObject data = this.chkPayModel.getJsonElement().getAsJsonObject();
 			this.contractNo = data.get(this.chkPayModel.getContractNoColumnName()).getAsString();
 			this.id = data.get("_id").getAsString();
