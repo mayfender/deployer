@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class LoginWorker implements Runnable {
@@ -60,7 +61,13 @@ public class LoginWorker implements Runnable {
 			this.id = data.get("_id").getAsString();
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
 			
-			String birthDateDummy = data.get(loginModel.getBirthDateColumnName()).getAsString();
+			JsonElement jsonElement = data.get(loginModel.getBirthDateColumnName());
+			if(jsonElement.isJsonNull()) {
+				LOG.warn("Skip in case of birthdate is empty.");
+				return;
+			}
+			
+			String birthDateDummy = jsonElement.getAsString();
 			if(birthDateDummy == null || (birthDateDummy = birthDateDummy.trim()).length() != 8) {
 				LOG.warn("Skip in case of birthdate wrong format : " + birthDateDummy);
 				return;
