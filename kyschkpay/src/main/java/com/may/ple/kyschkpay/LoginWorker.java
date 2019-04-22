@@ -61,7 +61,7 @@ public class LoginWorker implements Runnable {
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
 			
 			String birthDateDummy = data.get(loginModel.getBirthDateColumnName()).getAsString();
-			if(birthDateDummy == null || (birthDateDummy = birthDateDummy.trim()).length() != 6) {
+			if(birthDateDummy == null || (birthDateDummy = birthDateDummy.trim()).length() != 8) {
 				LOG.warn("Skip in case of birthdate wrong format : " + birthDateDummy);
 				return;
 			}
