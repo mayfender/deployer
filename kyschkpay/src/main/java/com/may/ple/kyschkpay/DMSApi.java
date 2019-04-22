@@ -177,7 +177,7 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateStatus(String token, JsonArray updateLst) throws Exception {
+	public synchronized JsonObject updateStatus(String token, JsonArray updateLst) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
 			LOG.debug("Start updateChkLst");
