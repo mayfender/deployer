@@ -59,7 +59,14 @@ public class LoginWorker implements Runnable {
 			JsonObject data = loginModel.getJsonElement().getAsJsonObject();
 			this.id = data.get("_id").getAsString();
 			this.idCard = data.get(loginModel.getIdCardNoColumnName()).getAsString();
-			this.birthDate = DateUtil.birthDateFormat(data.get(loginModel.getBirthDateColumnName()).getAsString());
+			
+			String birthDateDummy = data.get(loginModel.getBirthDateColumnName()).getAsString();
+			if(birthDateDummy == null || (birthDateDummy = birthDateDummy.trim()).length() != 6) {
+				LOG.warn("Skip in case of birthdate wrong format : " + birthDateDummy);
+				return;
+			}
+			
+			this.birthDate = DateUtil.birthDateFormat(birthDateDummy);
 			
 			LOG.debug("Call first login.");
 			JsonObject auth = App.auth.get(loginModel.getProductId());
