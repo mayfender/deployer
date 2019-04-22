@@ -66,6 +66,7 @@ public class LoginWorker implements Runnable {
 				return;
 			}
 			
+			LOG.info("birthDate : " + birthDateDummy);
 			this.birthDate = DateUtil.birthDateFormat(birthDateDummy);
 			
 			LOG.debug("Call first login.");
