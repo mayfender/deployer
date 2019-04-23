@@ -177,15 +177,14 @@ public class DMSApi {
 		}
 	}
 	
-	public JsonObject updateStatus(String token, JsonArray updateLst) throws Exception {
+	public synchronized JsonObject updateStatus(String token, JsonArray updateLst) throws Exception {
 		CloseableHttpClient httpClient = null;
 		try {
-			synchronized (this) {
-				LOG.debug("Start updateChkLst");
-				HttpClientBuilder builder = HttpClientBuilder.create();
-				builder.setDefaultRequestConfig(REQUEST_CONFIG);
-				httpClient = builder.build();
-			}
+			LOG.debug("Start updateChkLst");
+			HttpClientBuilder builder = HttpClientBuilder.create();
+			builder.setDefaultRequestConfig(REQUEST_CONFIG);
+			
+			httpClient = builder.build();
 			HttpPost httpPost = new HttpPost(BASE_URL + "/restAct/paymentOnlineCheck/updateChkLst");
 			httpPost.addHeader("content-type", "application/json; charset=utf8");
 			httpPost.addHeader("X-Auth-Token", token);
