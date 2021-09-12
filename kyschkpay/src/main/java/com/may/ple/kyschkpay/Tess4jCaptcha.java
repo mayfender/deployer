@@ -30,7 +30,7 @@ public class Tess4jCaptcha {
 	public static void main(String[] args) {
 		System.out.println("Start " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 		try {
-			ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(10);
+			/*ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(10);
 			final String INPUT = "D:\\captcha\\Captcha.jpg";
 			
 			for (int i = 0; i < 500; i++) {
@@ -49,7 +49,11 @@ public class Tess4jCaptcha {
 
 			executor.shutdown();
 			
-			executor.awaitTermination(1, TimeUnit.DAYS);
+			executor.awaitTermination(1, TimeUnit.DAYS);*/
+			
+			String INPUT = "D:\\test-cp.jpg";
+			String txt = new Tess4jCaptcha(DENOISE.CV).solve(Files.readAllBytes(Paths.get(INPUT)));			
+			System.out.println(Thread.currentThread() + " - " + txt);
 			
 			System.out.println("End " + String.format("%1$tH:%1$tM:%1$tS.%1$tL", Calendar.getInstance().getTime()));
 		} catch (Exception e) {
@@ -68,7 +72,7 @@ public class Tess4jCaptcha {
 	
 	public String solve(byte[] in) throws Exception {	    
 		try {
-			return crackImage(this.denoise == DENOISE.CV ? DenoiseCV.denoise(in) : denoise(in));
+			return crackImage(this.denoise == DENOISE.CV ? DenoiseCV.test2(in) : denoise(in));
 		} catch (Exception e) {
 			throw e;
 		}

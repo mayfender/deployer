@@ -9,25 +9,25 @@ import net.nicholaswilliams.java.licensing.licensor.LicenseCreator;
 import net.nicholaswilliams.java.licensing.licensor.LicenseCreatorProperties;
 
 public class GenerateLicense {
-	
+
 	public static void main(String[] args) {
 		LicenseCreatorProperties.setPrivateKeyDataProvider(new MyPrivateKeyProvider());
         LicenseCreatorProperties.setPrivateKeyPasswordProvider(new MyPrivateKeyPasswordProvider());
-        
+
         Calendar ca = Calendar.getInstance();
-        
+
         License license = new License.Builder().
-                withProductKey("SNI-0001-00008").
+                withProductKey("BKK-0037-00048").
                 withHolder("").
                 withIssueDate(ca.getTimeInMillis()).
                 build();
-        
+
         byte[] licenseData = LicenseCreator.getInstance().signAndSerializeLicense(license, "w,j[vd8iy[".toCharArray());
-        
+
         String trns = Base64.encodeBase64String(licenseData);
-        
+
         System.out.println(trns);
-        
+
 	}
 
 }
