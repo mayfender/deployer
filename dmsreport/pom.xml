@@ -120,10 +120,12 @@
 								</copy>
 								<copy todir="./target/webapp" >
 									<fileset dir="./webapp" includes="**"/>
-								</copy>
+								</copy>	
+								<copy file="./start.bat" todir="./target"/>
 							
 								<zip basedir="./target" destfile="target/dmsreport.zip" includes="libs/**, webapp/**, conf/**">
 									<zipfileset file="./target/dmsreport.jar" fullpath="dmsreport.jar" />
+									<zipfileset file="./target/start.bat" fullpath="start.bat" />
 								</zip>
 								<echo>Create Zip File</echo>
 
